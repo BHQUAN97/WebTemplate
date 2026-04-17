@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { Bell, Search, LogOut, Settings, User as UserIcon } from 'lucide-react';
+import { Search, LogOut, Settings, User as UserIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
@@ -14,8 +14,8 @@ import {
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
 import { ThemeToggle } from '@/components/shared/theme-toggle';
+import { NotificationBell } from '@/components/shared/notification-bell';
 import { useAuthStore } from '@/lib/stores/auth-store';
-import { useNotificationStore } from '@/lib/stores/notification.store';
 import { useUIStore } from '@/lib/stores/ui.store';
 import { cn } from '@/lib/utils';
 
@@ -25,7 +25,6 @@ import { cn } from '@/lib/utils';
 export function AdminTopbar() {
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
-  const unreadCount = useNotificationStore((s) => s.unreadCount);
   const sidebarOpen = useUIStore((s) => s.sidebarOpen);
 
   const initials = user?.name
@@ -52,17 +51,8 @@ export function AdminTopbar() {
       <div className="flex items-center gap-2 ml-auto">
         <ThemeToggle />
 
-        {/* Notifications */}
-        <Link href="/admin/notifications">
-          <Button variant="ghost" size="icon" className="relative">
-            <Bell className="h-5 w-5" />
-            {unreadCount > 0 && (
-              <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">
-                {unreadCount > 99 ? '99+' : unreadCount}
-              </span>
-            )}
-          </Button>
-        </Link>
+        {/* Notifications bell voi dropdown */}
+        <NotificationBell />
 
         {/* User menu */}
         <DropdownMenu>

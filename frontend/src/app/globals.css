@@ -167,3 +167,65 @@ html.dark {
     padding: 0 !important;
   }
 }
+
+/* ========================================================================
+   Rich content viewer — iframe/media responsive trong content
+   ======================================================================== */
+.rich-content-viewer iframe,
+.rich-text-editor iframe {
+  max-width: 100%;
+  width: 100%;
+  aspect-ratio: 16 / 9;
+  border: 0;
+  border-radius: 0.5rem;
+}
+
+.rich-content-viewer .editor-iframe-wrapper,
+.rich-text-editor .editor-iframe-wrapper {
+  position: relative;
+  width: 100%;
+  margin: 0.75rem 0;
+  overflow: hidden;
+  border-radius: 0.5rem;
+}
+
+.rich-content-viewer img,
+.rich-text-editor img {
+  max-width: 100%;
+  height: auto;
+  border-radius: 0.5rem;
+}
+
+.rich-content-viewer table,
+.rich-text-editor table {
+  width: 100%;
+  border-collapse: collapse;
+  margin: 1rem 0;
+}
+
+.rich-content-viewer th,
+.rich-content-viewer td,
+.rich-text-editor th,
+.rich-text-editor td {
+  border: 1px solid hsl(var(--border));
+  padding: 0.5rem;
+}
+
+.rich-content-viewer th,
+.rich-text-editor th {
+  background: hsl(var(--muted));
+  font-weight: 600;
+}
+
+.rich-text-editor .ProseMirror {
+  outline: none;
+  min-height: 200px;
+}
+
+.rich-text-editor .ProseMirror p.is-editor-empty:first-child::before {
+  color: #9ca3af;
+  content: attr(data-placeholder);
+  float: left;
+  height: 0;
+  pointer-events: none;
+}

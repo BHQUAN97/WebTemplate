@@ -1,19 +1,44 @@
 'use client';
 
 import { useState } from 'react';
-import { BarChart3, Package, Users, ShoppingBag, Warehouse } from 'lucide-react';
+import { saveAs } from 'file-saver';
+import { BarChart3, Package, Users, Warehouse } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { PrintButton } from '@/components/shared/print-button';
-import { ExportButton, type ExportFormat } from '@/components/shared/export-button';
-import { Button } from '@/components/ui/button';
+import {
+  ExportButton,
+  type ExportFormat,
+} from '@/components/shared/export-button';
 import { Input } from '@/components/ui/input';
-import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
-import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@/components/ui/table';
+import {
+  Card,
+  CardHeader,
+  CardTitle,
+  CardContent,
+  CardDescription,
+} from '@/components/ui/card';
+import {
+  Table,
+  TableHeader,
+  TableBody,
+  TableRow,
+  TableHead,
+  TableCell,
+} from '@/components/ui/table';
 import { Skeleton } from '@/components/ui/skeleton';
 import { useApi } from '@/lib/hooks/use-api';
-import { formatPrice, formatNumber, formatDate } from '@/lib/utils/format';
+import { useToast } from '@/lib/hooks/use-toast';
+import { reportsApi } from '@/lib/api/modules/reports.api';
+import { formatPrice, formatDate } from '@/lib/utils/format';
 
 type ReportType = 'sales' | 'products' | 'customers' | 'inventory';
+
+/** Map ExportButton format -> API format */
+const FORMAT_MAP: Record<ExportFormat, 'csv' | 'xlsx' | 'pdf'> = {
+  csv: 'csv',
+  excel: 'xlsx',
+  pdf: 'pdf',
+};
 
 const REPORT_TYPES: { type: ReportType; icon: React.ReactNode; title: string; description: string }[] = [
   { type: 'sales', icon: <BarChart3 className="h-8 w-8 text-blue-500" />, title: 'Bao cao doanh thu', description: 'Doanh thu, don hang, thanh toan theo thoi gian' },
@@ -24,17 +49,38 @@ const REPORT_TYPES: { type: ReportType; icon: React.ReactNode; title: string; de
 
 /** Bao cao */
 export default function ReportsPage() {
+  const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState<ReportType | null>(null);
   const [dateFrom, setDateFrom] = useState('');
   const [dateTo, setDateTo] = useState('');
+  const [exportLoading, setExportLoading] = useState(false);
 
   const { data, loading } = useApi<{ data: Record<string, unknown>[] }>(
     selectedReport ? `/admin/reports/${selectedReport}` : null,
     { date_from: dateFrom || undefined, date_to: dateTo || undefined },
   );
 
-  const handleExport = (format: ExportFormat) => {
-    // Goi API export report
+  const handleExport = async (format: ExportFormat) => {
+    if (!selectedReport) {
+      toast('Vui long chon loai bao cao', undefined, 'warning');
+      return;
+    }
+    setExportLoading(true);
+    try {
+      const fmt = FORMAT_MAP[format];
+      const blob = await reportsApi.download(selectedReport, {
+        dateFrom: dateFrom || undefined,
+        dateTo: dateTo || undefined,
+        format: fmt,
+      });
+      const ext = fmt === 'xlsx' ? 'xlsx' : fmt;
+      saveAs(blob, `${selectedReport}-report-${Date.now()}.${ext}`);
+      toast('Da tai bao cao', undefined, 'success');
+    } catch (err) {
+      toast('Xuat bao cao that bai', (err as Error).message, 'destructive');
+    } finally {
+      setExportLoading(false);
+    }
   };
 
   return (
@@ -48,7 +94,11 @@ export default function ReportsPage() {
         actions={
           <div className="flex items-center gap-2 print:hidden">
             <PrintButton />
-            <ExportButton onExport={handleExport} formats={['csv', 'excel']} />
+            <ExportButton
+              onExport={handleExport}
+              formats={['csv', 'excel', 'pdf']}
+              loading={exportLoading}
+            />
           </div>
         }
       />

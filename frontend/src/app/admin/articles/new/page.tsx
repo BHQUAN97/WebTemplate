@@ -6,6 +6,7 @@ import { Save, FileText } from 'lucide-react';
 import { z } from 'zod';
 import { PageHeader } from '@/components/shared/page-header';
 import { FormField } from '@/components/shared/form-field';
+import { RichTextEditor } from '@/components/shared/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -93,12 +94,10 @@ export default function NewArticlePage() {
                 <Input value={form.slug} onChange={(e) => updateField('slug', e.target.value)} />
               </FormField>
               <FormField label="Noi dung" error={errors.content} required>
-                {/* Placeholder for rich text editor */}
-                <Textarea
+                <RichTextEditor
                   value={form.content}
-                  onChange={(e) => updateField('content', e.target.value)}
-                  rows={16}
-                  placeholder="Nhap noi dung bai viet... (Tich hop rich text editor sau)"
+                  onChange={(html) => updateField('content', html)}
+                  placeholder="Nhap noi dung bai viet..."
                 />
               </FormField>
               <FormField label="Tom tat" error={errors.excerpt}>

@@ -7,6 +7,7 @@ import { z } from 'zod';
 import { PageHeader } from '@/components/shared/page-header';
 import { FormField } from '@/components/shared/form-field';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
+import { RichTextEditor } from '@/components/shared/rich-text-editor';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Textarea } from '@/components/ui/textarea';
@@ -124,10 +125,9 @@ export default function EditArticlePage() {
                 <Input value={form.slug} onChange={(e) => updateField('slug', e.target.value)} />
               </FormField>
               <FormField label="Noi dung" error={errors.content} required>
-                <Textarea
+                <RichTextEditor
                   value={form.content}
-                  onChange={(e) => updateField('content', e.target.value)}
-                  rows={16}
+                  onChange={(html) => updateField('content', html)}
                   placeholder="Noi dung bai viet..."
                 />
               </FormField>

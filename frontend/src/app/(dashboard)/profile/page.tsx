@@ -3,7 +3,8 @@
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
-import { Eye, EyeOff, Trash2, Upload, ShieldCheck } from 'lucide-react';
+import { saveAs } from 'file-saver';
+import { Eye, EyeOff, Trash2, Upload, ShieldCheck, Download } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
@@ -32,6 +33,8 @@ export default function ProfilePage() {
   const [passwordError, setPasswordError] = useState('');
   const [showPasswords, setShowPasswords] = useState(false);
   const [deleteConfirm, setDeleteConfirm] = useState(false);
+  const [exportLoading, setExportLoading] = useState(false);
+  const [exportMsg, setExportMsg] = useState('');
 
   // Profile form
   const profileForm = useForm<ProfileFormData>({
@@ -80,6 +83,26 @@ export default function ProfilePage() {
       }
     } catch {
       // Ignore
+    }
+  };
+
+  // GDPR — tai xuong toan bo du lieu ca nhan
+  const handleExportData = async () => {
+    if (!user) return;
+    setExportLoading(true);
+    setExportMsg('');
+    try {
+      const blob = await usersApi.exportUserData(user.id);
+      const ext =
+        blob.type.includes('zip') || blob.type === 'application/zip'
+          ? 'zip'
+          : 'json';
+      saveAs(blob, `my-data-${user.id}-${Date.now()}.${ext}`);
+      setExportMsg('Da tai du lieu cua ban');
+    } catch (err) {
+      setExportMsg((err as Error).message || 'Loi khi tai du lieu');
+    } finally {
+      setExportLoading(false);
     }
   };
 
@@ -281,6 +304,32 @@ export default function ProfilePage() {
                 Quet QR code nay bang ung dung xac thuc (Google Authenticator, Authy...)
               </p>
             </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* GDPR data export */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <Download className="h-5 w-5" />
+            Du lieu cua toi (GDPR)
+          </CardTitle>
+        </CardHeader>
+        <CardContent className="space-y-3">
+          <p className="text-sm text-gray-600">
+            Tai xuong ban sao toan bo du lieu ca nhan cua ban (JSON/ZIP).
+          </p>
+          <Button
+            variant="outline"
+            onClick={handleExportData}
+            disabled={exportLoading}
+          >
+            <Download className="h-4 w-4 mr-2" />
+            {exportLoading ? 'Dang chuan bi...' : 'Tai du lieu cua toi'}
+          </Button>
+          {exportMsg && (
+            <p className="text-sm text-gray-600">{exportMsg}</p>
           )}
         </CardContent>
       </Card>
