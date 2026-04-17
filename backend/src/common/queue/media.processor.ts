@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -12,6 +12,7 @@ import {
 import sharp from 'sharp';
 import { Media } from '../../modules/media/entities/media.entity.js';
 import { QUEUE_NAMES } from './queue.module.js';
+import { DeadLetterService } from './dead-letter.service.js';
 
 /**
  * Job generate thumbnail — resize anh thanh cac kich thuoc pho bien.
@@ -37,6 +38,7 @@ export class MediaProcessor extends WorkerHost {
     private readonly configService: ConfigService,
     @InjectRepository(Media)
     private readonly mediaRepo: Repository<Media>,
+    private readonly dlqService: DeadLetterService,
   ) {
     super();
     this.bucket = this.configService.get<string>('storage.bucket', '');
@@ -58,6 +60,31 @@ export class MediaProcessor extends WorkerHost {
           ? { accessKeyId: accessKey, secretAccessKey: secretKey }
           : undefined,
     });
+  }
+
+  /**
+   * Failed listener -> DLQ khi vuot max attempts.
+   */
+  @OnWorkerEvent('failed')
+  async onFailed(job: Job<ThumbnailJobData>, err: Error): Promise<void> {
+    const maxAttempts = job.opts?.attempts ?? 3;
+    if ((job.attemptsMade ?? 0) >= maxAttempts) {
+      try {
+        await this.dlqService.moveToDlq({
+          originalQueue: QUEUE_NAMES.MEDIA,
+          originalJobName: job.name,
+          originalJobId: job.id,
+          payload: job.data,
+          error: err?.message || String(err),
+          attemptsMade: job.attemptsMade ?? 0,
+          failedAt: new Date().toISOString(),
+        });
+      } catch (dlqErr) {
+        this.logger.error(
+          `Failed to move media job to DLQ: ${(dlqErr as Error).message}`,
+        );
+      }
+    }
   }
 
   /**

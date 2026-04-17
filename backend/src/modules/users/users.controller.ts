@@ -8,9 +8,13 @@ import {
   Body,
   Param,
   Query,
+  Res,
+  ForbiddenException,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
+import type { Response } from 'express';
 import { UsersService } from './users.service.js';
+import { GdprExportService } from './gdpr-export.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
@@ -24,7 +28,36 @@ import { paginatedResponse } from '../../common/utils/response.js';
 @ApiTags('Users')
 @Controller('users')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly gdprExportService: GdprExportService,
+  ) {}
+
+  /**
+   * GET /users/:id/export — GDPR data export.
+   * Allow: admin HOAC chinh user. Tra ZIP stream.
+   * Rate-limit: 1 request/user/day (check trong service).
+   */
+  @Get(':id/export')
+  async gdprExport(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: ICurrentUser,
+    @Res() res: Response,
+  ) {
+    const isAdmin = currentUser.role === UserRole.ADMIN;
+    if (!isAdmin && currentUser.id !== id) {
+      throw new ForbiddenException('You can only export your own data');
+    }
+
+    const stream = await this.gdprExportService.exportUserDataZipStream(id);
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="user-data-${id}-${ts}.zip"`,
+      'Cache-Control': 'no-store',
+    });
+    stream.pipe(res);
+  }
 
   /**
    * GET /users — danh sach users (admin only), co pagination + search.

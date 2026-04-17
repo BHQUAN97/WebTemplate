@@ -5,7 +5,7 @@ import {
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, In } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
 import {
@@ -25,6 +25,11 @@ import { UploadMediaDto } from './dto/upload-media.dto.js';
 import { QueryMediaDto } from './dto/query-media.dto.js';
 import { QUEUE_NAMES } from '../../common/queue/queue.module.js';
 import { ThumbnailJobData } from '../../common/queue/media.processor.js';
+
+/** Bulk download limit: so item */
+export const BULK_DOWNLOAD_MAX_ITEMS = 100;
+/** Bulk download limit: tong size (bytes) — 100MB */
+export const BULK_DOWNLOAD_MAX_BYTES = 100 * 1024 * 1024;
 
 /** Max file size — 10MB */
 const MAX_FILE_SIZE = 10 * 1024 * 1024;
@@ -295,6 +300,35 @@ export class MediaService extends BaseService<Media> {
       .getRawMany();
 
     return result.map((r) => r.folder);
+  }
+
+  /**
+   * Lay danh sach media theo ID (dung cho bulk operation).
+   * Tu dong loc deleted_at.
+   */
+  async findByIds(ids: string[]): Promise<Media[]> {
+    if (!ids.length) return [];
+    return this.mediaRepo.find({
+      where: { id: In(ids), deleted_at: null as any },
+    });
+  }
+
+  /**
+   * Download file tu S3 ve Buffer — dung cho bulk ZIP hoac GDPR export.
+   * Throw NotFoundException neu S3 khong co file.
+   */
+  async getObjectBuffer(storageKey: string): Promise<Buffer> {
+    const cmd = new GetObjectCommand({
+      Bucket: this.bucket,
+      Key: storageKey,
+    });
+    const resp = await this.s3.send(cmd);
+    const body = resp.Body as any;
+    if (!body) {
+      throw new NotFoundException(`S3 object ${storageKey} not found`);
+    }
+    const bytes: Uint8Array = await body.transformToByteArray();
+    return Buffer.from(bytes);
   }
 
   /**

@@ -1,9 +1,10 @@
 import { Injectable, NotFoundException, BadRequestException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { DeepPartial, Repository } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { Page } from './entities/page.entity.js';
 import { CreatePageDto } from './dto/create-page.dto.js';
+import { sanitizeCmsHtml } from '../../common/utils/sanitize-html.js';
 
 /**
  * Pages service — quan ly trang tinh, page builder, homepage, cay phan cap.
@@ -83,11 +84,23 @@ export class PagesService extends BaseService<Page> {
   }
 
   /**
-   * Override create — tu dong sinh slug tu title.
+   * Override create — tu dong sinh slug tu title + sanitize HTML content.
    */
   async createPage(dto: CreatePageDto): Promise<Page> {
     const slug = this.generateSlug(dto.title);
-    return this.create({ ...dto, slug } as any);
+    const content = sanitizeCmsHtml(dto.content);
+    return this.create({ ...dto, slug, content } as any);
+  }
+
+  /**
+   * Override update — sanitize HTML content neu co truong content duoc cap nhat.
+   * Goi qua BaseService.update de giu behavior pagination/logger.
+   */
+  async update(id: string, data: DeepPartial<Page>): Promise<Page> {
+    if (typeof data.content === 'string') {
+      data = { ...data, content: sanitizeCmsHtml(data.content) };
+    }
+    return super.update(id, data);
   }
 
   /**

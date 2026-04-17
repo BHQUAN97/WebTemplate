@@ -9,12 +9,22 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  Res,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
-import { MediaService } from './media.service.js';
+import type { Response } from 'express';
+import archiver from 'archiver';
+import {
+  MediaService,
+  BULK_DOWNLOAD_MAX_ITEMS,
+  BULK_DOWNLOAD_MAX_BYTES,
+} from './media.service.js';
 import { UploadMediaDto } from './dto/upload-media.dto.js';
 import { QueryMediaDto } from './dto/query-media.dto.js';
+import { BulkDownloadDto } from './dto/bulk-download.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { UserRole } from '../../common/constants/index.js';
 import type { ICurrentUser } from '../../common/interfaces/index.js';
 import {
   successResponse,
@@ -61,6 +71,82 @@ export class MediaController {
   ) {
     const media = await this.mediaService.upload(file, user.id, dto);
     return successResponse(media, 'File uploaded successfully');
+  }
+
+  /**
+   * Bulk download — zip stream nhieu file media thanh 1 ZIP.
+   * Admin only. Max 100 items, max 100MB tong size.
+   */
+  @Post('download/bulk')
+  @Roles(UserRole.ADMIN, UserRole.MANAGER)
+  async bulkDownload(@Body() dto: BulkDownloadDto, @Res() res: Response) {
+    const ids = dto.ids || [];
+    if (!ids.length) {
+      throw new BadRequestException('ids is required');
+    }
+    if (ids.length > BULK_DOWNLOAD_MAX_ITEMS) {
+      throw new BadRequestException(
+        `Max ${BULK_DOWNLOAD_MAX_ITEMS} items per bulk download`,
+      );
+    }
+
+    const items = await this.mediaService.findByIds(ids);
+    if (!items.length) {
+      throw new BadRequestException('No media found for given ids');
+    }
+
+    // Check total size tong cong truoc khi stream
+    const totalSize = items.reduce((sum, m) => sum + (m.size || 0), 0);
+    if (totalSize > BULK_DOWNLOAD_MAX_BYTES) {
+      throw new BadRequestException(
+        `Total size (${totalSize} bytes) exceeds max ${BULK_DOWNLOAD_MAX_BYTES} bytes`,
+      );
+    }
+
+    const ts = new Date().toISOString().replace(/[:.]/g, '-');
+    const zipName = `media-bundle-${ts}.zip`;
+
+    res.set({
+      'Content-Type': 'application/zip',
+      'Content-Disposition': `attachment; filename="${zipName}"`,
+      'Cache-Control': 'no-store',
+    });
+
+    const archive = archiver('zip', { zlib: { level: 9 } });
+    archive.on('error', (err) => {
+      // Log + destroy stream. Response co the da commit headers.
+      res.destroy(err);
+    });
+    archive.pipe(res);
+
+    // Add files. Dung name chong trung — neu trung thi append index.
+    const usedNames = new Set<string>();
+    for (const media of items) {
+      try {
+        const buffer = await this.mediaService.getObjectBuffer(
+          media.storage_key,
+        );
+        let name = media.original_name || media.filename;
+        if (usedNames.has(name)) {
+          const dot = name.lastIndexOf('.');
+          const base = dot > 0 ? name.slice(0, dot) : name;
+          const ext = dot > 0 ? name.slice(dot) : '';
+          name = `${base}-${media.id.slice(-6)}${ext}`;
+        }
+        usedNames.add(name);
+        archive.append(buffer, { name });
+      } catch (err) {
+        // Log trong archive, skip file bi loi nhung khong fail ca ZIP
+        archive.append(
+          Buffer.from(
+            `Failed to fetch ${media.original_name}: ${(err as Error).message}`,
+          ),
+          { name: `ERROR-${media.id}.txt` },
+        );
+      }
+    }
+
+    await archive.finalize();
   }
 
   /**

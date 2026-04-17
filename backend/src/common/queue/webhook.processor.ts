@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -8,6 +8,7 @@ import * as dns from 'dns';
 import { Webhook } from '../../modules/webhooks/entities/webhook.entity.js';
 import { WebhookDelivery } from '../../modules/webhooks/entities/webhook-delivery.entity.js';
 import { QUEUE_NAMES } from './queue.module.js';
+import { DeadLetterService } from './dead-letter.service.js';
 
 /**
  * Payload cua webhook job.
@@ -105,8 +106,34 @@ export class WebhookProcessor extends WorkerHost {
     private readonly webhookRepo: Repository<Webhook>,
     @InjectRepository(WebhookDelivery)
     private readonly deliveryRepo: Repository<WebhookDelivery>,
+    private readonly dlqService: DeadLetterService,
   ) {
     super();
+  }
+
+  /**
+   * Failed listener -> DLQ khi vuot max attempts.
+   */
+  @OnWorkerEvent('failed')
+  async onFailed(job: Job<WebhookJobData>, err: Error): Promise<void> {
+    const maxAttempts = job.opts?.attempts ?? 3;
+    if ((job.attemptsMade ?? 0) >= maxAttempts) {
+      try {
+        await this.dlqService.moveToDlq({
+          originalQueue: QUEUE_NAMES.WEBHOOK,
+          originalJobName: job.name,
+          originalJobId: job.id,
+          payload: job.data,
+          error: err?.message || String(err),
+          attemptsMade: job.attemptsMade ?? 0,
+          failedAt: new Date().toISOString(),
+        });
+      } catch (dlqErr) {
+        this.logger.error(
+          `Failed to move webhook job to DLQ: ${(dlqErr as Error).message}`,
+        );
+      }
+    }
   }
 
   /**

@@ -17,7 +17,6 @@ export enum SettingType {
  */
 @Entity('settings')
 export class Setting extends BaseEntity {
-  @Index({ unique: true })
   @Column({ type: 'varchar', length: 100, unique: true })
   key: string;
 

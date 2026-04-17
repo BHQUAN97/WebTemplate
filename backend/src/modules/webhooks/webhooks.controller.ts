@@ -7,12 +7,15 @@ import {
   Param,
   Body,
   Query,
+  HttpCode,
 } from '@nestjs/common';
 import { WebhooksService, AVAILABLE_EVENTS } from './webhooks.service.js';
 import { CreateWebhookDto } from './dto/create-webhook.dto.js';
 import { UpdateWebhookDto } from './dto/update-webhook.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { UserRole } from '../../common/constants/index.js';
 import type { ICurrentUser } from '../../common/interfaces/index.js';
 import {
   successResponse,
@@ -106,5 +109,17 @@ export class WebhooksController {
       webhook.tenant_id,
     );
     return successResponse(deliveries, 'Test webhook sent');
+  }
+
+  /**
+   * POST /webhooks/deliveries/:id/replay — admin replay 1 delivery.
+   * Re-enqueue job voi same payload -> deliver lai.
+   */
+  @Post('deliveries/:id/replay')
+  @HttpCode(202)
+  @Roles(UserRole.ADMIN)
+  async replayDelivery(@Param('id') id: string) {
+    const result = await this.webhooksService.retry(id);
+    return successResponse(result, 'Delivery replay accepted');
   }
 }

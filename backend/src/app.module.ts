@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bullmq';
+import { ScheduleModule } from '@nestjs/schedule';
 import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import {
   getDatabaseConfig,
@@ -14,6 +15,8 @@ import {
   oauthConfig,
 } from './config/index.js';
 import { QueueModule } from './common/queue/queue.module.js';
+import { DeadLetterModule } from './common/queue/dead-letter.module.js';
+import { CronModule } from './common/cron/cron.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TenantGuard } from './common/guards/tenant.guard.js';
@@ -67,6 +70,9 @@ import { HealthModule } from './modules/health/health.module.js';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module.js';
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module.js';
 
+// Reports — admin export PDF/XLSX/CSV
+import { ReportsModule } from './modules/reports/reports.module.js';
+
 // Mail — wrapper cao cap quanh email queue + settings.enabled flag
 import { MailModule } from './modules/mail/mail.module.js';
 
@@ -116,8 +122,14 @@ import { MailModule } from './modules/mail/mail.module.js';
       inject: [ConfigService],
     }),
 
+    // ScheduleModule — cho phep @Cron decorator chay (audit cleanup, webhook retry...)
+    ScheduleModule.forRoot(),
+
     // Register tat ca queue — global de moi module khac @InjectQueue duoc
     QueueModule,
+
+    // Dead letter queue (global) — luu cac job fail vinh vien de admin review
+    DeadLetterModule,
 
     // === Core modules (BAT BUOC) ===
     AuthModule,
@@ -165,8 +177,14 @@ import { MailModule } from './modules/mail/mail.module.js';
     AuditLogsModule,
     FeatureFlagsModule,
 
+    // === Reports (PDF/XLSX/CSV) ===
+    ReportsModule,
+
     // === Mail wrapper (global) ===
     MailModule,
+
+    // === Cron jobs — phai nap SAU tat ca module ma cron depend (Settings, Reports...) ===
+    CronModule,
   ],
   providers: [
     // Sentry exception capture — PHAI dang ky TRUOC AllExceptionsFilter

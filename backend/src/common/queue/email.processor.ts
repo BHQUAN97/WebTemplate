@@ -1,4 +1,4 @@
-import { Processor, WorkerHost } from '@nestjs/bullmq';
+import { OnWorkerEvent, Processor, WorkerHost } from '@nestjs/bullmq';
 import { Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
@@ -8,6 +8,7 @@ import * as Handlebars from 'handlebars';
 import { Resend } from 'resend';
 import { EmailTemplate } from '../../modules/email-templates/entities/email-template.entity.js';
 import { QUEUE_NAMES } from './queue.module.js';
+import { DeadLetterService } from './dead-letter.service.js';
 
 /**
  * Payload cua email job.
@@ -36,6 +37,7 @@ export class EmailProcessor extends WorkerHost {
     private readonly configService: ConfigService,
     @InjectRepository(EmailTemplate)
     private readonly templateRepo: Repository<EmailTemplate>,
+    private readonly dlqService: DeadLetterService,
   ) {
     super();
     const apiKey = this.configService.get<string>('RESEND_API_KEY', '');
@@ -44,6 +46,31 @@ export class EmailProcessor extends WorkerHost {
       'EMAIL_FROM',
       this.configService.get<string>('MAIL_FROM', 'noreply@example.com'),
     );
+  }
+
+  /**
+   * Khi job fail vinh vien (vuot attempts) -> luu vao dead letter queue.
+   */
+  @OnWorkerEvent('failed')
+  async onFailed(job: Job<EmailJobData>, err: Error): Promise<void> {
+    const maxAttempts = job.opts?.attempts ?? 3;
+    if ((job.attemptsMade ?? 0) >= maxAttempts) {
+      try {
+        await this.dlqService.moveToDlq({
+          originalQueue: QUEUE_NAMES.EMAIL,
+          originalJobName: job.name,
+          originalJobId: job.id,
+          payload: job.data,
+          error: err?.message || String(err),
+          attemptsMade: job.attemptsMade ?? 0,
+          failedAt: new Date().toISOString(),
+        });
+      } catch (dlqErr) {
+        this.logger.error(
+          `Failed to move email job to DLQ: ${(dlqErr as Error).message}`,
+        );
+      }
+    }
   }
 
   /**

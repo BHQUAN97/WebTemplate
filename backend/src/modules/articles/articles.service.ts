@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { DeepPartial, Repository, SelectQueryBuilder } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { PaginationMeta } from '../../common/utils/response.js';
@@ -8,6 +8,7 @@ import { ArticleStatus } from '../../common/constants/index.js';
 import { Article } from './entities/article.entity.js';
 import { CreateArticleDto } from './dto/create-article.dto.js';
 import { QueryArticlesDto } from './dto/query-articles.dto.js';
+import { sanitizeCmsHtml } from '../../common/utils/sanitize-html.js';
 
 /**
  * Articles service — quan ly bai viet, xuat ban, loc theo tag/category.
@@ -155,18 +156,30 @@ export class ArticlesService extends BaseService<Article> {
   }
 
   /**
-   * Tao bai viet — tu dong sinh slug tu title.
+   * Tao bai viet — tu dong sinh slug tu title + sanitize HTML content.
    */
   async createArticle(
     dto: CreateArticleDto,
     authorId: string,
   ): Promise<Article> {
     const slug = this.generateSlug(dto.title);
+    const content = sanitizeCmsHtml(dto.content);
     return this.create({
       ...dto,
       slug,
+      content,
       author_id: authorId,
     } as any);
+  }
+
+  /**
+   * Override update — sanitize HTML content neu co.
+   */
+  async update(id: string, data: DeepPartial<Article>): Promise<Article> {
+    if (typeof data.content === 'string') {
+      data = { ...data, content: sanitizeCmsHtml(data.content) };
+    }
+    return super.update(id, data);
   }
 
   /**
