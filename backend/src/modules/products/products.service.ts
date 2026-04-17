@@ -1,12 +1,27 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, DeepPartial } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
+import { sanitizeCmsHtml } from '../../common/utils/sanitize-html.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { Product } from './entities/product.entity.js';
 import { ProductVariant } from './entities/product-variant.entity.js';
 import { CreateProductDto } from './dto/create-product.dto.js';
 import { QueryProductsDto } from './dto/query-products.dto.js';
+
+/**
+ * Sanitize CMS-like fields de chong stored XSS. Goi truoc khi create/update.
+ */
+function sanitizeProductHtmlFields<T extends Record<string, any>>(data: T): T {
+  const d = data as any;
+  if (d.description !== undefined && d.description !== null) {
+    d.description = sanitizeCmsHtml(d.description);
+  }
+  if (d.short_description !== undefined && d.short_description !== null) {
+    d.short_description = sanitizeCmsHtml(d.short_description);
+  }
+  return data;
+}
 
 /**
  * Products service — quan ly san pham, variant, loc theo gia/category/tags.
@@ -43,12 +58,18 @@ export class ProductsService extends BaseService<Product> {
 
   /**
    * Lay san pham theo category.
+   * Default take(100) de tranh DoS khi category co hang nghin san pham.
    */
-  async findByCategory(categoryId: string): Promise<Product[]> {
+  async findByCategory(
+    categoryId: string,
+    limit: number = 100,
+  ): Promise<Product[]> {
+    const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
     return this.productsRepository.find({
       where: { category_id: categoryId, is_active: true, deleted_at: null as any },
       relations: ['variants'],
       order: { sort_order: 'ASC' },
+      take: safeLimit,
     });
   }
 
@@ -71,14 +92,23 @@ export class ProductsService extends BaseService<Product> {
   }
 
   /**
-   * Tao san pham kem variants (neu co).
+   * Override update — sanitize description/short_description neu co thay doi.
+   */
+  async update(id: string, data: DeepPartial<Product>): Promise<Product> {
+    return super.update(id, sanitizeProductHtmlFields({ ...data }));
+  }
+
+  /**
+   * Tao san pham kem variants (neu co). Sanitize description/short_description
+   * de chong stored XSS (rich HTML rendered via dangerouslySetInnerHTML o FE).
    */
   async createWithVariants(dto: CreateProductDto): Promise<Product> {
     const slug = this.generateSlug(dto.name);
     const { variants, ...productData } = dto;
+    const sanitized = sanitizeProductHtmlFields({ ...productData });
 
     const product = await this.create({
-      ...productData,
+      ...sanitized,
       slug,
     } as any);
 

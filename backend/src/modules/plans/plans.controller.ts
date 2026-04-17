@@ -72,16 +72,18 @@ export class PlansController {
   }
 
   /**
-   * Huy subscription hien tai.
+   * Huy subscription hien tai. Tenant cua user phai match subscription (chong IDOR).
    */
   @Post('cancel')
   async cancel(
     @Body() body: { subscription_id: string; reason?: string },
     @CurrentUser() user: ICurrentUser,
   ) {
+    const isAdmin = user.role === UserRole.ADMIN;
     const subscription = await this.plansService.cancel(
       body.subscription_id,
       body.reason,
+      isAdmin ? undefined : user.tenantId ?? undefined,
     );
     return successResponse(subscription, 'Subscription cancelled');
   }

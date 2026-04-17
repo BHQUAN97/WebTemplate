@@ -177,10 +177,19 @@ export class MediaController {
   }
 
   /**
-   * Xoa 1 media (xoa khoi storage + DB).
+   * Xoa 1 media. Chi uploader hoac admin moi duoc xoa.
    */
   @Delete(':id')
-  async remove(@Param('id') id: string) {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    const media = await this.mediaService.findById(id);
+    const isAdmin =
+      user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
+    if (!isAdmin && (media as any).uploaded_by !== user.id) {
+      throw new BadRequestException('Bạn không có quyền xoá file này');
+    }
     await this.mediaService.deleteMedia(id);
     return successResponse(null, 'Media deleted successfully');
   }

@@ -116,6 +116,15 @@ export class PaymentsService extends BaseService<Payment> {
       throw new NotFoundException('Payment not found for callback');
     }
 
+    // Idempotency — neu da xu ly roi (PAID/REFUNDED) thi tra ve luon,
+    // KHONG ghi de status de tranh callback replay doi PAID → FAILED.
+    if (
+      payment.status === PaymentStatus.PAID ||
+      payment.status === PaymentStatus.REFUNDED
+    ) {
+      return payment;
+    }
+
     // Xac nhan ket qua tu response code cua gateway (sau khi signature da valid)
     const isSuccess = this.isCallbackSuccess(gateway, data);
 
@@ -255,6 +264,8 @@ export class PaymentsService extends BaseService<Payment> {
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
+        // 10s timeout — chong hanging Momo endpoint stall request thread
+        signal: AbortSignal.timeout(10_000),
       });
 
       if (!res.ok) {
@@ -495,8 +506,9 @@ export class PaymentsService extends BaseService<Payment> {
         return this.verifyStripeSignature(data);
       case 'cod':
       case 'bank_transfer':
-        // COD/bank transfer khong co gateway signature — chap nhan (admin confirm thu cong)
-        return true;
+        // COD/bank_transfer KHONG co webhook signature — tu choi moi callback qua
+        // duong gateway. Admin phai confirm thu cong qua endpoint rieng (chua impl).
+        return false;
       default:
         return false;
     }
@@ -615,7 +627,16 @@ export class PaymentsService extends BaseService<Payment> {
     try {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       const Stripe = require('stripe');
-      const stripe = new Stripe(process.env.STRIPE_SECRET_KEY || 'sk_placeholder');
+      // Bat buoc co STRIPE_SECRET_KEY — khong dung placeholder de tranh
+      // silently pass verify voi key gia.
+      const secretKey = process.env.STRIPE_SECRET_KEY;
+      if (!secretKey) {
+        this.logger?.warn?.(
+          '[payments] STRIPE_SECRET_KEY missing — Stripe verification unavailable',
+        );
+        return false;
+      }
+      const stripe = new Stripe(secretKey);
       stripe.webhooks.constructEvent(rawBody, sigHeader, endpointSecret);
       return true;
     } catch (err: any) {
@@ -649,6 +670,13 @@ export class PaymentsService extends BaseService<Payment> {
 
     if (!tsPart || v1Parts.length === 0) return false;
     const timestamp = tsPart.slice(2);
+
+    // Tolerance check — reject webhook cu hon 5 phut de chong replay attack
+    const ts = parseInt(timestamp, 10);
+    const now = Math.floor(Date.now() / 1000);
+    if (!Number.isFinite(ts) || Math.abs(now - ts) > 300) {
+      return false;
+    }
 
     const payloadForSig =
       timestamp +
@@ -690,12 +718,19 @@ export class PaymentsService extends BaseService<Payment> {
       case 'vnpay':
         return data.vnp_ResponseCode === '00';
       case 'momo':
-        return data.resultCode === '0' || data.resultCode === '0';
+        // Momo resultCode co the tra ve so 0 hoac chuoi '0' — chap nhan ca hai
+        return (
+          data.resultCode === '0' ||
+          (data.resultCode as unknown as number) === 0
+        );
       case 'stripe':
         return data.status === 'succeeded';
       case 'cod':
       case 'bank_transfer':
-        return true;
+        // COD/bank_transfer KHONG dung callback gateway — phai cap nhat thu cong
+        // qua endpoint admin (xem verifySignature: cac method nay luon return
+        // false o webhook path). Neu ai do goi duoc vao day, tu choi.
+        return false;
       default:
         return data.status === 'success';
     }

@@ -47,9 +47,15 @@ export class ExportService {
   toCsvBuffer(dto: ExportDataDto): Buffer {
     const { keys, labels } = this.resolveColumns(dto);
 
+    // Chong CSV formula injection: cell bat dau bang =, +, -, @, tab, CR se bi
+    // Excel coi nhu cong thuc / DDE. Prefix bang ' de vo hieu hoa.
+    const neutralizeFormula = (s: string): string =>
+      /^[=+\-@\t\r]/.test(s) ? `'${s}` : s;
+
     const escape = (v: unknown): string => {
       if (v === null || v === undefined) return '';
-      const s = typeof v === 'string' ? v : String(v);
+      let s = typeof v === 'string' ? v : String(v);
+      s = neutralizeFormula(s);
       if (/["\n\r,;]/.test(s)) return `"${s.replace(/"/g, '""')}"`;
       return s;
     };

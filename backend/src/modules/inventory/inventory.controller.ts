@@ -9,11 +9,17 @@ import {
 import { InventoryService } from './inventory.service.js';
 import { AdjustInventoryDto } from './dto/adjust-inventory.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { UserRole } from '../../common/constants/index.js';
 import {
   successResponse,
   paginatedResponse,
 } from '../../common/utils/response.js';
 
+/**
+ * Inventory — admin-only. Read/write kho hang, movements, adjustments deu can ADMIN/MANAGER.
+ */
+@Roles(UserRole.ADMIN, UserRole.MANAGER)
 @Controller('inventory')
 export class InventoryController {
   constructor(private readonly inventoryService: InventoryService) {}

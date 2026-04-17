@@ -19,7 +19,13 @@ import {
 } from '../../common/utils/response.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { UserRole } from '../../common/constants/index.js';
 
+/**
+ * Articles — read via @Public() per-method; write endpoints require ADMIN/MANAGER.
+ */
+@Roles(UserRole.ADMIN, UserRole.MANAGER)
 @Controller('articles')
 export class ArticlesController {
   constructor(private readonly articlesService: ArticlesService) {}

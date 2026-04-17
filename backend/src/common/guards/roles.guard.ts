@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { ROLES_KEY } from '../decorators/roles.decorator.js';
+import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
 import { UserRole } from '../constants/index.js';
 import { ICurrentUser } from '../interfaces/index.js';
 
@@ -32,6 +33,14 @@ export class RolesGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
+    // @Public() method-level phai override @Roles() class-level:
+    // endpoint public khong can role check (JwtAuthGuard da skip auth).
+    const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
+      context.getHandler(),
+      context.getClass(),
+    ]);
+    if (isPublic) return true;
+
     const requiredRoles = this.reflector.getAllAndOverride<UserRole[]>(
       ROLES_KEY,
       [context.getHandler(), context.getClass()],

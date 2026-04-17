@@ -269,11 +269,14 @@ export class AuthController {
 
   /**
    * Set refresh token vao httpOnly cookie (7 ngay).
+   * secure: bat khi NODE_ENV != development (staging + prod deu HTTPS).
+   * Chi tat flag nay trong local dev de tranh browser tu choi cookie tren http://localhost.
    */
   private setRefreshCookie(res: any, token: string): void {
+    const env = process.env.NODE_ENV;
     res.cookie('refreshToken', token, {
       httpOnly: true,
-      secure: process.env.NODE_ENV === 'production',
+      secure: env !== 'development' && env !== 'test',
       sameSite: 'lax',
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',

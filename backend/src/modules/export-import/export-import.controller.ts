@@ -47,10 +47,30 @@ export class ExportImportController {
 
   /**
    * Import du lieu tu file CSV/XLSX (admin only).
+   * Gioi han: 10 MB, chi chap nhan MIME csv / xlsx de chong DoS + file bomb.
    */
   @Post('import')
   @Roles(UserRole.ADMIN)
-  @UseInterceptors(FileInterceptor('file'))
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 10 * 1024 * 1024 },
+      fileFilter: (_req, file, cb) => {
+        const allowed = new Set([
+          'text/csv',
+          'application/csv',
+          'application/vnd.ms-excel',
+          'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+        ]);
+        if (!allowed.has(file.mimetype)) {
+          return cb(
+            new Error(`MIME type "${file.mimetype}" khong duoc phep`),
+            false,
+          );
+        }
+        cb(null, true);
+      },
+    }),
+  )
   async importData(
     @Body() dto: ImportDto,
     @UploadedFile() file: Express.Multer.File,

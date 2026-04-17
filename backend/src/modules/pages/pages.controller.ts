@@ -18,7 +18,13 @@ import {
   paginatedResponse,
 } from '../../common/utils/response.js';
 import { Public } from '../../common/decorators/public.decorator.js';
+import { Roles } from '../../common/decorators/roles.decorator.js';
+import { UserRole } from '../../common/constants/index.js';
 
+/**
+ * Pages — read via @Public() per-method; write endpoints require ADMIN/MANAGER.
+ */
+@Roles(UserRole.ADMIN, UserRole.MANAGER)
 @Controller('pages')
 export class PagesController {
   constructor(private readonly pagesService: PagesService) {}

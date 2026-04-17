@@ -86,14 +86,25 @@ export class PlansService extends BaseService<Plan> {
   }
 
   /**
-   * Huy subscription.
+   * Huy subscription. Verify subscription thuoc ve tenant cua caller de chong IDOR.
+   * tenantId truyen null chi khi admin goi (bypass tenant check).
    */
-  async cancel(subscriptionId: string, reason?: string): Promise<Subscription> {
+  async cancel(
+    subscriptionId: string,
+    reason?: string,
+    tenantId?: string,
+  ): Promise<Subscription> {
     const subscription = await this.subscriptionRepo.findOne({
       where: { id: subscriptionId },
     });
     if (!subscription) {
       throw new BadRequestException('Subscription not found');
+    }
+
+    if (tenantId && subscription.tenant_id !== tenantId) {
+      throw new BadRequestException(
+        'Bạn không có quyền huỷ gói này (sai tenant)',
+      );
     }
 
     subscription.status = SubscriptionStatus.CANCELLED;

@@ -135,12 +135,13 @@ export class ArticlesService extends BaseService<Article> {
       .andWhere('entity.status = :status', { status: ArticleStatus.PUBLISHED })
       .andWhere('entity.id != :id', { id: articleId });
 
-    // Uu tien cung category
+    // Uu tien cung category — binding parameter de tranh SQLi
     if (article.category_id) {
       qb.addOrderBy(
-        `CASE WHEN entity.category_id = '${article.category_id}' THEN 0 ELSE 1 END`,
+        'CASE WHEN entity.category_id = :sameCatId THEN 0 ELSE 1 END',
         'ASC',
       );
+      qb.setParameter('sameCatId', article.category_id);
     }
 
     qb.addOrderBy('entity.published_at', 'DESC').take(limit);

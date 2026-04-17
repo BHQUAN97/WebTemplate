@@ -1,11 +1,13 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, DeepPartial } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
+import { sanitizeCmsHtml } from '../../common/utils/sanitize-html.js';
 import { Faq } from './entities/faq.entity.js';
 
 /**
  * FAQ service — quan ly cau hoi thuong gap, binh chon, sap xep.
+ * Answer la rich-HTML — phai sanitize truoc khi luu de chong stored XSS.
  */
 @Injectable()
 export class FaqService extends BaseService<Faq> {
@@ -17,6 +19,26 @@ export class FaqService extends BaseService<Faq> {
     private readonly faqRepository: Repository<Faq>,
   ) {
     super(faqRepository, 'Faq');
+  }
+
+  /**
+   * Override create — sanitize answer (rich HTML) truoc khi luu.
+   */
+  async create(data: DeepPartial<Faq>): Promise<Faq> {
+    if (data.answer !== undefined && data.answer !== null) {
+      data.answer = sanitizeCmsHtml(data.answer);
+    }
+    return super.create(data);
+  }
+
+  /**
+   * Override update — sanitize answer neu co thay doi.
+   */
+  async update(id: string, data: DeepPartial<Faq>): Promise<Faq> {
+    if (data.answer !== undefined && data.answer !== null) {
+      data.answer = sanitizeCmsHtml(data.answer);
+    }
+    return super.update(id, data);
   }
 
   /**

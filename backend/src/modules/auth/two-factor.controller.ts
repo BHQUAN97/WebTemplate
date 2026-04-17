@@ -21,7 +21,9 @@ export class TwoFactorController {
   /**
    * POST /auth/2fa/setup — sinh secret + QR code. User scan QR vao app.
    * Chua enable — user phai verify code o buoc tiep theo.
+   * Throttle 10/5min de chong attacker token-hijack spam setup (lam roi keying).
    */
+  @Throttle({ auth: { limit: 10, ttl: 300000 } })
   @Post('setup')
   @HttpCode(HttpStatus.OK)
   async setup(@CurrentUser() user: ICurrentUser) {
