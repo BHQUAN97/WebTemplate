@@ -440,9 +440,9 @@ export class ChatService {
           conversationId,
           {
             content:
-              'Xin loi, em dang ban. Nhan vien se phan hoi som nhat.',
+              'Shop xin lỗi, hệ thống đang bận. Nhân viên sẽ phản hồi sớm nhất, hoặc bạn vui lòng liên hệ hotline để được hỗ trợ nhé.',
           },
-          { role: MessageRole.SYSTEM, name: 'He thong' },
+          { role: MessageRole.SYSTEM, name: 'Hệ thống' },
         );
         await this.conversationRepo.update(
           { id: conversationId },

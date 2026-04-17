@@ -32,14 +32,14 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     name: 'welcome-new-conversation',
     triggerType: ScenarioTrigger.EVENT,
     triggerValue: 'conversation:started',
-    response: 'Xin chao! Em co the ho tro gi cho anh/chi? 🛍️',
+    response: 'Xin chào! Shop có thể hỗ trợ gì cho bạn? 🛍️',
     priority: 100,
   },
   {
     name: 'greeting-keyword',
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'chào|hi|hello|hey|xin chào',
-    response: 'Chao anh/chi! Em co the giup gi hom nay?',
+    response: 'Chào bạn! Shop có thể giúp gì hôm nay?',
     priority: 80,
   },
   {
@@ -47,11 +47,11 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'giá|bao nhiêu|giá cả|price',
     response: JSON.stringify({
-      text: 'Anh/chi quan tam den san pham nao? Em se bao gia ngay.',
+      text: 'Bạn quan tâm đến sản phẩm nào? Shop sẽ báo giá ngay.',
       quickReplies: [
-        { label: 'Thoi trang nam', value: 'category:fashion-men' },
-        { label: 'Thoi trang nu', value: 'category:fashion-women' },
-        { label: 'Phu kien', value: 'category:accessories' },
+        { label: 'Thời trang nam', value: 'category:fashion-men' },
+        { label: 'Thời trang nữ', value: 'category:fashion-women' },
+        { label: 'Phụ kiện', value: 'category:accessories' },
       ],
     }),
     responseType: MessageType.QUICK_REPLIES,
@@ -62,7 +62,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'ship|giao hàng|vận chuyển|phí ship|free ship',
     response:
-      'Shop free ship don tu 500k noi thanh HCM/HN. Cac tinh khac 30-50k tuy khu vuc. Giao 2-5 ngay lam viec.',
+      'Shop free ship đơn từ 500k nội thành HCM/HN. Các tỉnh khác 30-50k tuỳ khu vực. Giao 2-5 ngày làm việc.',
     priority: 90,
   },
   {
@@ -70,7 +70,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'thanh toán|cod|chuyển khoản|momo|vnpay|stripe',
     response:
-      'Shop ho tro: COD khi nhan hang, chuyen khoan ngan hang, Momo, VNPay, the quoc te qua Stripe.',
+      'Shop hỗ trợ: COD khi nhận hàng, chuyển khoản ngân hàng, Momo, VNPay, thẻ quốc tế qua Stripe.',
     priority: 90,
   },
   {
@@ -78,7 +78,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'đổi trả|hoàn tiền|refund|return',
     response:
-      'Shop ho tro doi tra trong 7 ngay neu loi tu nha san xuat. Phi ship 2 chieu shop chiu.',
+      'Shop hỗ trợ đổi trả trong 7 ngày nếu lỗi từ nhà sản xuất. Phí ship 2 chiều shop chịu.',
     priority: 90,
   },
   {
@@ -86,8 +86,8 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'đơn hàng|theo dõi|tracking|order',
     response: JSON.stringify({
-      text: 'Anh/chi cho em xin ma don hoac email/SDT dat hang de em kiem tra giup a.',
-      quickReplies: [{ label: 'Nhap ma don', value: 'action:enter-order-id' }],
+      text: 'Bạn cho shop xin mã đơn hoặc email/SĐT đặt hàng để shop kiểm tra giúp nhé.',
+      quickReplies: [{ label: 'Nhập mã đơn', value: 'action:enter-order-id' }],
     }),
     responseType: MessageType.QUICK_REPLIES,
     priority: 100,
@@ -96,14 +96,14 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     name: 'thanks',
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'cảm ơn|thanks|thank you|tks|ok',
-    response: 'Da, em cam on anh/chi! Can ho tro gi them nhan em nhe 🌸',
+    response: 'Dạ, shop cảm ơn bạn! Cần hỗ trợ gì thêm nhắn shop nhé 🌸',
     priority: 70,
   },
   {
     name: 'bye',
     triggerType: ScenarioTrigger.KEYWORD,
     triggerValue: 'bye|tạm biệt|goodbye|chào nhé',
-    response: 'Em chao anh/chi! Hen gap lai a.',
+    response: 'Shop chào bạn! Hẹn gặp lại ạ.',
     priority: 70,
   },
   {
@@ -112,7 +112,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerValue: 'khiếu nại|phàn nàn|kém|tệ|dỏm|hỏng|lỗi',
     // Handoff sang HUMAN — chat.service se doc conditions.handoff de chuyen mode
     response:
-      'Em xin loi vi trai nghiem chua tot. Anh/chi cho em ma don/san pham cu the, em chuyen bo phan CSKH giai quyet ngay a.',
+      'Shop xin lỗi vì trải nghiệm chưa tốt. Bạn cho shop mã đơn/sản phẩm cụ thể, shop chuyển bộ phận CSKH giải quyết ngay ạ.',
     priority: 110,
     conditions: { handoff: 'HUMAN' },
   },
@@ -122,7 +122,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerValue: 'nhân viên|người thật|gặp người|human|agent',
     // Set mode=WAITING_AGENT — chat.service doc conditions.setMode
     response:
-      'Em dang chuyen cho nhan vien truc. Vui long cho 1-2 phut a 🙏',
+      'Shop đang chuyển cho nhân viên trực. Bạn vui lòng chờ 1-2 phút ạ 🙏',
     priority: 120,
     conditions: { setMode: 'WAITING_AGENT' },
   },
@@ -131,7 +131,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.EVENT,
     triggerValue: 'conversation:out-of-hours',
     response:
-      'Shop dang ngoai gio lam viec (9h-21h). Em ghi nhan, nhan vien se phan hoi vao sang mai nhe!',
+      'Shop đang ngoài giờ làm việc (9h-21h). Shop ghi nhận, nhân viên sẽ phản hồi vào sáng mai nhé!',
     priority: 100,
   },
   {
@@ -139,7 +139,7 @@ const SCENARIO_SEEDS: ScenarioSeed[] = [
     triggerType: ScenarioTrigger.SCHEDULED,
     triggerValue: '0 9 * * *',
     response:
-      'Chao buoi sang! Cau hoi hom qua cua anh/chi da duoc giai dap chua a?',
+      'Chào buổi sáng! Câu hỏi hôm qua của bạn đã được giải đáp chưa ạ?',
     priority: 50,
     // Chi ap dung cho conversation mo > 12h, mark metadata de khong lap
     conditions: {
@@ -177,7 +177,7 @@ const SCHEDULE_SEEDS: ScheduleSeed[] = [
     mode: ScheduleMode.AI,
     priority: 50,
     fallbackMessage:
-      'Shop dang ngoai gio truc. AI se ho tro co ban, nhan vien phan hoi trong gio lam viec.',
+      'Shop đang ngoài giờ trực. Shop sẽ hỗ trợ cơ bản qua AI, nhân viên phản hồi trong giờ làm việc.',
   },
   {
     name: 'Gio hanh chinh (co nhan vien)',

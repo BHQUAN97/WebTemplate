@@ -85,7 +85,7 @@ export class AiService {
     });
     if (!conversation) {
       this.logger.warn(`generateReply: conversation ${conversationId} not found`);
-      return this.canned('Khong tim duoc hoi thoai.', true);
+      return this.canned('Không tìm thấy hội thoại.', true);
     }
 
     // Load 20 messages gan nhat, order ASC de chronological
@@ -264,7 +264,7 @@ export class AiService {
         `generateReply: exhausted ${maxIterations} iterations without final text`,
       );
       return this.canned(
-        'Da, de em kiem tra va quay lai som nhe.',
+        'Shop chưa có thông tin về điều này, bạn vui lòng liên hệ hotline để được hỗ trợ nhé.',
         true,
         provider.name,
       );
@@ -272,9 +272,9 @@ export class AiService {
       this.logger.error(
         `generateReply failed (${provider.name}): ${(err as Error).message}`,
       );
-      // Fallback final — canned message
+      // Fallback final — canned message (policy: huong hotline / nhan vien)
       return this.canned(
-        'Da, em xin loi a/c — he thong dang ban. Em se chuyen tin nhan cho nhan vien ho tro som nhat nhe.',
+        'Shop xin lỗi bạn, hệ thống đang bận. Shop sẽ chuyển thông tin cho nhân viên hỗ trợ, bạn vui lòng chờ 5-10 phút hoặc liên hệ hotline nhé.',
         true,
         provider.name,
       );
