@@ -72,3 +72,6 @@ export { CustomValidationPipe } from './pipes/validation.pipe.js';
 
 // Logger
 export { AppLoggerService } from './logger/app-logger.service.js';
+
+// Validators (base validators dung chung)
+export * from './validators/index.js';

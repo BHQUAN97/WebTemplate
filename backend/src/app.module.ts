@@ -13,6 +13,7 @@ import {
   storageConfig,
   redisConfig,
   oauthConfig,
+  aiConfig,
 } from './config/index.js';
 import { QueueModule } from './common/queue/queue.module.js';
 import { DeadLetterModule } from './common/queue/dead-letter.module.js';
@@ -52,6 +53,7 @@ import { PromotionsModule } from './modules/promotions/promotions.module.js';
 import { NotificationsModule } from './modules/notifications/notifications.module.js';
 import { ContactsModule } from './modules/contacts/contacts.module.js';
 import { FaqModule } from './modules/faq/faq.module.js';
+import { ChatModule } from './modules/chat/chat.module.js';
 
 // Analytics & utilities
 import { AnalyticsModule } from './modules/analytics/analytics.module.js';
@@ -74,6 +76,9 @@ import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module
 // Reports — admin export PDF/XLSX/CSV
 import { ReportsModule } from './modules/reports/reports.module.js';
 
+// Export — generic CSV/XLSX cho arbitrary data tu FE
+import { ExportModule } from './modules/export/export.module.js';
+
 // Mail — wrapper cao cap quanh email queue + settings.enabled flag
 import { MailModule } from './modules/mail/mail.module.js';
 
@@ -85,7 +90,14 @@ import { MailModule } from './modules/mail/mail.module.js';
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [appConfig, jwtConfig, storageConfig, redisConfig, oauthConfig],
+      load: [
+        appConfig,
+        jwtConfig,
+        storageConfig,
+        redisConfig,
+        oauthConfig,
+        aiConfig,
+      ],
     }),
 
     // TypeORM — ket noi MySQL
@@ -163,6 +175,7 @@ import { MailModule } from './modules/mail/mail.module.js';
     NotificationsModule,
     ContactsModule,
     FaqModule,
+    ChatModule,
 
     // === Analytics & Utilities ===
     AnalyticsModule,
@@ -184,6 +197,7 @@ import { MailModule } from './modules/mail/mail.module.js';
 
     // === Reports (PDF/XLSX/CSV) ===
     ReportsModule,
+    ExportModule,
 
     // === Mail wrapper (global) ===
     MailModule,
