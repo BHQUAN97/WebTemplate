@@ -1,0 +1,38 @@
+# Release workflow — create a GitHub Release for every v*.*.* tag.
+#
+# The release notes are auto-generated from commits since the previous tag
+# (see repo .github/release.yml for categorisation, if present).
+#
+# Usage:
+#   git tag v1.2.3
+#   git push origin v1.2.3
+
+name: Release
+
+on:
+  push:
+    tags:
+      - 'v*.*.*'
+
+permissions:
+  contents: write
+
+jobs:
+  release:
+    name: Create GitHub Release
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Create Release
+        uses: softprops/action-gh-release@v2
+        with:
+          tag_name: ${{ github.ref_name }}
+          name: ${{ github.ref_name }}
+          draft: false
+          prerelease: ${{ contains(github.ref_name, '-') }}
+          generate_release_notes: true

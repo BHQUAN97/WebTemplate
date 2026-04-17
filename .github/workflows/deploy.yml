@@ -1,0 +1,84 @@
+# Deploy workflow — SSH into VPS, git pull, run ./deploy.sh <env>
+#
+# Required GitHub repository secrets:
+#   DEPLOY_SSH_KEY   — private SSH key (PEM) with access to the deploy user
+#   DEPLOY_HOST      — hostname or IP of the target server
+#   DEPLOY_USER      — SSH user on the server (e.g. deploy, root)
+#   DEPLOY_PATH      — absolute path on server where repo is checked out
+#                      (e.g. /opt/webtemplate)
+#   DEPLOY_SSH_PORT  — (optional) custom SSH port, defaults to 22
+#   DEPLOY_KNOWN_HOSTS — (optional) output of `ssh-keyscan <host>` to pin host key
+#
+# Trigger:
+#   - Manual: Actions -> Deploy -> Run workflow -> pick environment
+#   - Automatic: push a tag matching v* (e.g. v1.2.3) -> deploys to prod
+
+name: Deploy
+
+on:
+  workflow_dispatch:
+    inputs:
+      environment:
+        description: Target environment
+        required: true
+        default: staging
+        type: choice
+        options:
+          - staging
+          - prod
+  push:
+    tags:
+      - 'v*'
+
+concurrency:
+  group: deploy-${{ github.ref }}
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    name: SSH Deploy
+    runs-on: ubuntu-latest
+    timeout-minutes: 20
+    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+
+      - name: Resolve environment
+        id: env
+        run: |
+          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
+            echo "target=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
+          else
+            echo "target=prod" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Setup SSH
+        run: |
+          mkdir -p ~/.ssh
+          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
+          chmod 600 ~/.ssh/deploy_key
+          if [ -n "${{ secrets.DEPLOY_KNOWN_HOSTS }}" ]; then
+            echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
+          else
+            ssh-keyscan -p "${{ secrets.DEPLOY_SSH_PORT || '22' }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
+          fi
+          chmod 644 ~/.ssh/known_hosts
+
+      - name: Deploy over SSH
+        env:
+          TARGET_ENV: ${{ steps.env.outputs.target }}
+          SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || '22' }}
+        run: |
+          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
+              -o StrictHostKeyChecking=yes \
+              "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
+              "set -euo pipefail; \
+               cd '${{ secrets.DEPLOY_PATH }}' && \
+               git fetch --all --prune && \
+               git reset --hard '${{ github.sha }}' && \
+               ./deploy.sh '$TARGET_ENV'"
+
+      - name: Cleanup SSH key
+        if: always()
+        run: rm -f ~/.ssh/deploy_key

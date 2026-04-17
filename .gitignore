@@ -55,6 +55,8 @@ backups/
 *.pem
 *.key
 secrets/
+scripts/.gdrive-credentials.json
+scripts/node_modules/
 
 # Next.js
 next-env.d.ts

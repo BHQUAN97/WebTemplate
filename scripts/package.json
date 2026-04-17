@@ -1,0 +1,21 @@
+{
+  "name": "webtemplate-scripts",
+  "version": "1.0.0",
+  "description": "Standalone ops scripts for WebTemplate (backup, maintenance)",
+  "private": true,
+  "type": "commonjs",
+  "scripts": {
+    "backup:gdrive": "node backup-gdrive.js",
+    "backup:gdrive:dry": "node backup-gdrive.js --dry-run",
+    "check:gdrive": "node --check backup-gdrive.js",
+    "gen:module": "node generate-module.js"
+  },
+  "dependencies": {
+    "archiver": "^7.0.1",
+    "dotenv": "^16.4.5",
+    "googleapis": "^144.0.0"
+  },
+  "engines": {
+    "node": ">=18"
+  }
+}
