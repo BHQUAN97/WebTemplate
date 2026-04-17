@@ -1,0 +1,16 @@
+node_modules
+.next
+.git
+.gitignore
+*.md
+.env
+.env.local
+.env.*.local
+e2e
+playwright-report
+test-results
+eslint.config.*
+Dockerfile
+.dockerignore
+.vscode
+.idea
