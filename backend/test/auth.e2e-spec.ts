@@ -94,13 +94,11 @@ describe('Auth (e2e)', () => {
   describe('POST /api/auth/login', () => {
     beforeEach(async () => {
       // Tao user truoc khi test login
-      await request(app.getHttpServer())
-        .post('/api/auth/register')
-        .send({
-          name: 'Test User',
-          email: 'login@test.com',
-          password: 'StrongP@ss1',
-        });
+      await request(app.getHttpServer()).post('/api/auth/register').send({
+        name: 'Test User',
+        email: 'login@test.com',
+        password: 'StrongP@ss1',
+      });
     });
 
     it('should login with valid credentials', async () => {

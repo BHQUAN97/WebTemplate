@@ -225,7 +225,11 @@ describe('Products (e2e)', () => {
   describe('GET /api/products/featured', () => {
     it('should return only featured products', async () => {
       await createProduct({ name: 'Featured', is_featured: true, sku: 'F-1' });
-      await createProduct({ name: 'Not Featured', is_featured: false, sku: 'NF-1' });
+      await createProduct({
+        name: 'Not Featured',
+        is_featured: false,
+        sku: 'NF-1',
+      });
 
       const res = await request(app.getHttpServer())
         .get('/api/products/featured')

@@ -80,9 +80,7 @@ describe('Users (e2e)', () => {
     });
 
     it('should reject unauthenticated requests', async () => {
-      await request(app.getHttpServer())
-        .get('/api/users')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/users').expect(401);
     });
   });
 
@@ -103,9 +101,7 @@ describe('Users (e2e)', () => {
     });
 
     it('should reject unauthenticated request', async () => {
-      await request(app.getHttpServer())
-        .get('/api/users/me')
-        .expect(401);
+      await request(app.getHttpServer()).get('/api/users/me').expect(401);
     });
   });
 

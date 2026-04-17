@@ -5,7 +5,12 @@ import { ConfigModule } from '@nestjs/config';
 import { JwtModule, JwtService } from '@nestjs/jwt';
 import * as cookieParser from 'cookie-parser';
 import { DataSource } from 'typeorm';
-import { appConfig, jwtConfig, redisConfig, storageConfig } from '../src/config/index.js';
+import {
+  appConfig,
+  jwtConfig,
+  redisConfig,
+  storageConfig,
+} from '../src/config/index.js';
 
 /**
  * Test database config — dung SQLite in-memory de chay nhanh,
