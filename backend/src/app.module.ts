@@ -4,6 +4,7 @@ import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE } from '@nestjs/core';
 import { ThrottlerModule, ThrottlerGuard } from '@nestjs/throttler';
 import { BullModule } from '@nestjs/bullmq';
+import { SentryModule, SentryGlobalFilter } from '@sentry/nestjs/setup';
 import {
   getDatabaseConfig,
   appConfig,
@@ -60,8 +61,15 @@ import { ApiKeysModule } from './modules/api-keys/api-keys.module.js';
 import { WebhooksModule } from './modules/webhooks/webhooks.module.js';
 import { EmailTemplatesModule } from './modules/email-templates/email-templates.module.js';
 
+// Infrastructure modules
+import { HealthModule } from './modules/health/health.module.js';
+import { AuditLogsModule } from './modules/audit-logs/audit-logs.module.js';
+import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module.js';
+
 @Module({
   imports: [
+    // Sentry error tracking — chi active neu SENTRY_DSN set (xem instrument.ts)
+    SentryModule.forRoot(),
     // Config global — doc .env
     ConfigModule.forRoot({
       isGlobal: true,
@@ -147,8 +155,17 @@ import { EmailTemplatesModule } from './modules/email-templates/email-templates.
     ApiKeysModule,
     WebhooksModule,
     EmailTemplatesModule,
+
+    // === Infrastructure ===
+    HealthModule,
+    AuditLogsModule,
+    FeatureFlagsModule,
   ],
   providers: [
+    // Sentry exception capture — PHAI dang ky TRUOC AllExceptionsFilter
+    // de Sentry thay exception truoc khi bi format thanh response
+    { provide: APP_FILTER, useClass: SentryGlobalFilter },
+
     // Global guards — JWT auth + role-based access + tenant isolation + rate limiting
     // Order: JwtAuth -> Roles -> Tenant -> Throttler
     { provide: APP_GUARD, useClass: JwtAuthGuard },

@@ -1,8 +1,14 @@
+// IMPORTANT: Sentry instrumentation PHAI la import dau tien — hook runtime truoc cac module khac
+import './instrument.js';
+
 import { NestFactory, Reflector } from '@nestjs/core';
 import { ClassSerializerInterceptor, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
+import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { readFileSync } from 'fs';
+import { join } from 'path';
 import { AppModule } from './app.module.js';
 
 async function bootstrap() {
@@ -64,10 +70,54 @@ async function bootstrap() {
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
 
+  // === Swagger UI ===
+  // Chi bat khi khong production, hoac SWAGGER_ENABLED=true de bat thu cong o prod.
+  const swaggerEnabled =
+    env !== 'production' || process.env.SWAGGER_ENABLED === 'true';
+
+  if (swaggerEnabled) {
+    setupSwagger(app, appName);
+    logger.log(`Swagger UI available at /api/docs`);
+  }
+
   await app.listen(port, '0.0.0.0');
   logger.log(`${appName} API running on http://0.0.0.0:${port}`);
   logger.log(`Environment: ${env}`);
   logger.log(`CORS origins: ${allowedOrigins.join(', ')}`);
+}
+
+/**
+ * Cau hinh Swagger/OpenAPI docs.
+ * - Doc version tu package.json
+ * - Bearer auth cho tat ca route (swagger UI se prompt nhap token)
+ * - Mount tai `/api/docs`
+ */
+function setupSwagger(app: any, appName: string): void {
+  // Doc package.json version — tim theo __dirname de chay duoc ca compiled lan ts-node
+  // Project compile ra CommonJS nen __dirname co san ma khong can fileURLToPath
+  let version = '0.0.1';
+  try {
+    const pkgPath = join(__dirname, '..', 'package.json');
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version?: string };
+    if (pkg.version) version = pkg.version;
+  } catch {
+    // fallback version neu doc khong duoc
+  }
+
+  const config = new DocumentBuilder()
+    .setTitle(`${appName} API`)
+    .setDescription(`REST API documentation cho ${appName}`)
+    .setVersion(version)
+    .addBearerAuth(
+      { type: 'http', scheme: 'bearer', bearerFormat: 'JWT' },
+      'bearer',
+    )
+    .build();
+
+  const document = SwaggerModule.createDocument(app, config);
+  SwaggerModule.setup('api/docs', app, document, {
+    swaggerOptions: { persistAuthorization: true },
+  });
 }
 
 bootstrap();

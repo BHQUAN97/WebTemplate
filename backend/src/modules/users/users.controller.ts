@@ -8,6 +8,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { UsersService } from './users.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
@@ -19,6 +20,7 @@ import { UserRole } from '../../common/constants/index.js';
 import type { ICurrentUser } from '../../common/interfaces/index.js';
 import { paginatedResponse } from '../../common/utils/response.js';
 
+@ApiTags('Users')
 @Controller('users')
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}

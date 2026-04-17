@@ -8,6 +8,7 @@ import {
   Query,
   UseGuards,
 } from '@nestjs/common';
+import { ApiTags } from '@nestjs/swagger';
 import { SettingsService } from './settings.service.js';
 import { UpdateSettingDto } from './dto/update-setting.dto.js';
 import { CreateSettingDto } from './dto/create-setting.dto.js';
@@ -20,6 +21,7 @@ import {
   paginatedResponse,
 } from '../../common/utils/response.js';
 
+@ApiTags('Settings')
 @Controller('settings')
 export class SettingsController {
   constructor(private readonly settingsService: SettingsService) {}
