@@ -4,6 +4,60 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.1.0] - 2026-04-17
+
+### Added
+
+**Authentication & Security**
+- Auth hardening: JWT strategy rejects deleted/inactive users, account lockout via Redis (5 attempts / 15 min TTL), OAuth Google + Facebook with conditional strategy registration, email verification flow, resend verification
+- 2FA: backup codes SHA-256 persist with single-use removal, regenerate backup codes with password confirmation
+- Frontend SSR auth gate via `proxy.ts` (Next.js 16), OAuth `/auth/callback` page, `/verify-email` page, 2FA re-login via sessionStorage, remember-me switches localStorage/sessionStorage
+- Users soft delete revokes all refresh tokens (forwardRef AuthService), self-delete guard on DELETE /users/:id
+
+**Payments**
+- VNPay: full HMAC-SHA512 signature, URL builder, callback verification (2.1.0 spec)
+- Momo AIO v2: HMAC-SHA256 signature, fetch-based payment URL creation, IPN callback verification
+- Stripe: Checkout Session creation, webhook signature verification (package + manual fallback), VND zero-decimal handling
+- Frontend checkout: redirect to gateway URL after order creation, `/payment/result` page for VNPay return
+
+**Media & Files**
+- Frontend media upload wiring: drag-drop + click, per-file progress, 10MB guard, mime whitelist
+- ZIP bundle download (POST /media/download/bulk, max 100 items / 100MB)
+- File preview: PDF viewer (react-pdf), DOCX viewer (mammoth), image viewer, modal lazy-loaded
+- Rich text editor: Tiptap with extensions, custom IframeEmbed node with URL normalization (Google Forms, YouTube, Vimeo, Maps)
+
+**Reports & Async**
+- Reports module: sales/products/customers/inventory in CSV/XLSX/PDF/JSON formats
+- Weekly report cron (Mon 8am): generates PDF + XLSX, emails all active admins with per-admin error isolation
+- BullMQ Dead Letter Queue: auto-move on failure, /admin/dlq endpoint for inspection
+- Webhook retry with per-delivery `next_retry_at` + exponential backoff (2/4/8/16/32 min, max 5 attempts), then DLQ
+- Cron jobs: audit logs cleanup (3am), refresh tokens cleanup (4am), webhook retry (every 10 min)
+
+**Infrastructure**
+- Global RedisModule (ioredis) with `maxRetriesPerRequest: null` for BullMQ compatibility
+- Redis-backed rate limiting: login attempts (INCR + EXPIRE), GDPR export (SET NX + EXPIRE)
+- Mail attachment offload: files >1MB uploaded to S3 `tmp/mail-attach/` prefix (7-day lifecycle), worker downloads before send
+- Email templates: `weekly_report` template, `verify_email` with CTA button + fallback link
+- HTML sanitization with iframe whitelist (docs.google.com, YouTube, Vimeo, Maps) applied to pages/articles
+
+**Frontend UX**
+- Analytics charts (Recharts): Line/Bar/Pie real implementations
+- WebSocket notifications: `/notifications` namespace with auth token, bell + badge + popover in admin topbar
+- Floating CTA bar + mobile bottom tab bar
+- Admin sidebar role filter (Users/Settings/Logs/API Keys/Webhooks → ADMIN only)
+
+**Data Export**
+- GDPR data export (GET /users/:id/export) with Redis rate limit (1 per 24h)
+
+### Changed
+- `createPaymentUrl` signature changed to `async Promise<string>` to support Momo/Stripe HTTP calls
+- `password_hash` column now nullable (OAuth users have no password)
+- User entity adds: `backup_codes_hash`, `email_verification_jti`, `provider`, `provider_id`
+
+### Migrations
+- `1713312000000-AddAuthHardeningColumns`
+- `1713398400000-AddWebhookNextRetryAt`
+
 ## [1.0.0] - 2026-04-16
 
 ### Added

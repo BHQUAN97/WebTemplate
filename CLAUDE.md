@@ -109,9 +109,6 @@ modules/{name}/
 ```
 
 ## Chua lam / TODO
-- OAuth login (Google, Facebook) — backend ready, frontend chua
-- 2FA setup UI
-- Payment gateway integration (VNPay)
-- Email sending (Resend) — templates ready, chua test
-- Image upload to S3 — backend ready
-- WebSocket notifications — backend ready, frontend chua
+- (Tat ca cac muc truoc day da hoan thanh — xem CHANGELOG.md version 1.1.0)
+- Email sending (Resend) — code da wire, can test voi API key that
+- Momo/Stripe payment — code da xong, can test voi merchant credentials that
