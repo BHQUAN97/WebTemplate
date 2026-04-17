@@ -14,6 +14,7 @@ import { useCartStore } from '@/lib/stores/cart-store';
 import { useHydration, formatPrice } from '@/lib/hooks';
 import { shippingSchema, type ShippingFormData } from '@/lib/validations';
 import { ordersApi } from '@/lib/api/modules/orders.api';
+import { paymentsApi } from '@/lib/api/modules/payments.api';
 import { cn } from '@/lib/utils';
 
 type Step = 'shipping' | 'payment' | 'review';
@@ -91,6 +92,34 @@ export function CheckoutClient() {
       });
 
       setOrderNumber(res.order_number);
+
+      // Gateway thanh toan online — cần redirect sang trang payment provider
+      if (
+        paymentMethod === 'vnpay' ||
+        paymentMethod === 'momo' ||
+        (paymentMethod as string) === 'stripe'
+      ) {
+        try {
+          const payRes = await paymentsApi.createPayment(
+            res.id,
+            paymentMethod as 'vnpay' | 'momo' | 'stripe',
+          );
+          if (payRes?.payment_url) {
+            clearCart();
+            // External URL — must use full redirect, not router.push
+            window.location.href = payRes.payment_url;
+            return;
+          }
+          setSubmitError('Phuong thuc nay chua duoc ho tro');
+        } catch (payErr: any) {
+          setSubmitError(
+            payErr?.message || 'Phuong thuc nay chua duoc ho tro',
+          );
+        }
+        return;
+      }
+
+      // COD / bank_transfer — hien thanh cong ngay tren trang
       setOrderSuccess(true);
       clearCart();
     } catch (err: any) {

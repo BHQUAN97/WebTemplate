@@ -1,6 +1,7 @@
 'use client';
 
-import { useState } from 'react';
+import * as React from 'react';
+import { useRef, useState } from 'react';
 import { saveAs } from 'file-saver';
 import {
   Upload,
@@ -11,6 +12,9 @@ import {
   X,
   Download,
   Eye,
+  Loader2,
+  CheckCircle2,
+  AlertCircle,
 } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { ConfirmDialog } from '@/components/shared/confirm-dialog';
@@ -41,6 +45,16 @@ export default function MediaPage() {
   const [bulkLoading, setBulkLoading] = useState(false);
 
   const pagination = usePagination({ initialLimit: 24 });
+
+  const inputRef = useRef<HTMLInputElement>(null);
+  const [dragActive, setDragActive] = useState(false);
+  const [uploadQueue, setUploadQueue] = useState<
+    Array<{
+      name: string;
+      status: 'pending' | 'uploading' | 'done' | 'error';
+      message?: string;
+    }>
+  >([]);
 
   const { data, loading, refetch } = useApi<ApiResponse<MediaFile[]>>(
     '/admin/media',
@@ -118,6 +132,130 @@ export default function MediaPage() {
     setPreviewFile(file);
   };
 
+  const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
+  const ACCEPTED_MIME_PREFIXES = ['image/'];
+  const ACCEPTED_MIME_EXACT = ['application/pdf', 'video/mp4'];
+
+  const isMimeAllowed = (mime: string) => {
+    if (ACCEPTED_MIME_PREFIXES.some((p) => mime.startsWith(p))) return true;
+    if (ACCEPTED_MIME_EXACT.includes(mime)) return true;
+    return false;
+  };
+
+  const openFileDialog = () => inputRef.current?.click();
+
+  /**
+   * Xu ly batch files — validate size/mime, upload tuan tu, cap nhat progress.
+   * Sau khi hoan tat toan bo batch, refetch de cap nhat danh sach.
+   */
+  const handleFiles = async (fileList: FileList | File[] | null) => {
+    if (!fileList || fileList.length === 0) return;
+    const incoming = Array.from(fileList);
+
+    // Khoi tao queue entries, reject ngay file qua lon / sai mime
+    const validFiles: File[] = [];
+    const initialQueue: typeof uploadQueue = [];
+
+    for (const file of incoming) {
+      if (!isMimeAllowed(file.type)) {
+        toast(
+          'Loai file khong ho tro',
+          `${file.name} (${file.type || 'unknown'})`,
+          'destructive',
+        );
+        initialQueue.push({
+          name: file.name,
+          status: 'error',
+          message: 'Loai file khong ho tro',
+        });
+        continue;
+      }
+      if (file.size > MAX_FILE_SIZE) {
+        toast(
+          'File vuot qua 10MB',
+          `${file.name} — ${formatFileSize(file.size)}`,
+          'destructive',
+        );
+        initialQueue.push({
+          name: file.name,
+          status: 'error',
+          message: 'Vuot qua 10MB',
+        });
+        continue;
+      }
+      validFiles.push(file);
+      initialQueue.push({ name: file.name, status: 'pending' });
+    }
+
+    setUploadQueue(initialQueue);
+
+    // Upload tuan tu — de ng dung thay tien trinh tung file
+    let anySuccess = false;
+    for (const file of validFiles) {
+      setUploadQueue((prev) =>
+        prev.map((e) =>
+          e.name === file.name && e.status === 'pending'
+            ? { ...e, status: 'uploading' }
+            : e,
+        ),
+      );
+      try {
+        await mediaApi.uploadMedia(file);
+        anySuccess = true;
+        setUploadQueue((prev) =>
+          prev.map((e) =>
+            e.name === file.name && e.status === 'uploading'
+              ? { ...e, status: 'done' }
+              : e,
+          ),
+        );
+      } catch (err) {
+        const msg = (err as Error).message || 'Upload that bai';
+        toast('Upload that bai', `${file.name}: ${msg}`, 'destructive');
+        setUploadQueue((prev) =>
+          prev.map((e) =>
+            e.name === file.name && e.status === 'uploading'
+              ? { ...e, status: 'error', message: msg }
+              : e,
+          ),
+        );
+      }
+    }
+
+    // Clear input de user co the re-select cung file
+    if (inputRef.current) inputRef.current.value = '';
+
+    if (anySuccess) {
+      toast('Tai len thanh cong', undefined, 'success');
+      refetch();
+    }
+  };
+
+  const onDragEnter = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(true);
+  };
+
+  const onDragOver = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    if (!dragActive) setDragActive(true);
+  };
+
+  const onDragLeave = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+  };
+
+  const onDrop = (e: React.DragEvent<HTMLDivElement>) => {
+    e.preventDefault();
+    e.stopPropagation();
+    setDragActive(false);
+    handleFiles(e.dataTransfer.files);
+  };
+
   return (
     <div className="space-y-6">
       <PageHeader
@@ -127,11 +265,21 @@ export default function MediaPage() {
           { label: 'Media' },
         ]}
         actions={
-          <Button>
+          <Button onClick={openFileDialog}>
             <Upload className="h-4 w-4 mr-2" />
             Tai len
           </Button>
         }
+      />
+
+      {/* Hidden input — dung chung cho ca header button va dropzone */}
+      <input
+        ref={inputRef}
+        type="file"
+        multiple
+        accept="image/*,application/pdf,video/mp4"
+        onChange={(e) => handleFiles(e.target.files)}
+        hidden
       />
 
       {/* Toolbar */}
@@ -183,7 +331,18 @@ export default function MediaPage() {
       )}
 
       {/* Upload dropzone */}
-      <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center hover:border-blue-400 transition-colors">
+      <div
+        className={`border-2 border-dashed rounded-lg p-8 text-center transition-colors cursor-pointer ${
+          dragActive
+            ? 'border-blue-500 bg-blue-50'
+            : 'border-gray-300 hover:border-blue-400'
+        }`}
+        onClick={openFileDialog}
+        onDragEnter={onDragEnter}
+        onDragOver={onDragOver}
+        onDragLeave={onDragLeave}
+        onDrop={onDrop}
+      >
         <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
         <p className="text-sm text-gray-500">
           Keo tha file vao day hoac click de chon
@@ -192,6 +351,49 @@ export default function MediaPage() {
           Ho tro: JPG, PNG, GIF, SVG, PDF, MP4 (toi da 10MB)
         </p>
       </div>
+
+      {/* Upload progress strip */}
+      {uploadQueue.length > 0 && (
+        <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
+          <div className="flex items-center justify-between">
+            <p className="text-sm font-medium text-gray-700">
+              Tien trinh tai len ({uploadQueue.length})
+            </p>
+            <button
+              type="button"
+              className="text-xs text-gray-500 hover:text-gray-700"
+              onClick={() => setUploadQueue([])}
+            >
+              An
+            </button>
+          </div>
+          <ul className="space-y-1">
+            {uploadQueue.map((entry, idx) => (
+              <li
+                key={`${entry.name}-${idx}`}
+                className="flex items-center gap-2 text-sm"
+              >
+                {entry.status === 'pending' && (
+                  <span className="h-4 w-4 rounded-full border border-gray-300 flex-shrink-0" />
+                )}
+                {entry.status === 'uploading' && (
+                  <Loader2 className="h-4 w-4 text-blue-500 animate-spin flex-shrink-0" />
+                )}
+                {entry.status === 'done' && (
+                  <CheckCircle2 className="h-4 w-4 text-green-500 flex-shrink-0" />
+                )}
+                {entry.status === 'error' && (
+                  <AlertCircle className="h-4 w-4 text-red-500 flex-shrink-0" />
+                )}
+                <span className="truncate flex-1">{entry.name}</span>
+                {entry.message && (
+                  <span className="text-xs text-red-500">{entry.message}</span>
+                )}
+              </li>
+            ))}
+          </ul>
+        </div>
+      )}
 
       <div className="flex gap-6">
         {/* File grid/list */}
