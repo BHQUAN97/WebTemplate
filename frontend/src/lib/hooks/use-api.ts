@@ -1,6 +1,6 @@
 'use client';
 
-import { useState, useEffect, useCallback } from 'react';
+import { useState, useEffect, useCallback, useMemo } from 'react';
 import { apiClient } from '@/lib/api/client';
 
 interface UseApiState<T> {
@@ -12,6 +12,9 @@ interface UseApiState<T> {
 export function useApi<T>(endpoint: string | null, params?: Record<string, string | number | boolean | undefined>) {
   const [state, setState] = useState<UseApiState<T>>({ data: null, loading: !!endpoint, error: null });
 
+  // Tach JSON.stringify ra useMemo — eslint react-hooks deps require simple expressions
+  const paramsKey = useMemo(() => JSON.stringify(params), [params]);
+
   const fetchData = useCallback(async () => {
     if (!endpoint) return;
     setState((prev) => ({ ...prev, loading: true, error: null }));
@@ -21,7 +24,8 @@ export function useApi<T>(endpoint: string | null, params?: Record<string, strin
     } catch (err) {
       setState({ data: null, loading: false, error: (err as Error).message });
     }
-  }, [endpoint, JSON.stringify(params)]);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [endpoint, paramsKey]);
 
   useEffect(() => { fetchData(); }, [fetchData]);
 

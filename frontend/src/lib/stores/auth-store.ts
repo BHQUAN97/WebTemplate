@@ -78,6 +78,14 @@ export const useAuthStore = create<AuthState>()(
           sessionStorage.removeItem('access_token');
           localStorage.removeItem('remember_me');
           sessionStorage.removeItem('2fa_pending');
+          // Clear cart cua user truoc khi logout — chong leak du lieu
+          // sang user khac dung chung browser. Dynamic import tranh circular dep.
+          try {
+            const cartMod = await import('@/lib/stores/cart-store');
+            cartMod.useCartStore.getState().clearCart?.();
+          } catch {
+            /* cart store optional */
+          }
         }
         set({ user: null, token: null, isAuthenticated: false });
       },
@@ -100,7 +108,7 @@ export const useAuthStore = create<AuthState>()(
       },
     }),
     {
-      name: 'auth-storage',
+      name: 'webtemplate-auth-v1',
       storage: createJSONStorage(() =>
         typeof window !== 'undefined'
           ? sessionStorage

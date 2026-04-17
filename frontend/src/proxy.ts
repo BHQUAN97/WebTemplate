@@ -1,10 +1,6 @@
 import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
-import createIntlMiddleware from 'next-intl/middleware';
 import { routing } from './i18n/routing';
-
-// Middleware next-intl — xu ly locale routing (cookie NEXT_LOCALE, prefix /en, ...)
-const intlMiddleware = createIntlMiddleware(routing);
 
 /** Route yeu cau dang nhap */
 const PROTECTED_ROUTES = [
@@ -44,16 +40,16 @@ function matchRoute(pathname: string, routes: string[]): boolean {
 
 /**
  * Proxy (Next.js 16 — thay the middleware)
- * Chain 2 lop:
- *   1. Auth: gate /admin, /dashboard, /profile, /settings + redirect khoi trang auth neu da login
- *   2. i18n: next-intl xu ly locale (cookie/prefix)
- * Su dung cookie refreshToken (HttpOnly, BE set khi login) de detect session —
- * access_token co the chi luu client-side nen middleware khong doc duoc.
+ * Auth gate: /admin, /dashboard, /profile, /settings yeu cau cookie refreshToken.
+ * Da login → redirect khoi trang auth.
+ *
+ * Locale handling: xu ly client-side qua next-intl provider (KHONG dung middleware
+ * rewrite vi cau truc app/ khong dung [locale] segment — middleware se gay 404 tat
+ * ca route trong (auth)/(public)/(dashboard)).
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // --- Lop 1: auth guard ---
   // Uu tien refreshToken (HttpOnly cookie BE set), fallback access_token cu
   const hasSession =
     !!request.cookies.get('refreshToken')?.value ||
@@ -73,8 +69,7 @@ export function proxy(request: NextRequest) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 
-  // --- Lop 2: next-intl locale middleware ---
-  return intlMiddleware(request);
+  return NextResponse.next();
 }
 
 export const config = {

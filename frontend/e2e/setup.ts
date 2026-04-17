@@ -103,6 +103,7 @@ export async function seedTestData(): Promise<void> {
         name: 'Admin',
         email: ADMIN_CREDENTIALS.email,
         password: ADMIN_CREDENTIALS.password,
+        confirmPassword: ADMIN_CREDENTIALS.password,
       }),
     });
 
@@ -114,6 +115,7 @@ export async function seedTestData(): Promise<void> {
         name: 'Test User',
         email: USER_CREDENTIALS.email,
         password: USER_CREDENTIALS.password,
+        confirmPassword: USER_CREDENTIALS.password,
       }),
     });
 

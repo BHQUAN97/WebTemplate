@@ -9,13 +9,26 @@ const nextConfig: NextConfig = {
   // Standalone output cho Docker deploy
   output: 'standalone',
 
-  // Allowed image domains
+  // Allowed image domains — chi cho phep CDN tin cay (chong SSRF + tranh proxy abuse).
+  // Override via env IMAGE_HOSTS (comma-separated) cho prod custom CDN.
   images: {
     remotePatterns: [
-      {
-        protocol: 'https',
-        hostname: '**',
-      },
+      // Cloudflare R2 / S3 default
+      { protocol: 'https', hostname: '*.r2.dev' },
+      { protocol: 'https', hostname: '*.r2.cloudflarestorage.com' },
+      { protocol: 'https', hostname: '*.s3.amazonaws.com' },
+      { protocol: 'https', hostname: '*.s3.*.amazonaws.com' },
+      // Common social/profile avatars
+      { protocol: 'https', hostname: 'lh3.googleusercontent.com' },
+      { protocol: 'https', hostname: 'platform-lookaside.fbsbx.com' },
+      { protocol: 'https', hostname: 'graph.facebook.com' },
+      // Local dev backend
+      { protocol: 'http', hostname: 'localhost' },
+      ...((process.env.IMAGE_HOSTS || '')
+        .split(',')
+        .map((h) => h.trim())
+        .filter(Boolean)
+        .map((hostname) => ({ protocol: 'https' as const, hostname }))),
     ],
   },
 

@@ -5,6 +5,7 @@ import {
   type DefaultValues,
   type FieldValues,
   type Path,
+  type Resolver,
 } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import type { z } from 'zod';
@@ -21,7 +22,11 @@ export function useFormValidation<
   defaultValues?: DefaultValues<TInput>,
 ) {
   const form = useForm<TInput, unknown, TOutput>({
-    resolver: zodResolver(schema) as any,
+    resolver: zodResolver(schema) as unknown as Resolver<
+      TInput,
+      unknown,
+      TOutput
+    >,
     defaultValues,
     mode: 'onBlur',
   });

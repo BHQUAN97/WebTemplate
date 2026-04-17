@@ -106,7 +106,8 @@ export const useCartStore = create<CartState>()(
         get().items.reduce((sum, item) => sum + item.quantity, 0),
     }),
     {
-      name: 'cart-storage',
+      // Namespaced de tranh collision voi stores khac trong cung browser
+      name: 'webtemplate-cart-v1',
     },
   ),
 );

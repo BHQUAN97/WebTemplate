@@ -30,6 +30,27 @@ export function CartClient() {
 
   const [promoError, setPromoError] = useState('');
   const [promoLoading, setPromoLoading] = useState(false);
+  // Track key cua item dang update qty de disable button trong qua trinh xu ly
+  const [updatingKey, setUpdatingKey] = useState<string | null>(null);
+
+  /**
+   * Wrap updateQuantity voi loading state ngan — chong double-click
+   * va cho user feedback truc quan tren mobile.
+   */
+  const handleQuantityChange = async (
+    productId: string,
+    variantId: string | null,
+    nextQty: number,
+  ) => {
+    const key = `${productId}-${variantId ?? 'default'}`;
+    setUpdatingKey(key);
+    try {
+      updateQuantity(productId, variantId, nextQty);
+    } finally {
+      // Nho de user thay disabled — UX feedback
+      setTimeout(() => setUpdatingKey(null), 150);
+    }
+  };
 
   const {
     register,
@@ -68,7 +89,10 @@ export function CartClient() {
   if (items.length === 0) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <ShoppingBag className="h-16 w-16 text-gray-300 mx-auto mb-4" />
+        <ShoppingBag
+          className="h-16 w-16 text-gray-300 mx-auto mb-4"
+          aria-hidden="true"
+        />
         <h1 className="text-2xl font-bold mb-2">Gio hang trong</h1>
         <p className="text-gray-500 mb-6">
           Ban chua co san pham nao trong gio hang
@@ -96,6 +120,8 @@ export function CartClient() {
           {items.map((item) => {
             const imageUrl = item.product.images?.[0]?.url ?? '/placeholder-product.png';
             const price = item.variant?.price ?? item.product.price;
+            const itemKey = `${item.product.id}-${item.variant?.id ?? 'default'}`;
+            const isUpdating = updatingKey === itemKey;
 
             return (
               <Card key={`${item.product.id}-${item.variant?.id ?? 'default'}`}>
@@ -142,32 +168,34 @@ export function CartClient() {
                         <div className="flex items-center border border-gray-300 rounded-lg">
                           <button
                             onClick={() =>
-                              updateQuantity(
+                              handleQuantityChange(
                                 item.product.id,
                                 item.variant?.id ?? null,
                                 item.quantity - 1,
                               )
                             }
-                            className="p-1.5 hover:bg-gray-50"
+                            disabled={isUpdating || item.quantity <= 1}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Giam"
                           >
-                            <Minus className="h-3 w-3" />
+                            <Minus className="h-3 w-3" aria-hidden="true" />
                           </button>
                           <span className="px-3 text-sm font-medium min-w-[32px] text-center">
                             {item.quantity}
                           </span>
                           <button
                             onClick={() =>
-                              updateQuantity(
+                              handleQuantityChange(
                                 item.product.id,
                                 item.variant?.id ?? null,
                                 item.quantity + 1,
                               )
                             }
-                            className="p-1.5 hover:bg-gray-50"
+                            disabled={isUpdating}
+                            className="min-w-[44px] min-h-[44px] flex items-center justify-center hover:bg-gray-50 disabled:opacity-50 disabled:cursor-not-allowed"
                             aria-label="Tang"
                           >
-                            <Plus className="h-3 w-3" />
+                            <Plus className="h-3 w-3" aria-hidden="true" />
                           </button>
                         </div>
 

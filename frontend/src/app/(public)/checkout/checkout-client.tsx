@@ -50,7 +50,7 @@ export function CheckoutClient() {
   const {
     register,
     handleSubmit,
-    formState: { errors },
+    formState: { errors, isSubmitting },
   } = useForm<ShippingFormData>({
     resolver: zodResolver(shippingSchema),
   });
@@ -221,7 +221,13 @@ export function CheckoutClient() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     So dien thoai *
                   </label>
-                  <Input {...register('phone')} placeholder="0900 123 456" />
+                  <Input
+                    {...register('phone')}
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                    placeholder="0900 123 456"
+                  />
                   {errors.phone && (
                     <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
                   )}
@@ -268,8 +274,13 @@ export function CheckoutClient() {
                 </div>
               </div>
 
-              <Button type="submit" size="lg" className="w-full sm:w-auto">
-                Tiep tuc
+              <Button
+                type="submit"
+                size="lg"
+                className="w-full sm:w-auto"
+                disabled={isSubmitting}
+              >
+                {isSubmitting ? 'Dang xu ly...' : 'Tiep tuc'}
               </Button>
             </form>
           )}

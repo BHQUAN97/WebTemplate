@@ -33,16 +33,15 @@ let cache: { data: CtaSettings; at: number } | null = null;
 const TTL_MS = 5 * 60 * 1000;
 
 export function useCtaSettings(): CtaSettings {
-  const [settings, setSettings] = useState<CtaSettings>(
-    cache?.data ?? DEFAULTS,
-  );
+  // Lazy initializer doc cache 1 lan luc mount — khong setState trong useEffect
+  const [settings, setSettings] = useState<CtaSettings>(() => {
+    if (cache && Date.now() - cache.at < TTL_MS) return cache.data;
+    return DEFAULTS;
+  });
 
   useEffect(() => {
-    // Con cache moi thi dung luon
-    if (cache && Date.now() - cache.at < TTL_MS) {
-      setSettings(cache.data);
-      return;
-    }
+    // Con cache moi thi khong fetch lai
+    if (cache && Date.now() - cache.at < TTL_MS) return;
     let cancelled = false;
     apiClient
       .get<ApiResponse<Setting[]>>('/settings/public')

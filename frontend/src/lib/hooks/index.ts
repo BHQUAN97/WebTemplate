@@ -1,6 +1,12 @@
 'use client';
 
-import { useState, useEffect, useCallback, useRef } from 'react';
+import {
+  useState,
+  useEffect,
+  useCallback,
+  useRef,
+  useSyncExternalStore,
+} from 'react';
 
 /**
  * Hook chong mount hydration mismatch cho zustand persist
@@ -71,21 +77,26 @@ export function getReadingTime(content: string): number {
 }
 
 /**
- * Hook media query responsive
+ * Hook media query responsive — dung useSyncExternalStore de tranh setState
+ * trong useEffect (cascading render). SSR-safe: tra ve false khi server.
  */
 export function useMediaQuery(query: string): boolean {
-  const [matches, setMatches] = useState(false);
-
-  useEffect(() => {
-    const media = window.matchMedia(query);
-    setMatches(media.matches);
-
-    const listener = (event: MediaQueryListEvent) => setMatches(event.matches);
-    media.addEventListener('change', listener);
-    return () => media.removeEventListener('change', listener);
-  }, [query]);
-
-  return matches;
+  const subscribe = useCallback(
+    (callback: () => void) => {
+      if (typeof window === 'undefined') return () => {};
+      const mql = window.matchMedia(query);
+      mql.addEventListener('change', callback);
+      return () => mql.removeEventListener('change', callback);
+    },
+    [query],
+  );
+  const getSnapshot = useCallback(
+    () =>
+      typeof window !== 'undefined' ? window.matchMedia(query).matches : false,
+    [query],
+  );
+  const getServerSnapshot = () => false;
+  return useSyncExternalStore(subscribe, getSnapshot, getServerSnapshot);
 }
 
 /**
