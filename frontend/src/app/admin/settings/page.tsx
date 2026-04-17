@@ -1,7 +1,7 @@
 'use client';
 
-import { useState } from 'react';
-import { Save } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { Save, MessageCircle, Phone, Mail, ArrowUp, LayoutGrid } from 'lucide-react';
 import { PageHeader } from '@/components/shared/page-header';
 import { FormField } from '@/components/shared/form-field';
 import { Button } from '@/components/ui/button';
@@ -12,6 +12,9 @@ import { Select, SelectTrigger, SelectContent, SelectItem, SelectValue } from '@
 import { Tabs, TabsList, TabsTrigger, TabsContent } from '@/components/ui/tabs';
 import { Card, CardHeader, CardTitle, CardContent, CardDescription } from '@/components/ui/card';
 import { useMutation } from '@/lib/hooks/use-api';
+import { settingsApi } from '@/lib/api/modules/settings.api';
+import type { ApiResponse, Setting } from '@/lib/types';
+import { apiClient } from '@/lib/api/client';
 
 // Danh sach module
 const MODULES = [
@@ -72,6 +75,74 @@ export default function SettingsPage() {
   const [gaId, setGaId] = useState('');
   const [sitemapEnabled, setSitemapEnabled] = useState(true);
 
+  // CTA settings — dieu khien floating buttons + bottom tab bar
+  const [ctaZaloEnabled, setCtaZaloEnabled] = useState(false);
+  const [ctaZaloPhone, setCtaZaloPhone] = useState('');
+  const [ctaMessengerEnabled, setCtaMessengerEnabled] = useState(false);
+  const [ctaMessengerUrl, setCtaMessengerUrl] = useState('');
+  const [ctaPhoneEnabled, setCtaPhoneEnabled] = useState(false);
+  const [ctaPhoneNumber, setCtaPhoneNumber] = useState('');
+  const [ctaWhatsappEnabled, setCtaWhatsappEnabled] = useState(false);
+  const [ctaWhatsappNumber, setCtaWhatsappNumber] = useState('');
+  const [ctaEmailEnabled, setCtaEmailEnabled] = useState(false);
+  const [ctaEmailAddress, setCtaEmailAddress] = useState('');
+  const [ctaBackToTopEnabled, setCtaBackToTopEnabled] = useState(true);
+  const [ctaBottomTabEnabled, setCtaBottomTabEnabled] = useState(true);
+  const [ctaSaving, setCtaSaving] = useState(false);
+  const [ctaMsg, setCtaMsg] = useState<string | null>(null);
+
+  // Load CTA settings tu /settings/public (group=cta, public flags)
+  useEffect(() => {
+    apiClient
+      .get<ApiResponse<Setting[]>>('/settings/public')
+      .then((res) => {
+        const map = new Map((res?.data ?? []).map((s) => [s.key, s.value]));
+        const b = (k: string, d = false) => (map.has(k) ? map.get(k) === 'true' : d);
+        const s = (k: string) => map.get(k) ?? '';
+        setCtaZaloEnabled(b('cta.zalo_enabled'));
+        setCtaZaloPhone(s('cta.zalo_phone'));
+        setCtaMessengerEnabled(b('cta.messenger_enabled'));
+        setCtaMessengerUrl(s('cta.messenger_url'));
+        setCtaPhoneEnabled(b('cta.phone_enabled'));
+        setCtaPhoneNumber(s('cta.phone_number'));
+        setCtaWhatsappEnabled(b('cta.whatsapp_enabled'));
+        setCtaWhatsappNumber(s('cta.whatsapp_number'));
+        setCtaEmailEnabled(b('cta.email_enabled'));
+        setCtaEmailAddress(s('cta.email_address'));
+        setCtaBackToTopEnabled(b('cta.back_to_top_enabled', true));
+        setCtaBottomTabEnabled(b('cta.bottom_tab_enabled', true));
+      })
+      .catch(() => {
+        // Silent — dung defaults hien tai
+      });
+  }, []);
+
+  const handleSaveCta = async () => {
+    setCtaSaving(true);
+    setCtaMsg(null);
+    try {
+      await settingsApi.bulkUpdate([
+        { key: 'cta.zalo_enabled', value: String(ctaZaloEnabled) },
+        { key: 'cta.zalo_phone', value: ctaZaloPhone.trim() },
+        { key: 'cta.messenger_enabled', value: String(ctaMessengerEnabled) },
+        { key: 'cta.messenger_url', value: ctaMessengerUrl.trim() },
+        { key: 'cta.phone_enabled', value: String(ctaPhoneEnabled) },
+        { key: 'cta.phone_number', value: ctaPhoneNumber.trim() },
+        { key: 'cta.whatsapp_enabled', value: String(ctaWhatsappEnabled) },
+        { key: 'cta.whatsapp_number', value: ctaWhatsappNumber.trim() },
+        { key: 'cta.email_enabled', value: String(ctaEmailEnabled) },
+        { key: 'cta.email_address', value: ctaEmailAddress.trim() },
+        { key: 'cta.back_to_top_enabled', value: String(ctaBackToTopEnabled) },
+        { key: 'cta.bottom_tab_enabled', value: String(ctaBottomTabEnabled) },
+      ]);
+      setCtaMsg('Da luu — refresh trang khach de thay thay doi');
+    } catch (err) {
+      setCtaMsg(`Loi: ${(err as Error).message}`);
+    } finally {
+      setCtaSaving(false);
+    }
+  };
+
   const saveMutation = useMutation('PUT', '/admin/settings');
 
   const handleSave = async () => {
@@ -104,6 +175,7 @@ export default function SettingsPage() {
           <TabsTrigger value="email">Email</TabsTrigger>
           <TabsTrigger value="payment">Thanh toan</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
+          <TabsTrigger value="cta">CTA</TabsTrigger>
           <TabsTrigger value="modules">Modules</TabsTrigger>
         </TabsList>
 
@@ -242,6 +314,171 @@ export default function SettingsPage() {
               </Button>
             </CardContent>
           </Card>
+        </TabsContent>
+
+        {/* CTA — Call-to-action */}
+        <TabsContent value="cta">
+          <div className="space-y-4">
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <MessageCircle className="h-5 w-5" /> Nut lien he noi (Floating CTA)
+                </CardTitle>
+                <CardDescription>
+                  Cac nut noi goc duoi phai man hinh. Bo trong so/URL se tu an du co bat.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-6 max-w-2xl">
+                {/* Zalo */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Zalo</p>
+                      <p className="text-xs text-gray-500">Chat Zalo — phu hop khach Viet</p>
+                    </div>
+                    <Switch checked={ctaZaloEnabled} onCheckedChange={setCtaZaloEnabled} />
+                  </div>
+                  <FormField label="So dien thoai Zalo" description="VD: 0901234567 hoac 84901234567">
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      value={ctaZaloPhone}
+                      onChange={(e) => setCtaZaloPhone(e.target.value)}
+                      placeholder="0901234567"
+                      disabled={!ctaZaloEnabled}
+                    />
+                  </FormField>
+                </div>
+
+                {/* Messenger */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">Facebook Messenger</p>
+                      <p className="text-xs text-gray-500">Nut chat voi fan page</p>
+                    </div>
+                    <Switch checked={ctaMessengerEnabled} onCheckedChange={setCtaMessengerEnabled} />
+                  </div>
+                  <FormField label="Link Messenger" description="Dang https://m.me/your-page">
+                    <Input
+                      type="url"
+                      inputMode="url"
+                      value={ctaMessengerUrl}
+                      onChange={(e) => setCtaMessengerUrl(e.target.value)}
+                      placeholder="https://m.me/your-page"
+                      disabled={!ctaMessengerEnabled}
+                    />
+                  </FormField>
+                </div>
+
+                {/* Hotline */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium flex items-center gap-2">
+                        <Phone className="h-4 w-4" /> Goi dien (Hotline)
+                      </p>
+                      <p className="text-xs text-gray-500">Nut bam de goi truc tiep</p>
+                    </div>
+                    <Switch checked={ctaPhoneEnabled} onCheckedChange={setCtaPhoneEnabled} />
+                  </div>
+                  <FormField label="So hotline">
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      value={ctaPhoneNumber}
+                      onChange={(e) => setCtaPhoneNumber(e.target.value)}
+                      placeholder="0900 123 456"
+                      disabled={!ctaPhoneEnabled}
+                    />
+                  </FormField>
+                </div>
+
+                {/* WhatsApp */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium">WhatsApp</p>
+                      <p className="text-xs text-gray-500">Phu hop khach nuoc ngoai</p>
+                    </div>
+                    <Switch checked={ctaWhatsappEnabled} onCheckedChange={setCtaWhatsappEnabled} />
+                  </div>
+                  <FormField label="So WhatsApp" description="Dang quoc te, vd: 84901234567">
+                    <Input
+                      type="tel"
+                      inputMode="tel"
+                      value={ctaWhatsappNumber}
+                      onChange={(e) => setCtaWhatsappNumber(e.target.value)}
+                      placeholder="84901234567"
+                      disabled={!ctaWhatsappEnabled}
+                    />
+                  </FormField>
+                </div>
+
+                {/* Email */}
+                <div className="space-y-3 border rounded-lg p-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <p className="font-medium flex items-center gap-2">
+                        <Mail className="h-4 w-4" /> Email
+                      </p>
+                      <p className="text-xs text-gray-500">Mo mail client khi nhan</p>
+                    </div>
+                    <Switch checked={ctaEmailEnabled} onCheckedChange={setCtaEmailEnabled} />
+                  </div>
+                  <FormField label="Dia chi email">
+                    <Input
+                      type="email"
+                      inputMode="email"
+                      value={ctaEmailAddress}
+                      onChange={(e) => setCtaEmailAddress(e.target.value)}
+                      placeholder="info@example.com"
+                      disabled={!ctaEmailEnabled}
+                    />
+                  </FormField>
+                </div>
+              </CardContent>
+            </Card>
+
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <LayoutGrid className="h-5 w-5" /> Dieu huong & tien ich
+                </CardTitle>
+                <CardDescription>
+                  Cac tien ich UX chung cho trang khach hang.
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4 max-w-2xl">
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium flex items-center gap-2">
+                      <ArrowUp className="h-4 w-4" /> Nut cuon len dau trang
+                    </p>
+                    <p className="text-xs text-gray-500">Hien khi user da cuon qua 300px</p>
+                  </div>
+                  <Switch checked={ctaBackToTopEnabled} onCheckedChange={setCtaBackToTopEnabled} />
+                </div>
+                <div className="flex items-center justify-between p-3 border rounded-lg">
+                  <div>
+                    <p className="font-medium">Bottom tab bar mobile</p>
+                    <p className="text-xs text-gray-500">
+                      Thanh dieu huong duoi mobile: Home / Search / Cart / Account
+                    </p>
+                  </div>
+                  <Switch checked={ctaBottomTabEnabled} onCheckedChange={setCtaBottomTabEnabled} />
+                </div>
+              </CardContent>
+            </Card>
+
+            <div className="flex items-center gap-3">
+              <Button onClick={handleSaveCta} disabled={ctaSaving}>
+                <Save className="h-4 w-4 mr-2" />
+                {ctaSaving ? 'Dang luu...' : 'Luu cai dat CTA'}
+              </Button>
+              {ctaMsg && <span className="text-sm text-gray-600">{ctaMsg}</span>}
+            </div>
+          </div>
         </TabsContent>
 
         {/* Modules */}

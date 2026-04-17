@@ -77,7 +77,11 @@ export function ContactClient() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Ho ten *
                   </label>
-                  <Input {...register('name')} placeholder="Nhap ho ten" />
+                  <Input
+                    {...register('name')}
+                    placeholder="Nhap ho ten"
+                    autoComplete="name"
+                  />
                   {errors.name && (
                     <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
                   )}
@@ -86,7 +90,13 @@ export function ContactClient() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Email *
                   </label>
-                  <Input {...register('email')} placeholder="Nhap email" type="email" />
+                  <Input
+                    {...register('email')}
+                    placeholder="Nhap email"
+                    type="email"
+                    inputMode="email"
+                    autoComplete="email"
+                  />
                   {errors.email && (
                     <p className="text-red-500 text-xs mt-1">{errors.email.message}</p>
                   )}
@@ -98,7 +108,13 @@ export function ContactClient() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     So dien thoai
                   </label>
-                  <Input {...register('phone')} placeholder="0900 123 456" />
+                  <Input
+                    {...register('phone')}
+                    placeholder="0900 123 456"
+                    type="tel"
+                    inputMode="tel"
+                    autoComplete="tel"
+                  />
                   {errors.phone && (
                     <p className="text-red-500 text-xs mt-1">{errors.phone.message}</p>
                   )}
