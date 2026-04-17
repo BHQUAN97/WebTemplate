@@ -1,0 +1,124 @@
+##############################################
+# Shared Infrastructure — MySQL + Redis + Nginx
+#
+# Chay 1 LAN cho toan bo VPS.
+# Tat ca project dung chung:
+#   - MySQL 8 (moi project 1 database)
+#   - Redis 7 (moi project 1 key prefix)
+#   - Nginx (moi project 1 server block)
+#
+# Setup:
+#   1. docker network create shared-net
+#   2. docker compose -f docker-compose.shared-infra.yml up -d
+#   3. Them nginx config cho moi project vao nginx/conf.d/
+#
+# Port map (internal only — KHONG expose ra ngoai):
+#   MySQL: 3306 (internal), 6002 (optional debug)
+#   Redis: 6379 (internal), 6003 (optional debug)
+#   Nginx: 80/443 (public)
+##############################################
+
+version: '3.8'
+
+services:
+  shared-mysql:
+    image: mysql:8.0
+    container_name: shared-mysql
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:6002:3306'   # Chi bind localhost — khong expose ra ngoai
+    environment:
+      MYSQL_ROOT_PASSWORD: ${SHARED_DB_ROOT_PASSWORD:-rootpass_change_me}
+    volumes:
+      - shared_mysql_data:/var/lib/mysql
+      - ./scripts/init-databases.sql:/docker-entrypoint-initdb.d/init.sql:ro
+    networks:
+      - shared-net
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+      --innodb-buffer-pool-size=512M
+      --max-connections=500
+      --slow-query-log=1
+      --slow-query-log-file=/var/lib/mysql/slow.log
+      --long-query-time=2
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  shared-redis:
+    image: redis:7-alpine
+    container_name: shared-redis
+    restart: unless-stopped
+    ports:
+      - '127.0.0.1:6003:6379'   # Chi bind localhost
+    volumes:
+      - shared_redis_data:/data
+    networks:
+      - shared-net
+    command: >
+      redis-server
+      --appendonly yes
+      --maxmemory 256mb
+      --maxmemory-policy allkeys-lru
+      --save 60 1000
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  shared-nginx:
+    image: nginx:1.25-alpine
+    container_name: shared-nginx
+    restart: unless-stopped
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/shared-nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - shared_certbot_conf:/etc/nginx/certs:ro
+      - shared_certbot_www:/var/www/certbot:ro
+      - shared_nginx_logs:/var/log/nginx
+    networks:
+      - shared-net
+    depends_on:
+      shared-mysql:
+        condition: service_healthy
+      shared-redis:
+        condition: service_healthy
+    healthcheck:
+      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80']
+      interval: 30s
+      timeout: 5s
+      retries: 3
+
+  # Certbot — auto-renew SSL certificates
+  certbot:
+    image: certbot/certbot
+    container_name: shared-certbot
+    volumes:
+      - shared_certbot_conf:/etc/letsencrypt
+      - shared_certbot_www:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew --quiet; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  shared_mysql_data:
+    driver: local
+  shared_redis_data:
+    driver: local
+  shared_certbot_conf:
+    driver: local
+  shared_certbot_www:
+    driver: local
+  shared_nginx_logs:
+    driver: local
+
+networks:
+  shared-net:
+    external: true

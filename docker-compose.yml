@@ -1,0 +1,60 @@
+version: '3.8'
+
+# ==========================================
+# DEV infrastructure — MySQL + Redis only
+# Port binding 127.0.0.1 → KHONG expose ra ngoai LAN/internet
+# ==========================================
+
+services:
+  mysql:
+    image: mysql:8.0
+    container_name: wt-mysql
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      # Chi bind loopback → safe tren dev machine co IP public
+      - '127.0.0.1:6002:3306'
+    environment:
+      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
+      MYSQL_DATABASE: ${DB_NAME:-webtemplate}
+      MYSQL_USER: ${DB_USER:-wtuser}
+      MYSQL_PASSWORD: ${DB_PASSWORD:-wtpass}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: --default-authentication-plugin=mysql_native_password --character-set-server=utf8mb4 --collation-server=utf8mb4_unicode_ci
+    networks:
+      - webtemplate-net
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${DB_ROOT_PASSWORD:-rootpass}']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+      start_period: 30s
+
+  redis:
+    image: redis:7-alpine
+    container_name: wt-redis
+    restart: unless-stopped
+    env_file:
+      - ./.env
+    ports:
+      - '127.0.0.1:6003:6379'
+    volumes:
+      - redis_data:/data
+    command: redis-server --appendonly yes
+    networks:
+      - webtemplate-net
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+volumes:
+  mysql_data:
+  redis_data:
+
+networks:
+  webtemplate-net:
+    driver: bridge
