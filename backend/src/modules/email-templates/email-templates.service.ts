@@ -174,11 +174,18 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
         subject: 'Xac thuc dia chi email',
         html_body: `<h1>Xac thuc email</h1>
 <p>Xin chao {{user_name}},</p>
-<p>Nhan vao link sau de xac thuc dia chi email cua ban:</p>
-<p><a href="{{verify_link}}">Xac thuc email</a></p>
-<p>Link nay se het han sau 24 gio. Neu ban khong dang ky tai khoan, vui long bo qua email nay.</p>`,
-        text_body:
-          'Xac thuc email: {{verify_link}} (het han sau 24 gio). Neu khong phai ban, bo qua email nay.',
+<p>Cam on ban da dang ky. Vui long nhan vao link ben duoi de xac thuc dia chi email cua ban:</p>
+<p><a href="{{verify_link}}" style="display:inline-block;padding:10px 18px;background:#2563eb;color:#fff;text-decoration:none;border-radius:6px;">Xac thuc email</a></p>
+<p>Hoac copy link sau vao trinh duyet:<br/><code>{{verify_link}}</code></p>
+<p>Link nay se het han sau <strong>24 gio</strong>. Neu ban khong dang ky tai khoan, vui long bo qua email nay.</p>`,
+        text_body: `Xac thuc email
+
+Xin chao {{user_name}},
+
+Cam on ban da dang ky. Nhan link sau de xac thuc email:
+{{verify_link}}
+
+Link het han sau 24 gio. Neu khong phai ban, bo qua email nay.`,
         variables: ['user_name', 'verify_link'],
       },
       {
@@ -211,6 +218,40 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
 <p><a href="{{unsubscribe_link}}">Huy dang ky</a></p>`,
         text_body: '{{title}}\n\n{{content}}\n\nHuy dang ky: {{unsubscribe_link}}',
         variables: ['subject_line', 'title', 'content', 'unsubscribe_link'],
+      },
+      {
+        name: 'weekly_report',
+        subject: 'Bao cao tuan {{dateFrom}} - {{dateTo}}',
+        html_body: `<h1>Bao cao tuan {{dateFrom}} - {{dateTo}}</h1>
+<p>Xin chao {{name}},</p>
+<p>Tom tat hoat dong tuan qua:</p>
+<ul>
+  <li><strong>Tong don hang:</strong> {{totalOrders}}</li>
+  <li><strong>Tong doanh thu:</strong> {{totalRevenue}}</li>
+</ul>
+<h3>Top san pham ban chay</h3>
+<pre style="background:#f6f8fa;padding:12px;border-radius:6px;white-space:pre-wrap;">{{topProducts}}</pre>
+<p><em>File PDF chi tiet duoc dinh kem cuoi email.</em></p>`,
+        text_body: `Bao cao tuan {{dateFrom}} - {{dateTo}}
+
+Xin chao {{name}},
+
+Tom tat tuan qua:
+- Tong don hang: {{totalOrders}}
+- Tong doanh thu: {{totalRevenue}}
+
+Top san pham:
+{{topProducts}}
+
+File PDF chi tiet dinh kem cuoi email.`,
+        variables: [
+          'name',
+          'dateFrom',
+          'dateTo',
+          'totalOrders',
+          'totalRevenue',
+          'topProducts',
+        ],
       },
     ];
 

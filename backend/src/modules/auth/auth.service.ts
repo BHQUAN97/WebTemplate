@@ -3,11 +3,13 @@ import {
   UnauthorizedException,
   BadRequestException,
   Logger,
+  Inject,
 } from '@nestjs/common';
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
+import type Redis from 'ioredis';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
@@ -23,6 +25,7 @@ import { TwoFactorService } from './two-factor.service.js';
 import { SettingsService } from '../settings/settings.service.js';
 import { MailService } from '../mail/mail.service.js';
 import { UserRole } from '../../common/constants/index.js';
+import { REDIS_CLIENT } from '../../common/redis/redis.module.js';
 
 interface TokenPair {
   accessToken: string;
@@ -41,17 +44,11 @@ export interface OAuthProfile {
 }
 
 /**
- * Tracker login attempts — Redis neu co, fallback in-memory Map.
- * Key: login_attempts:{email}. Value: so lan thu lien tiep. TTL 15 phut.
- */
-interface AttemptEntry {
-  count: number;
-  expiresAt: number;
-}
-
-/**
  * Auth service — xu ly dang ky, dang nhap, refresh token, doi mat khau,
  * OAuth login, email verification, account lockout.
+ *
+ * Login-attempts tracker dung Redis. Key pattern: `login_attempts:{email}`.
+ * Counter tang moi lan sai password, tu het han sau LOCKOUT_TTL_SECONDS.
  */
 @Injectable()
 export class AuthService {
@@ -59,14 +56,8 @@ export class AuthService {
 
   /** Gioi han so lan sai password lien tiep truoc khi khoa tam thoi. */
   private readonly MAX_LOGIN_ATTEMPTS = 5;
-  /** Thoi gian khoa sau khi vuot gioi han (ms). */
-  private readonly LOCKOUT_TTL_MS = 15 * 60 * 1000;
-
-  /**
-   * In-memory fallback cho login attempts — dung khi khong co Redis san.
-   * TODO: chuyen sang Redis khi co @InjectRedis() moi truong production thuc te.
-   */
-  private readonly attemptsMap = new Map<string, AttemptEntry>();
+  /** Thoi gian khoa sau khi vuot gioi han (giay) — dung cho Redis EXPIRE. */
+  private readonly LOCKOUT_TTL_SECONDS = 15 * 60;
 
   constructor(
     @InjectRepository(RefreshToken)
@@ -79,7 +70,15 @@ export class AuthService {
     private readonly twoFactorService: TwoFactorService,
     private readonly settingsService: SettingsService,
     private readonly mailService: MailService,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
+
+  /**
+   * Build Redis key cho login-attempts counter (lowercase email).
+   */
+  private attemptsKey(email: string): string {
+    return `login_attempts:${email.toLowerCase()}`;
+  }
 
   // ==========================================================================
   // REGISTER
@@ -293,19 +292,16 @@ export class AuthService {
 
   /**
    * Xac thuc user bang email + password — co account lockout sau 5 lan sai.
-   * Throw `Account locked...` khi vuot nguong.
+   * Throw khi vuot nguong voi message bao phut con lai. Dung Redis de share
+   * counter giua cac instance + tu expire sau 15 phut.
    */
   async validateUser(email: string, password: string): Promise<User> {
-    // Check lockout TRUOC khi so sanh password — tranh leak info
-    if (this.isLockedOut(email)) {
-      throw new BadRequestException(
-        'Account locked. Try again in 15 minutes.',
-      );
-    }
+    // Check lockout TRUOC khi so sanh password — tranh leak info + timing attack
+    await this.checkLockout(email);
 
     const user = await this.usersService.findByEmail(email);
     if (!user) {
-      this.recordFailedAttempt(email);
+      await this.recordFailedAttempt(email);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -322,7 +318,7 @@ export class AuthService {
 
     const isMatch = await comparePassword(password, user.password_hash);
     if (!isMatch) {
-      this.recordFailedAttempt(email);
+      await this.recordFailedAttempt(email);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -342,47 +338,46 @@ export class AuthService {
     }
 
     // Login thanh cong -> xoa counter
-    this.clearFailedAttempts(email);
+    await this.clearFailedAttempts(email);
 
     return user;
   }
 
   /**
-   * Tang counter login attempts. Dung in-memory Map (TTL 15 phut).
+   * Tang counter login attempts trong Redis. Set TTL = LOCKOUT_TTL_SECONDS
+   * lan dau de key tu het han. Return count moi (debug/telemetry).
    */
-  private recordFailedAttempt(email: string): void {
-    const key = email.toLowerCase();
-    const now = Date.now();
-    const entry = this.attemptsMap.get(key);
-    if (!entry || entry.expiresAt < now) {
-      this.attemptsMap.set(key, {
-        count: 1,
-        expiresAt: now + this.LOCKOUT_TTL_MS,
-      });
-    } else {
-      entry.count += 1;
+  private async recordFailedAttempt(email: string): Promise<number> {
+    const key = this.attemptsKey(email);
+    const count = await this.redis.incr(key);
+    if (count === 1) {
+      await this.redis.expire(key, this.LOCKOUT_TTL_SECONDS);
     }
+    return count;
   }
 
   /**
-   * Check xem email co dang bi lockout khong.
+   * Check xem email co dang bi lockout khong. Throw BadRequestException voi
+   * so phut con lai neu vuot nguong. Khong throw neu TTL da het (race).
    */
-  private isLockedOut(email: string): boolean {
-    const key = email.toLowerCase();
-    const entry = this.attemptsMap.get(key);
-    if (!entry) return false;
-    if (entry.expiresAt < Date.now()) {
-      this.attemptsMap.delete(key);
-      return false;
+  private async checkLockout(email: string): Promise<void> {
+    const key = this.attemptsKey(email);
+    const raw = await this.redis.get(key);
+    const count = raw ? parseInt(raw, 10) : 0;
+    if (count >= this.MAX_LOGIN_ATTEMPTS) {
+      const ttl = await this.redis.ttl(key);
+      const minutes = ttl > 0 ? Math.ceil(ttl / 60) : 15;
+      throw new BadRequestException(
+        `Tai khoan tam khoa. Thu lai sau ${minutes} phut.`,
+      );
     }
-    return entry.count >= this.MAX_LOGIN_ATTEMPTS;
   }
 
   /**
    * Xoa counter sau khi dang nhap thanh cong.
    */
-  private clearFailedAttempts(email: string): void {
-    this.attemptsMap.delete(email.toLowerCase());
+  private async clearFailedAttempts(email: string): Promise<void> {
+    await this.redis.del(this.attemptsKey(email));
   }
 
   // ==========================================================================

@@ -60,6 +60,10 @@ export class WebhookRetryCron {
           event,
           payload,
         });
+        // Reset next_retry_at de tranh pick lai row nay trong lan cron sau;
+        // lan deliver moi se ghi delivery record moi voi backoff moi.
+        d.next_retry_at = null;
+        await this.deliveryRepo.save(d);
         enqueued += 1;
       }
 

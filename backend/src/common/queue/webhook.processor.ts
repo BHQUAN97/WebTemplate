@@ -11,6 +11,21 @@ import { QUEUE_NAMES } from './queue.module.js';
 import { DeadLetterService } from './dead-letter.service.js';
 
 /**
+ * Max attempts truoc khi move vao DLQ vinh vien. Dong bo voi
+ * WebhookRetryCron.MAX_WEBHOOK_ATTEMPTS.
+ */
+const MAX_WEBHOOK_ATTEMPTS = 5;
+
+/**
+ * Tinh mili-giay backoff exponential theo so lan attempt da thu:
+ *  attempt=1 -> 2m, 2 -> 4m, 3 -> 8m, 4 -> 16m, 5 -> 32m.
+ * Sau MAX_WEBHOOK_ATTEMPTS se khong con retry nua.
+ */
+function computeBackoffMs(attemptCount: number): number {
+  return Math.pow(2, attemptCount) * 60_000;
+}
+
+/**
  * Payload cua webhook job.
  */
 export interface WebhookJobData {
@@ -246,6 +261,11 @@ export class WebhookProcessor extends WorkerHost {
 
   /**
    * Luu 1 delivery record.
+   *
+   * Logic next_retry_at:
+   *  - success=true -> null (khong can retry).
+   *  - success=false + attempt < MAX -> now + 2^attempt phut (2/4/8/16 phut).
+   *  - success=false + attempt >= MAX -> null (exhausted, cron se move DLQ).
    */
   private async saveDelivery(args: {
     webhookId: string;
@@ -257,6 +277,11 @@ export class WebhookProcessor extends WorkerHost {
     success: boolean;
     durationMs: number;
   }): Promise<WebhookDelivery> {
+    let nextRetryAt: Date | null = null;
+    if (!args.success && args.attempt < MAX_WEBHOOK_ATTEMPTS) {
+      nextRetryAt = new Date(Date.now() + computeBackoffMs(args.attempt));
+    }
+
     const delivery = this.deliveryRepo.create({
       webhook_id: args.webhookId,
       event: args.event,
@@ -266,7 +291,7 @@ export class WebhookProcessor extends WorkerHost {
       attempt: args.attempt,
       success: args.success,
       duration_ms: args.durationMs,
-      next_retry_at: null,
+      next_retry_at: nextRetryAt,
     });
     return this.deliveryRepo.save(delivery);
   }

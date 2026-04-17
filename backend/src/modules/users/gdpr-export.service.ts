@@ -1,5 +1,6 @@
 import {
   BadRequestException,
+  Inject,
   Injectable,
   Logger,
   NotFoundException,
@@ -8,19 +9,20 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Readable } from 'stream';
 import archiver from 'archiver';
+import type Redis from 'ioredis';
 import { User } from './entities/user.entity.js';
 import { Order } from '../orders/entities/order.entity.js';
 import { OrderItem } from '../orders/entities/order-item.entity.js';
 import { Media } from '../media/entities/media.entity.js';
 import { AuditLog } from '../audit-logs/entities/audit-log.entity.js';
+import { REDIS_CLIENT } from '../../common/redis/redis.module.js';
 
 /**
- * GDPR rate limit — 1 request/user/day. Luu in-memory.
- * Trong moi truong production co nhieu instance, nen chuyen sang Redis.
- * TODO: Move to Redis for multi-instance deployments.
+ * GDPR rate limit — 1 request/user/day. Luu tren Redis de share giua
+ * nhieu instance va tu expire sau 24h (EXPIRE = 86400).
+ * Key pattern: `gdpr_export:{userId}`.
  */
-const GDPR_RATE_LIMIT_MAP = new Map<string, number>();
-const DAY_MS = 24 * 60 * 60 * 1000;
+const GDPR_EXPORT_TTL_SECONDS = 24 * 60 * 60;
 
 /**
  * GdprExportService — gather tat ca du lieu cua 1 user thanh ZIP bundle.
@@ -45,26 +47,29 @@ export class GdprExportService {
     private readonly mediaRepo: Repository<Media>,
     @InjectRepository(AuditLog)
     private readonly auditLogRepo: Repository<AuditLog>,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
   /**
-   * Rate-limit check: 1 export/user/day. Throw BadRequestException neu vuot.
+   * Rate-limit check: 1 export/user/day. Su dung Redis SET NX EX de
+   * atomic — neu da ton tai key => tra ve ttl con lai va throw.
    */
-  private assertRateLimit(userId: string): void {
-    const last = GDPR_RATE_LIMIT_MAP.get(userId);
-    if (last && Date.now() - last < DAY_MS) {
+  private async assertRateLimit(userId: string): Promise<void> {
+    const key = `gdpr_export:${userId}`;
+    // Set voi NX (only if not exists) + EX (TTL 24h). OK neu set thanh cong.
+    const set = await this.redis.set(
+      key,
+      '1',
+      'EX',
+      GDPR_EXPORT_TTL_SECONDS,
+      'NX',
+    );
+    if (set !== 'OK') {
+      const ttl = await this.redis.ttl(key);
+      const hours = ttl > 0 ? Math.ceil(ttl / 3600) : 24;
       throw new BadRequestException(
-        'GDPR export rate limit exceeded (1 per day). Try again later.',
+        `Ban da export trong 24h qua. Thu lai sau ${hours} gio.`,
       );
-    }
-    GDPR_RATE_LIMIT_MAP.set(userId, Date.now());
-
-    // Cleanup cac entry cu tra for long-lived process
-    if (GDPR_RATE_LIMIT_MAP.size > 10000) {
-      const now = Date.now();
-      for (const [k, v] of GDPR_RATE_LIMIT_MAP.entries()) {
-        if (now - v > DAY_MS) GDPR_RATE_LIMIT_MAP.delete(k);
-      }
     }
   }
 
@@ -73,7 +78,7 @@ export class GdprExportService {
    * Throw NotFoundException neu user khong ton tai.
    */
   async exportUserDataZipStream(userId: string): Promise<Readable> {
-    this.assertRateLimit(userId);
+    await this.assertRateLimit(userId);
 
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');

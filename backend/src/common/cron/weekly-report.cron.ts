@@ -10,11 +10,15 @@ import { UserRole } from '../constants/index.js';
 
 /**
  * Cron weekly-report — gui sales report tuan qua cho admin moi Thu Hai 8h sang.
- * Hien tai chi dispatch email qua MailService (khong attach binary vi queue
- * email chi ho tro template Handlebars). De thuc su attach PDF, can mo rong
- * MailService cho phep attachments.
+ * Dinh kem file PDF (generate qua ReportsService.generateSalesPdf).
  *
- * TODO: extend MailService va EmailProcessor de ho tro attachments binary.
+ * Flow:
+ *   1. Check settings.email.enabled — neu off -> skip + warn.
+ *   2. Tinh khoang [Monday tuan truoc, Sunday tuan truoc] (de bao gom
+ *      tron 7 ngay cuoi cung, khong lan sang tuan hien tai).
+ *   3. Gen PDF buffer tu sales report.
+ *   4. Enumerate admin active -> enqueue email voi attachment = PDF.
+ *   5. Loi cho 1 admin khong lam fail toan bo batch.
  */
 @Injectable()
 export class WeeklyReportCron {
@@ -42,21 +46,49 @@ export class WeeklyReportCron {
         return;
       }
 
-      // Lay date range tuan vua roi
-      const to = new Date();
-      const from = new Date(to.getTime() - 7 * 24 * 60 * 60 * 1000);
-      const dateFrom = from.toISOString();
-      const dateTo = to.toISOString();
+      // Range: tuan truoc (Thu 2 00:00 -> CN 23:59:59 tuan truoc)
+      const { lastMonday, lastSunday } = this.getLastWeekRange();
+      const dateFromIso = lastMonday.toISOString();
+      const dateToIso = lastSunday.toISOString();
+      const dateFromLabel = lastMonday.toISOString().slice(0, 10);
+      const dateToLabel = lastSunday.toISOString().slice(0, 10);
 
-      // Gen report PDF (not used as attachment yet — see TODO above)
-      const report = await this.reportsService.generate('sales', {
-        dateFrom,
-        dateTo,
-        format: 'pdf',
+      // Gen PDF attachment
+      let pdfBuffer: Buffer;
+      try {
+        pdfBuffer = await this.reportsService.generateSalesPdf({
+          dateFrom: lastMonday,
+          dateTo: lastSunday,
+        });
+      } catch (err) {
+        this.logger.error(
+          `Weekly report PDF gen failed: ${(err as Error).message}`,
+        );
+        return;
+      }
+
+      // Lay summary tu sales report (reuse de embed vao email body)
+      const salesPayload = await this.reportsService.getSalesReport({
+        dateFrom: dateFromIso,
+        dateTo: dateToIso,
       });
-      this.logger.log(
-        `Weekly report generated: ${report.filename} (${report.buffer.length} bytes)`,
+      const totalOrdersCard = salesPayload.summary.find(
+        (c) => c.label === 'Total orders',
       );
+      const totalRevenueCard = salesPayload.summary.find(
+        (c) => c.label === 'Total revenue',
+      );
+      const topProductsTable = salesPayload.tables.find(
+        (t) => t.title === 'Top 10 products',
+      );
+      const topProductsStr =
+        topProductsTable?.rows
+          .slice(0, 5)
+          .map(
+            (r, i) =>
+              `${i + 1}. ${r.name} — ${r.units} units (${r.revenue})`,
+          )
+          .join('\n') || '-';
 
       // Lay danh sach admin
       const admins = await this.userRepo
@@ -66,6 +98,7 @@ export class WeeklyReportCron {
         .andWhere('u.role = :role', { role: UserRole.ADMIN })
         .getMany();
 
+      let sent = 0;
       for (const admin of admins) {
         try {
           await this.mailService.sendMail({
@@ -73,12 +106,21 @@ export class WeeklyReportCron {
             template: 'weekly_report',
             context: {
               name: admin.name,
-              period_from: dateFrom,
-              period_to: dateTo,
-              // Trong thoi gian cho extension attachment, ta chi gui link dashboard
-              // hoac thong bao text. Template 'weekly_report' can duoc seed rieng.
+              dateFrom: dateFromLabel,
+              dateTo: dateToLabel,
+              totalOrders: String(totalOrdersCard?.value ?? 0),
+              totalRevenue: String(totalRevenueCard?.value ?? '0 VND'),
+              topProducts: topProductsStr,
             },
+            attachments: [
+              {
+                filename: `weekly-report-${dateFromLabel}_${dateToLabel}.pdf`,
+                content: pdfBuffer,
+                contentType: 'application/pdf',
+              },
+            ],
           });
+          sent += 1;
         } catch (err) {
           this.logger.warn(
             `Weekly report email to ${admin.email} failed: ${(err as Error).message}`,
@@ -86,11 +128,41 @@ export class WeeklyReportCron {
         }
       }
 
-      this.logger.log(`Weekly report dispatched to ${admins.length} admin(s)`);
+      this.logger.log(
+        `Weekly report dispatched to ${sent}/${admins.length} admin(s) ` +
+          `[${dateFromLabel} .. ${dateToLabel}] pdf=${pdfBuffer.length}B`,
+      );
     } catch (err) {
       this.logger.error(
         `Weekly report cron failed: ${(err as Error).message}`,
       );
     }
+  }
+
+  /**
+   * Tinh khoang tuan truoc: Thu Hai 00:00:00 UTC -> Chu Nhat 23:59:59 UTC.
+   * Viec nay chay sau khi cron fire (EVERY_WEEK = Chu Nhat 0h cua node-cron),
+   * nen "tuan truoc" luon la 7 ngay lien truoc thoi diem hien tai.
+   */
+  private getLastWeekRange(): { lastMonday: Date; lastSunday: Date } {
+    const now = new Date();
+    // Lui ve Chu Nhat gan nhat (end of last week)
+    const day = now.getUTCDay(); // 0 = CN, 1 = Thu 2, ... 6 = Thu 7
+    const daysSinceSunday = day === 0 ? 7 : day; // neu hom nay CN, tinh CN truoc
+    const lastSunday = new Date(
+      Date.UTC(
+        now.getUTCFullYear(),
+        now.getUTCMonth(),
+        now.getUTCDate() - daysSinceSunday,
+        23,
+        59,
+        59,
+        999,
+      ),
+    );
+    const lastMonday = new Date(lastSunday.getTime());
+    lastMonday.setUTCDate(lastSunday.getUTCDate() - 6);
+    lastMonday.setUTCHours(0, 0, 0, 0);
+    return { lastMonday, lastSunday };
   }
 }

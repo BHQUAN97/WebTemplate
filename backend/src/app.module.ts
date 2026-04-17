@@ -17,6 +17,7 @@ import {
 import { QueueModule } from './common/queue/queue.module.js';
 import { DeadLetterModule } from './common/queue/dead-letter.module.js';
 import { CronModule } from './common/cron/cron.module.js';
+import { RedisModule } from './common/redis/redis.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
 import { RolesGuard } from './common/guards/roles.guard.js';
 import { TenantGuard } from './common/guards/tenant.guard.js';
@@ -124,6 +125,10 @@ import { MailModule } from './modules/mail/mail.module.js';
 
     // ScheduleModule — cho phep @Cron decorator chay (audit cleanup, webhook retry...)
     ScheduleModule.forRoot(),
+
+    // Redis client (global) — account lockout, rate limit, session caching
+    // Nap som de cac module khac (Auth, Users) co the inject REDIS_CLIENT
+    RedisModule,
 
     // Register tat ca queue — global de moi module khac @InjectQueue duoc
     QueueModule,

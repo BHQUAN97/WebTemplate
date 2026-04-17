@@ -11,16 +11,33 @@ import { QUEUE_NAMES } from './queue.module.js';
 import { DeadLetterService } from './dead-letter.service.js';
 
 /**
+ * Attachment da serialize de put vao Redis via BullMQ.
+ * `encoding='base64'` -> processor se decode ve Buffer truoc khi pass sang Resend.
+ * `encoding='utf8'` -> content da la string (vd CSV text), pass nguyen.
+ * Neu thieu encoding, default base64 (backward compat).
+ */
+export interface EmailJobAttachment {
+  filename: string;
+  content: string;
+  contentType?: string;
+  encoding?: 'base64' | 'utf8';
+}
+
+/**
  * Payload cua email job.
  * - to: email nguoi nhan
  * - templateName: ten template trong DB (uu tien dung ten vi on dinh hon id)
  * - variables: bien de render Handlebars
+ * - subjectOverride: neu co, override subject tu template
+ * - attachments: binary attachments da encode base64 (xem EmailJobAttachment)
  */
 export interface EmailJobData {
   to: string;
   templateName: string;
   variables?: Record<string, string>;
   from?: string;
+  subjectOverride?: string;
+  attachments?: EmailJobAttachment[];
 }
 
 /**
@@ -32,6 +49,7 @@ export class EmailProcessor extends WorkerHost {
   private readonly logger = new Logger(EmailProcessor.name);
   private readonly resend: Resend;
   private readonly defaultFrom: string;
+  private readonly apiKeyPresent: boolean;
 
   constructor(
     private readonly configService: ConfigService,
@@ -41,7 +59,10 @@ export class EmailProcessor extends WorkerHost {
   ) {
     super();
     const apiKey = this.configService.get<string>('RESEND_API_KEY', '');
-    this.resend = new Resend(apiKey);
+    this.apiKeyPresent = !!apiKey;
+    // Resend SDK yeu cau 1 string key — pass empty roi check `apiKeyPresent`
+    // o `process()` de sking send khi chua config (khong throw).
+    this.resend = new Resend(apiKey || 're_disabled_placeholder');
     this.defaultFrom = this.configService.get<string>(
       'EMAIL_FROM',
       this.configService.get<string>('MAIL_FROM', 'noreply@example.com'),
@@ -56,11 +77,22 @@ export class EmailProcessor extends WorkerHost {
     const maxAttempts = job.opts?.attempts ?? 3;
     if ((job.attemptsMade ?? 0) >= maxAttempts) {
       try {
+        // Strip attachments payload truoc khi ghi DLQ — tranh phinh DB voi
+        // base64 PDF. Thay bang metadata goi nho (filename + size).
+        const payloadForDlq = {
+          ...job.data,
+          attachments: job.data.attachments?.map((a) => ({
+            filename: a.filename,
+            contentType: a.contentType,
+            encoding: a.encoding,
+            contentLength: a.content?.length ?? 0,
+          })),
+        };
         await this.dlqService.moveToDlq({
           originalQueue: QUEUE_NAMES.EMAIL,
           originalJobName: job.name,
           originalJobId: job.id,
-          payload: job.data,
+          payload: payloadForDlq,
           error: err?.message || String(err),
           attemptsMade: job.attemptsMade ?? 0,
           failedAt: new Date().toISOString(),
@@ -75,9 +107,26 @@ export class EmailProcessor extends WorkerHost {
 
   /**
    * Xu ly job "send" — render Handlebars tu template trong DB va gui qua Resend.
+   * Neu co attachments, decode base64 -> Buffer va kem vao Resend payload.
    */
-  async process(job: Job<EmailJobData>): Promise<{ id?: string }> {
-    const { to, templateName, variables = {}, from } = job.data;
+  async process(job: Job<EmailJobData>): Promise<{ id?: string; skipped?: boolean }> {
+    const {
+      to,
+      templateName,
+      variables = {},
+      from,
+      subjectOverride,
+      attachments,
+    } = job.data;
+
+    // Guard: khong co RESEND_API_KEY -> log warning va resolve (khong throw,
+    // khong retry). Matches hop dong "test khong co key = no-op".
+    if (!this.apiKeyPresent) {
+      this.logger.warn(
+        `[RESEND_API_KEY missing] Skipped email to=${to} template="${templateName}"`,
+      );
+      return { skipped: true };
+    }
 
     const template = await this.templateRepo.findOne({
       where: { name: templateName, is_active: true },
@@ -88,11 +137,25 @@ export class EmailProcessor extends WorkerHost {
     }
 
     // Compile Handlebars
-    const subject = Handlebars.compile(template.subject)(variables);
+    const subject = subjectOverride
+      ? Handlebars.compile(subjectOverride)(variables)
+      : Handlebars.compile(template.subject)(variables);
     const html = Handlebars.compile(template.html_body)(variables);
     const text = template.text_body
       ? Handlebars.compile(template.text_body)(variables)
       : undefined;
+
+    // Decode attachments base64 -> Buffer de pass sang Resend SDK
+    const resendAttachments = attachments?.map((a) => {
+      const encoding = a.encoding ?? 'base64';
+      const content =
+        encoding === 'base64' ? Buffer.from(a.content, 'base64') : a.content;
+      return {
+        filename: a.filename,
+        content,
+        contentType: a.contentType,
+      };
+    });
 
     const result = await this.resend.emails.send({
       from: from || this.defaultFrom,
@@ -100,6 +163,7 @@ export class EmailProcessor extends WorkerHost {
       subject,
       html,
       text,
+      attachments: resendAttachments,
     });
 
     const err: unknown = (result as any).error;
@@ -114,7 +178,8 @@ export class EmailProcessor extends WorkerHost {
     }
 
     this.logger.log(
-      `Email sent to ${to} via template "${templateName}" (id: ${result.data?.id})`,
+      `Email sent to ${to} via template "${templateName}" (id: ${result.data?.id})` +
+        (resendAttachments ? ` attachments=${resendAttachments.length}` : ''),
     );
     return { id: result.data?.id };
   }

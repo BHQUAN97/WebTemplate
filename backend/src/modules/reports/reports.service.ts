@@ -107,6 +107,45 @@ export class ReportsService {
     };
   }
 
+  /**
+   * Shortcut: gen sales report PDF ra Buffer — cron/background dung de
+   * dinh kem email. Tra ve Buffer truc tiep, khong kem filename.
+   */
+  async generateSalesPdf(query: {
+    dateFrom: Date | string;
+    dateTo: Date | string;
+  }): Promise<Buffer> {
+    const dateFrom =
+      query.dateFrom instanceof Date
+        ? query.dateFrom.toISOString()
+        : query.dateFrom;
+    const dateTo =
+      query.dateTo instanceof Date
+        ? query.dateTo.toISOString()
+        : query.dateTo;
+    const payload = await this.getSalesReport({ dateFrom, dateTo });
+    return generateReportPdf(payload);
+  }
+
+  /**
+   * Shortcut: gen sales report XLSX ra Buffer — tien dung cho cron gui attachment.
+   */
+  async generateSalesXlsx(query: {
+    dateFrom: Date | string;
+    dateTo: Date | string;
+  }): Promise<Buffer> {
+    const dateFrom =
+      query.dateFrom instanceof Date
+        ? query.dateFrom.toISOString()
+        : query.dateFrom;
+    const dateTo =
+      query.dateTo instanceof Date
+        ? query.dateTo.toISOString()
+        : query.dateTo;
+    const payload = await this.getSalesReport({ dateFrom, dateTo });
+    return generateReportXlsx(payload);
+  }
+
   // ======================================================================
   // Report builders — compose ReportPayload (du lieu cho generators)
   // ======================================================================
