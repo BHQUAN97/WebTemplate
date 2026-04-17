@@ -1,13 +1,22 @@
-import { Injectable } from '@nestjs/common';
+import {
+  Injectable,
+  ForbiddenException,
+  ConflictException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { Review } from './entities/review.entity.js';
+import { OrderItem } from '../orders/entities/order-item.entity.js';
+import { Order } from '../orders/entities/order.entity.js';
+import { OrderStatus } from '../../common/constants/index.js';
 import { QueryReviewsDto } from './dto/query-reviews.dto.js';
+import { CreateReviewDto } from './dto/create-review.dto.js';
 
 /**
  * Reviews service — quan ly danh gia san pham, phe duyet, tra loi admin.
+ * Chi user da mua (DELIVERED) moi review duoc, va 1 review/san pham/user.
  */
 @Injectable()
 export class ReviewsService extends BaseService<Review> {
@@ -16,17 +25,64 @@ export class ReviewsService extends BaseService<Review> {
   constructor(
     @InjectRepository(Review)
     private readonly reviewsRepository: Repository<Review>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
   ) {
     super(reviewsRepository, 'Review');
   }
 
   /**
+   * Tao review — verify user da mua san pham (co OrderItem trong don DELIVERED).
+   * Block duplicate review cho cung product. Set is_verified_purchase = true.
+   */
+  async createReview(
+    userId: string,
+    dto: CreateReviewDto,
+    tenantId?: string | null,
+  ): Promise<Review> {
+    // 1) Check user da mua san pham trong don DELIVERED chua
+    const purchased = await this.orderItemRepository
+      .createQueryBuilder('item')
+      .innerJoin(Order, 'o', 'o.id = item.order_id')
+      .where('item.product_id = :productId', { productId: dto.product_id })
+      .andWhere('o.user_id = :userId', { userId })
+      .andWhere('o.status = :status', { status: OrderStatus.DELIVERED })
+      .andWhere('o.deleted_at IS NULL')
+      .getCount();
+
+    if (purchased === 0) {
+      throw new ForbiddenException(
+        'Bạn chỉ có thể đánh giá sản phẩm sau khi đã nhận hàng',
+      );
+    }
+
+    // 2) Check duplicate — 1 user chi review 1 lan / san pham
+    const existing = await this.reviewsRepository.findOne({
+      where: {
+        user_id: userId,
+        product_id: dto.product_id,
+        deleted_at: null as any,
+      },
+    });
+    if (existing) {
+      throw new ConflictException('Bạn đã đánh giá sản phẩm này rồi');
+    }
+
+    return this.create({
+      ...dto,
+      user_id: userId,
+      tenant_id: tenantId || null,
+      is_verified_purchase: true,
+      is_approved: false, // Cho admin duyet
+    } as any);
+  }
+
+  /**
    * Lay danh gia cua san pham (chi hien approved cho public).
    */
-  async getProductReviews(
-    productId: string,
-    options: PaginationDto,
-  ) {
+  async getProductReviews(productId: string, options: PaginationDto) {
     const qb = this.reviewsRepository
       .createQueryBuilder('entity')
       .where('entity.deleted_at IS NULL')
@@ -65,9 +121,14 @@ export class ReviewsService extends BaseService<Review> {
   /**
    * Thong ke rating theo tung muc 1-5 va trung binh.
    */
-  async getProductRatingStats(
-    productId: string,
-  ): Promise<{ 1: number; 2: number; 3: number; 4: number; 5: number; average: number }> {
+  async getProductRatingStats(productId: string): Promise<{
+    1: number;
+    2: number;
+    3: number;
+    4: number;
+    5: number;
+    average: number;
+  }> {
     const rows = await this.reviewsRepository
       .createQueryBuilder('entity')
       .select('entity.rating', 'rating')
@@ -90,7 +151,8 @@ export class ReviewsService extends BaseService<Review> {
       totalSum += r * c;
     }
 
-    stats.average = totalCount > 0 ? parseFloat((totalSum / totalCount).toFixed(2)) : 0;
+    stats.average =
+      totalCount > 0 ? parseFloat((totalSum / totalCount).toFixed(2)) : 0;
     return stats;
   }
 

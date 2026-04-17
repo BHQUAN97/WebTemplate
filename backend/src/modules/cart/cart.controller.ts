@@ -49,7 +49,10 @@ export class CartController {
     @Headers('x-customer-session-id') sessionId?: string,
   ) {
     const id = resolveCartIdentity(user, sessionId);
-    const cart = await this.cartService.getOrCreateCart(id.userId, id.sessionId);
+    const cart = await this.cartService.getOrCreateCart(
+      id.userId,
+      id.sessionId,
+    );
     return successResponse(cart);
   }
 
@@ -64,7 +67,10 @@ export class CartController {
     @Headers('x-customer-session-id') sessionId?: string,
   ) {
     const id = resolveCartIdentity(user, sessionId);
-    const cart = await this.cartService.getOrCreateCart(id.userId, id.sessionId);
+    const cart = await this.cartService.getOrCreateCart(
+      id.userId,
+      id.sessionId,
+    );
     const item = await this.cartService.addItem(cart.id, dto);
     return successResponse(item, 'Item added to cart');
   }
@@ -81,7 +87,10 @@ export class CartController {
     @Headers('x-customer-session-id') sessionId?: string,
   ) {
     const id = resolveCartIdentity(user, sessionId);
-    const cart = await this.cartService.getOrCreateCart(id.userId, id.sessionId);
+    const cart = await this.cartService.getOrCreateCart(
+      id.userId,
+      id.sessionId,
+    );
     const item = await this.cartService.updateItemQuantity(
       cart.id,
       itemId,
@@ -101,7 +110,10 @@ export class CartController {
     @Headers('x-customer-session-id') sessionId?: string,
   ) {
     const id = resolveCartIdentity(user, sessionId);
-    const cart = await this.cartService.getOrCreateCart(id.userId, id.sessionId);
+    const cart = await this.cartService.getOrCreateCart(
+      id.userId,
+      id.sessionId,
+    );
     await this.cartService.removeItem(cart.id, itemId);
     return successResponse(null, 'Item removed from cart');
   }
@@ -116,7 +128,10 @@ export class CartController {
     @Headers('x-customer-session-id') sessionId?: string,
   ) {
     const id = resolveCartIdentity(user, sessionId);
-    const cart = await this.cartService.getOrCreateCart(id.userId, id.sessionId);
+    const cart = await this.cartService.getOrCreateCart(
+      id.userId,
+      id.sessionId,
+    );
     await this.cartService.clearCart(cart.id);
     return successResponse(null, 'Cart cleared');
   }

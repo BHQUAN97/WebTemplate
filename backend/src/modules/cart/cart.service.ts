@@ -1,13 +1,22 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  NotFoundException,
+  BadRequestException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository } from 'typeorm';
+import { Repository, IsNull } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { Cart, CartStatus } from './entities/cart.entity.js';
 import { CartItem } from './entities/cart-item.entity.js';
+import { Product } from '../products/entities/product.entity.js';
+import { ProductVariant } from '../products/entities/product-variant.entity.js';
 import { AddToCartDto } from './dto/add-to-cart.dto.js';
+import { InventoryService } from '../inventory/inventory.service.js';
 
 /**
  * Cart service — quan ly gio hang, ho tro guest cart va merge khi dang nhap.
+ * Snapshot gia + check stock tai thoi diem add de chong gian lan price /
+ * oversell sau khi gia/ton kho thay doi.
  */
 @Injectable()
 export class CartService extends BaseService<Cart> {
@@ -16,6 +25,11 @@ export class CartService extends BaseService<Cart> {
     private readonly cartRepository: Repository<Cart>,
     @InjectRepository(CartItem)
     private readonly cartItemRepository: Repository<CartItem>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private readonly variantRepository: Repository<ProductVariant>,
+    private readonly inventoryService: InventoryService,
   ) {
     super(cartRepository, 'Cart');
   }
@@ -53,48 +67,156 @@ export class CartService extends BaseService<Cart> {
   }
 
   /**
-   * Them san pham vao gio hang. Neu da co thi tang so luong.
+   * Resolve gia + ton kho an toan tu DB cho 1 product/variant.
+   * Throw BadRequest neu product khong ton tai/inactive hoac variant khong khop.
+   */
+  private async resolvePrice(
+    productId: string,
+    variantId?: string | null,
+  ): Promise<number> {
+    const product = await this.productRepository.findOne({
+      where: { id: productId, is_active: true },
+    });
+    if (!product) {
+      throw new BadRequestException('Sản phẩm không tồn tại hoặc đã ẩn');
+    }
+    if (variantId) {
+      const variant = await this.variantRepository.findOne({
+        where: { id: variantId, product_id: productId, is_active: true },
+      });
+      if (!variant) {
+        throw new BadRequestException('Biến thể không hợp lệ cho sản phẩm này');
+      }
+      return Number(variant.price);
+    }
+    return Number(product.price);
+  }
+
+  /**
+   * Them san pham vao gio hang — snapshot gia + check stock truoc.
+   * Atomic upsert tranh race khi 2 request cung add 1 san pham:
+   * neu da co thi tang qty (UPDATE), khong co thi INSERT.
    */
   async addItem(cartId: string, dto: AddToCartDto): Promise<CartItem> {
-    // Kiem tra san pham da co trong gio chua
+    const quantity = dto.quantity || 1;
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new BadRequestException('Số lượng phải là số nguyên dương');
+    }
+
+    const price = await this.resolvePrice(dto.product_id, dto.variant_id);
+
+    // Tinh tong qty se co trong gio sau khi add (de check stock chinh xac)
     const existing = await this.cartItemRepository.findOne({
       where: {
         cart_id: cartId,
         product_id: dto.product_id,
-        variant_id: dto.variant_id || (null as any),
+        variant_id: dto.variant_id || (IsNull() as any),
       },
     });
 
+    const finalQty = (existing?.quantity || 0) + quantity;
+
+    // Check stock — neu khong du throw 400 ngay
+    const inStock = await this.inventoryService.isInStock(
+      dto.product_id,
+      dto.variant_id,
+      finalQty,
+    );
+    if (!inStock) {
+      throw new BadRequestException(
+        'Sản phẩm không đủ tồn kho cho số lượng yêu cầu',
+      );
+    }
+
     if (existing) {
-      existing.quantity += dto.quantity || 1;
-      return this.cartItemRepository.save(existing);
+      // Atomic increment — tranh lost update khi 2 request cung tang qty
+      await this.cartItemRepository
+        .createQueryBuilder()
+        .update(CartItem)
+        .set({
+          quantity: () => `quantity + ${Number(quantity) || 0}`,
+          price, // Refresh price snapshot
+        })
+        .where('id = :id', { id: existing.id })
+        .execute();
+      return this.cartItemRepository.findOneOrFail({
+        where: { id: existing.id },
+      });
     }
 
     const item = this.cartItemRepository.create({
       cart_id: cartId,
       product_id: dto.product_id,
       variant_id: dto.variant_id || null,
-      quantity: dto.quantity || 1,
-      price: 0, // Se duoc cap nhat tu product price
+      quantity,
+      price,
     });
 
-    return this.cartItemRepository.save(item);
+    try {
+      return await this.cartItemRepository.save(item);
+    } catch (err: any) {
+      // Race: 2 request cung INSERT cho cung (cart, product, variant) →
+      // unique constraint reject 1 cai. Re-fetch va atomic increment.
+      if (
+        err?.code === 'ER_DUP_ENTRY' ||
+        err?.errno === 1062 ||
+        /duplicate/i.test(err?.message || '')
+      ) {
+        const dup = await this.cartItemRepository.findOne({
+          where: {
+            cart_id: cartId,
+            product_id: dto.product_id,
+            variant_id: dto.variant_id || (IsNull() as any),
+          },
+        });
+        if (dup) {
+          await this.cartItemRepository
+            .createQueryBuilder()
+            .update(CartItem)
+            .set({
+              quantity: () => `quantity + ${Number(quantity) || 0}`,
+              price,
+            })
+            .where('id = :id', { id: dup.id })
+            .execute();
+          return this.cartItemRepository.findOneOrFail({
+            where: { id: dup.id },
+          });
+        }
+      }
+      throw err;
+    }
   }
 
   /**
-   * Cap nhat so luong san pham trong gio.
+   * Cap nhat so luong san pham trong gio. Validate quantity > 0 va con stock.
    */
   async updateItemQuantity(
     cartId: string,
     itemId: string,
     quantity: number,
   ): Promise<CartItem> {
+    if (!Number.isInteger(quantity) || quantity < 1) {
+      throw new BadRequestException('Số lượng phải là số nguyên dương');
+    }
+
     const item = await this.cartItemRepository.findOne({
       where: { id: itemId, cart_id: cartId },
     });
 
     if (!item) {
       throw new NotFoundException('Cart item not found');
+    }
+
+    const inStock = await this.inventoryService.isInStock(
+      item.product_id,
+      item.variant_id || undefined,
+      quantity,
+    );
+    if (!inStock) {
+      throw new BadRequestException(
+        'Sản phẩm không đủ tồn kho cho số lượng yêu cầu',
+      );
     }
 
     item.quantity = quantity;
@@ -141,6 +263,8 @@ export class CartService extends BaseService<Cart> {
 
   /**
    * Gop gio hang guest vao gio hang user khi dang nhap.
+   * Validate stock cho tong qty sau merge — chong oversell.
+   * Refresh price snapshot tu DB (gia guest co the da cu).
    */
   async mergeGuestCart(sessionId: string, userId: string): Promise<Cart> {
     const guestCart = await this.cartRepository.findOne({
@@ -154,7 +278,6 @@ export class CartService extends BaseService<Cart> {
 
     const userCart = await this.getOrCreateCart(userId);
 
-    // Gop tung item tu guest cart vao user cart
     for (const guestItem of guestCart.items) {
       const existingItem = userCart.items?.find(
         (i) =>
@@ -162,8 +285,33 @@ export class CartService extends BaseService<Cart> {
           i.variant_id === guestItem.variant_id,
       );
 
+      const finalQty = (existingItem?.quantity || 0) + guestItem.quantity;
+
+      // Check stock — neu khong du, skip item nay (UX: khong block ca cart merge)
+      const inStock = await this.inventoryService.isInStock(
+        guestItem.product_id,
+        guestItem.variant_id || undefined,
+        finalQty,
+      );
+      if (!inStock) {
+        continue;
+      }
+
+      // Refresh price tu DB
+      let price: number;
+      try {
+        price = await this.resolvePrice(
+          guestItem.product_id,
+          guestItem.variant_id,
+        );
+      } catch {
+        // San pham bi xoa/inactive sau khi guest add — bo qua
+        continue;
+      }
+
       if (existingItem) {
-        existingItem.quantity += guestItem.quantity;
+        existingItem.quantity = finalQty;
+        existingItem.price = price;
         await this.cartItemRepository.save(existingItem);
       } else {
         await this.cartItemRepository.save(
@@ -172,14 +320,13 @@ export class CartService extends BaseService<Cart> {
             product_id: guestItem.product_id,
             variant_id: guestItem.variant_id,
             quantity: guestItem.quantity,
-            price: guestItem.price,
+            price,
             metadata: guestItem.metadata,
           }),
         );
       }
     }
 
-    // Danh dau guest cart da merge
     guestCart.status = CartStatus.MERGED;
     await this.cartRepository.save(guestCart);
 
@@ -202,7 +349,7 @@ export class CartService extends BaseService<Cart> {
    */
   async markAbandoned(): Promise<number> {
     const threshold = new Date();
-    threshold.setDate(threshold.getDate() - 7); // 7 ngay khong hoat dong
+    threshold.setDate(threshold.getDate() - 7);
 
     const result = await this.cartRepository
       .createQueryBuilder()

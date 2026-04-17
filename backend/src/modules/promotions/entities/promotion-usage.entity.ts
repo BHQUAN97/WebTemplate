@@ -1,4 +1,11 @@
-import { Entity, Column, PrimaryColumn, CreateDateColumn, BeforeInsert, Index } from 'typeorm';
+import {
+  Entity,
+  Column,
+  PrimaryColumn,
+  CreateDateColumn,
+  BeforeInsert,
+  Index,
+} from 'typeorm';
 import { generateUlid } from '../../../common/utils/ulid.js';
 
 /**

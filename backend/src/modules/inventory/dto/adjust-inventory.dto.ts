@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsInt,
-  IsOptional,
-  IsEnum,
-} from 'class-validator';
+import { IsString, IsInt, IsOptional, IsEnum } from 'class-validator';
 import { MovementType } from '../entities/inventory-movement.entity.js';
 
 export class AdjustInventoryDto {

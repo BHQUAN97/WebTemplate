@@ -2,9 +2,10 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
+  Logger,
 } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder, In } from 'typeorm';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { DataSource, Repository, SelectQueryBuilder, In } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { OrderStatus } from '../../common/constants/index.js';
@@ -14,14 +15,18 @@ import { Product } from '../products/entities/product.entity.js';
 import { ProductVariant } from '../products/entities/product-variant.entity.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { QueryOrdersDto } from './dto/query-orders.dto.js';
+import { InventoryService } from '../inventory/inventory.service.js';
+import { PromotionsService } from '../promotions/promotions.service.js';
 
 /**
  * Orders service — tao don hang tu cart hoac truc tiep, quan ly trang thai don hang.
+ * Reserve ton kho + ap dung promotion atomic. Huy don releases stock + revokes promo.
  */
 @Injectable()
 export class OrdersService extends BaseService<Order> {
   protected searchableFields = ['order_number'];
   protected defaultSort = 'created_at';
+  private readonly log = new Logger(OrdersService.name);
 
   constructor(
     @InjectRepository(Order)
@@ -32,12 +37,17 @@ export class OrdersService extends BaseService<Order> {
     private readonly productRepository: Repository<Product>,
     @InjectRepository(ProductVariant)
     private readonly variantRepository: Repository<ProductVariant>,
+    private readonly inventoryService: InventoryService,
+    private readonly promotionsService: PromotionsService,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {
     super(ordersRepository, 'Order');
   }
 
   /**
    * Tao don hang tu gio hang.
+   * cartItems da co price snapshot tu CartService — tin DB price, KHONG tin client.
    */
   async createFromCart(
     userId: string,
@@ -57,53 +67,32 @@ export class OrdersService extends BaseService<Order> {
       throw new BadRequestException('Cart is empty');
     }
 
-    const subtotal = cartItems.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
+    return this.createOrderInternal(
+      userId,
+      dto,
+      cartItems.map((i) => ({
+        product_id: i.product_id,
+        variant_id: i.variant_id || null,
+        product_name: i.product_name,
+        variant_name: i.variant_name || null,
+        sku: i.sku || null,
+        price: Number(i.price),
+        quantity: Number(i.quantity),
+        total: Number(i.price) * Number(i.quantity),
+        image_url: i.image_url || null,
+      })),
     );
-
-    const order = await this.create({
-      order_number: await this.generateOrderNumber(),
-      user_id: userId,
-      status: OrderStatus.PENDING,
-      subtotal,
-      total: subtotal + (dto.shipping_address ? 0 : 0), // Shipping fee logic
-      shipping_address: dto.shipping_address,
-      billing_address: dto.billing_address || null,
-      note: dto.note || null,
-      promotion_code: dto.promotion_code || null,
-    } as any);
-
-    // Tao order items
-    const items = cartItems.map((item) =>
-      this.orderItemRepository.create({
-        order_id: order.id,
-        product_id: item.product_id,
-        variant_id: item.variant_id || null,
-        product_name: item.product_name,
-        variant_name: item.variant_name || null,
-        sku: item.sku || null,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity,
-        image_url: item.image_url || null,
-      }),
-    );
-
-    order.items = await this.orderItemRepository.save(items);
-    return order;
   }
 
   /**
    * Tao don hang truc tiep (khong qua cart).
-   * Gia san pham LAY TU DB (khong tin client) — chong gian lan price manipulation.
+   * Gia + ten LAY TU DB — chong gian lan price/name manipulation tu client.
    */
   async createDirect(userId: string, dto: CreateOrderDto): Promise<Order> {
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('Order items are required');
     }
 
-    // Load all products va variants tu DB de verify gia
     const productIds = Array.from(new Set(dto.items.map((i) => i.product_id)));
     const variantIds = Array.from(
       new Set(
@@ -121,7 +110,6 @@ export class OrdersService extends BaseService<Order> {
     const productMap = new Map(products.map((p) => [p.id, p]));
     const variantMap = new Map(variants.map((v) => [v.id, v]));
 
-    // Resolve gia + ten an toan tu DB cho moi item
     const resolvedItems = dto.items.map((item) => {
       const product = productMap.get(item.product_id);
       if (!product) {
@@ -152,6 +140,12 @@ export class OrdersService extends BaseService<Order> {
         );
       }
 
+      if (!Number.isInteger(item.quantity) || item.quantity < 1) {
+        throw new BadRequestException(
+          `Invalid quantity for product ${product.id}`,
+        );
+      }
+
       return {
         product_id: product.id,
         variant_id: item.variant_id || null,
@@ -165,29 +159,169 @@ export class OrdersService extends BaseService<Order> {
       };
     });
 
-    const subtotal = resolvedItems.reduce((sum, i) => sum + i.total, 0);
+    return this.createOrderInternal(userId, dto, resolvedItems);
+  }
 
-    const order = await this.create({
-      order_number: await this.generateOrderNumber(),
-      user_id: userId,
-      status: OrderStatus.PENDING,
-      subtotal,
-      total: subtotal,
-      shipping_address: dto.shipping_address,
-      billing_address: dto.billing_address || null,
-      note: dto.note || null,
-      promotion_code: dto.promotion_code || null,
-    } as any);
+  /**
+   * Internal: reserve stock atomic, ap dung promotion, tinh total dung cong thuc,
+   * tao order + items. Rollback stock neu fail giua chung.
+   */
+  private async createOrderInternal(
+    userId: string,
+    dto: CreateOrderDto,
+    items: Array<{
+      product_id: string;
+      variant_id: string | null;
+      product_name: string;
+      variant_name: string | null;
+      sku: string | null;
+      price: number;
+      quantity: number;
+      total: number;
+      image_url: string | null;
+    }>,
+  ): Promise<Order> {
+    const subtotal = items.reduce((sum, i) => sum + i.total, 0);
+    const shippingFee = 0; // TODO: tinh theo dia chi/method khi co shipping module
+    const taxAmount = 0; // TODO: tinh theo region khi co tax module
 
-    const items = resolvedItems.map((item) =>
-      this.orderItemRepository.create({
-        order_id: order.id,
-        ...item,
-      }),
-    );
+    // 1) Reserve stock TRUOC khi tao order — neu fail, khong tao order
+    const reserved: Array<{
+      product_id: string;
+      variant_id: string | null;
+      quantity: number;
+    }> = [];
+    try {
+      for (const item of items) {
+        await this.inventoryService.reserveStock(
+          item.product_id,
+          item.quantity,
+          item.variant_id || undefined,
+        );
+        reserved.push({
+          product_id: item.product_id,
+          variant_id: item.variant_id,
+          quantity: item.quantity,
+        });
+      }
+    } catch (err) {
+      // Rollback nhung stock da reserve
+      await this.releaseReserved(reserved);
+      throw err;
+    }
 
-    order.items = await this.orderItemRepository.save(items);
+    // 2) Reserve promotion slot + tinh discount (chua ghi usage)
+    let discountAmount = 0;
+    let reservedPromotionId: string | null = null;
+    if (dto.promotion_code) {
+      try {
+        const result = await this.promotionsService.reserveAndCalculate(
+          dto.promotion_code,
+          userId,
+          subtotal,
+        );
+        discountAmount = Number(result.discount_amount) || 0;
+        reservedPromotionId = result.promotion.id;
+      } catch (err) {
+        await this.releaseReserved(reserved);
+        throw err;
+      }
+    }
+
+    // 3) Tinh total = subtotal - discount + shipping + tax (khong duoi 0)
+    const total = Math.max(0, subtotal - discountAmount + shippingFee + taxAmount);
+
+    // 4) Tao order + items + ghi promo usage trong 1 DB transaction —
+    //    neu bat ky buoc nao fail, rollback ca don.
+    const orderNumber = await this.generateOrderNumber();
+    let order: Order;
+    try {
+      order = await this.dataSource.transaction(async (manager) => {
+        const orderRepo = manager.getRepository(Order);
+        const itemRepo = manager.getRepository(OrderItem);
+
+        const newOrder: Order = orderRepo.create({
+          order_number: orderNumber,
+          user_id: userId,
+          status: OrderStatus.PENDING,
+          subtotal,
+          discount_amount: discountAmount,
+          shipping_fee: shippingFee,
+          tax_amount: taxAmount,
+          total,
+          shipping_address: dto.shipping_address,
+          billing_address: dto.billing_address || null,
+          note: dto.note || null,
+          promotion_code: dto.promotion_code || null,
+        } as Partial<Order>);
+        const saved: Order = await orderRepo.save(newOrder);
+
+        const orderItems: OrderItem[] = items.map((item) =>
+          itemRepo.create({
+            order_id: saved.id,
+            ...item,
+          } as Partial<OrderItem>),
+        );
+        saved.items = await itemRepo.save(orderItems);
+        return saved;
+      });
+    } catch (err) {
+      await this.releaseReserved(reserved);
+      if (reservedPromotionId) {
+        await this.promotionsService
+          .releaseSlot(reservedPromotionId)
+          .catch(() => {});
+      }
+      throw err;
+    }
+
+    // 5) Ghi nhan promotion usage voi order.id thuc te.
+    // Neu fail: release slot de tranh orphan reservation (slot bi tinh ma khong co usage record).
+    if (reservedPromotionId) {
+      try {
+        await this.promotionsService.recordUsage(
+          reservedPromotionId,
+          order.id,
+          userId,
+          discountAmount,
+        );
+      } catch (err) {
+        this.log.warn(
+          `Failed to record promotion usage for order ${order.id}: ${(err as Error).message}`,
+        );
+        // Tra slot ve de tranh consume slot ma khong co usage record
+        await this.promotionsService
+          .releaseSlot(reservedPromotionId)
+          .catch((e: Error) =>
+            this.log.warn(
+              `Failed to release orphan slot for ${reservedPromotionId}: ${e.message}`,
+            ),
+          );
+      }
+    }
+
     return order;
+  }
+
+  /**
+   * Release stock cho danh sach reserved — best-effort, khong throw.
+   */
+  private async releaseReserved(
+    reserved: Array<{
+      product_id: string;
+      variant_id: string | null;
+      quantity: number;
+    }>,
+  ): Promise<void> {
+    for (const r of reserved) {
+      await this.inventoryService
+        .releaseStock(r.product_id, r.quantity, r.variant_id || undefined)
+        .catch((err: Error) =>
+          this.log.warn(
+            `Failed to release stock for ${r.product_id}: ${err.message}`,
+          ),
+        );
+    }
   }
 
   /**
@@ -297,10 +431,12 @@ export class OrdersService extends BaseService<Order> {
   }
 
   /**
-   * Huy don hang.
+   * Huy don hang: cap nhat status TRUOC (atomic check-and-update theo status hien tai),
+   * sau do release ton kho + revoke promo (compensation actions, log neu fail).
+   * Order DELIVERED/CANCELLED khong cho huy.
    */
   async cancelOrder(id: string, reason?: string): Promise<Order> {
-    const order = await this.findById(id);
+    const order = await this.getOrderWithItems(id);
 
     if (
       order.status === OrderStatus.DELIVERED ||
@@ -311,7 +447,53 @@ export class OrdersService extends BaseService<Order> {
       );
     }
 
-    return this.updateStatus(id, OrderStatus.CANCELLED, reason);
+    // Atomic status update: chi UPDATE neu status van la status hien tai (chong race
+    // khi 2 request cung cancel hoac cancel + admin update status cung luc).
+    const updateData: any = {
+      status: OrderStatus.CANCELLED,
+      cancelled_reason: reason || null,
+    };
+    const result = await this.ordersRepository
+      .createQueryBuilder()
+      .update(Order)
+      .set(updateData)
+      .where('id = :id', { id })
+      .andWhere('status = :status', { status: order.status })
+      .execute();
+
+    if (!result.affected) {
+      // Status da bi thay doi boi request khac
+      throw new BadRequestException(
+        'Order status changed concurrently — please refresh',
+      );
+    }
+
+    // Release stock + revoke promo — compensation actions, log fail nhung khong throw
+    for (const item of order.items || []) {
+      await this.inventoryService
+        .releaseStock(
+          item.product_id,
+          item.quantity,
+          item.variant_id || undefined,
+        )
+        .catch((err: Error) =>
+          this.log.warn(
+            `Failed to release stock for order ${id} item ${item.id}: ${err.message}`,
+          ),
+        );
+    }
+
+    if (order.promotion_code) {
+      await this.promotionsService
+        .revokeForOrder(order.id)
+        .catch((err: Error) =>
+          this.log.warn(
+            `Failed to revoke promotion for order ${id}: ${err.message}`,
+          ),
+        );
+    }
+
+    return this.findById(id);
   }
 
   /**

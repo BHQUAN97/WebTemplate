@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Param,
-  Body,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Param, Body, Query } from '@nestjs/common';
 import { InventoryService } from './inventory.service.js';
 import { AdjustInventoryDto } from './dto/adjust-inventory.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
@@ -43,12 +36,20 @@ export class InventoryController {
   }
 
   /**
-   * Lay lich su bien dong ton kho (admin).
+   * Lay lich su bien dong ton kho (admin) — pagination.
    */
   @Get('movements')
-  async getMovements(@Query('inventoryId') inventoryId?: string) {
-    const movements = await this.inventoryService.getMovements(inventoryId);
-    return successResponse(movements);
+  async getMovements(
+    @Query('inventoryId') inventoryId?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+  ) {
+    const result = await this.inventoryService.getMovements(
+      inventoryId,
+      page ? Number(page) : 1,
+      limit ? Number(limit) : 50,
+    );
+    return successResponse(result);
   }
 
   /**

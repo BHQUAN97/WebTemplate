@@ -32,10 +32,7 @@ export class OrdersController {
    * userId lay tu JWT (khong cho client truyen) de chong IDOR.
    */
   @Post()
-  async create(
-    @CurrentUser() user: ICurrentUser,
-    @Body() dto: CreateOrderDto,
-  ) {
+  async create(@CurrentUser() user: ICurrentUser, @Body() dto: CreateOrderDto) {
     const order = await this.ordersService.createDirect(user.id, dto);
     return successResponse(order, 'Order created');
   }
@@ -61,10 +58,7 @@ export class OrdersController {
    * Lay chi tiet don hang theo ID. Non-admin chi xem duoc don cua chinh minh.
    */
   @Get(':id')
-  async findById(
-    @Param('id') id: string,
-    @CurrentUser() user: ICurrentUser,
-  ) {
+  async findById(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     const order = await this.ordersService.getOrderWithItems(id);
     const isAdmin =
       user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;

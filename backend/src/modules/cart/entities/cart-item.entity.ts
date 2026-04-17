@@ -4,9 +4,11 @@ import { Cart } from './cart.entity.js';
 
 /**
  * San pham trong gio hang — luu product, variant, so luong, gia tai thoi diem them.
+ * Unique (cart_id, product_id, variant_id) — chong duplicate khi 2 request cung add.
  */
 @Entity('cart_items')
 @Index(['cart_id', 'product_id'])
+@Index(['cart_id', 'product_id', 'variant_id'], { unique: true })
 export class CartItem extends BaseEntity {
   @Index()
   @Column({ type: 'char', length: 26 })

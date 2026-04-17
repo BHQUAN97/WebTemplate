@@ -41,15 +41,13 @@ export class InventoryService extends BaseService<Inventory> {
 
   /**
    * Dieu chinh ton kho va ghi lich su.
+   * ATOMIC UPDATE quantity = quantity + :delta voi guard chong negative
+   * (neu khong allow_backorder). Tranh race khi 2 admin cung adjust 1 SKU.
    */
   async adjustStock(dto: AdjustInventoryDto): Promise<Inventory> {
-    let inventory = await this.getStock(
-      dto.product_id!,
-      dto.variant_id,
-    );
+    let inventory = await this.getStock(dto.product_id!, dto.variant_id);
 
     if (!inventory) {
-      // Tao moi neu chua co
       inventory = await this.create({
         product_id: dto.product_id,
         variant_id: dto.variant_id || null,
@@ -57,21 +55,33 @@ export class InventoryService extends BaseService<Inventory> {
       } as any);
     }
 
-    inventory.quantity += dto.quantity_change;
-    if (inventory.quantity < 0 && !inventory.allow_backorder) {
-      throw new BadRequestException('Insufficient stock');
+    const delta = Number(dto.quantity_change) || 0;
+
+    // Atomic check-and-update — neu delta am va khong cho phep backorder,
+    // chi UPDATE neu quantity + delta >= 0
+    const qb = this.inventoryRepository
+      .createQueryBuilder()
+      .update(Inventory)
+      .set({ quantity: () => `quantity + ${delta}` })
+      .where('id = :id', { id: inventory.id });
+
+    if (delta < 0 && !inventory.allow_backorder) {
+      qb.andWhere('quantity + :delta >= 0', { delta });
     }
 
-    const saved = await this.inventoryRepository.save(inventory);
+    const result = await qb.execute();
+    if (!result.affected) {
+      throw new BadRequestException('Insufficient stock or concurrent update');
+    }
 
     await this.recordMovement({
       inventory_id: inventory.id,
-      quantity_change: dto.quantity_change,
+      quantity_change: delta,
       type: dto.type,
       note: dto.note || null,
     });
 
-    return saved;
+    return (await this.getStock(dto.product_id!, dto.variant_id)) as Inventory;
   }
 
   /**
@@ -108,9 +118,7 @@ export class InventoryService extends BaseService<Inventory> {
 
       if (!result.affected) {
         const fresh = await this.getStock(productId, variantId);
-        const available = fresh
-          ? fresh.quantity - fresh.reserved
-          : 0;
+        const available = fresh ? fresh.quantity - fresh.reserved : 0;
         throw new BadRequestException(
           `Insufficient stock. Available: ${available}`,
         );
@@ -143,8 +151,7 @@ export class InventoryService extends BaseService<Inventory> {
       .createQueryBuilder()
       .update(Inventory)
       .set({
-        reserved: () =>
-          `GREATEST(0, reserved - ${Number(quantity) || 0})`,
+        reserved: () => `GREATEST(0, reserved - ${Number(quantity) || 0})`,
       })
       .where('id = :id', { id: inventory.id })
       .execute();
@@ -158,14 +165,18 @@ export class InventoryService extends BaseService<Inventory> {
   }
 
   /**
-   * Lay danh sach san pham sap het hang.
+   * Lay danh sach san pham sap het hang. Cap 5000 rows de tranh OOM khi
+   * inventory table lon — admin nen filter theo category neu can xem chi tiet.
    */
-  async getLowStockItems(): Promise<Inventory[]> {
+  async getLowStockItems(limit = 1000): Promise<Inventory[]> {
+    const safeLimit = Math.min(Math.max(1, Number(limit) || 1000), 5000);
     return this.inventoryRepository
       .createQueryBuilder('inv')
       .where('inv.deleted_at IS NULL')
       .andWhere('inv.track_inventory = :track', { track: true })
       .andWhere('inv.quantity <= inv.low_stock_threshold')
+      .orderBy('inv.quantity', 'ASC')
+      .take(safeLimit)
       .getMany();
   }
 
@@ -201,18 +212,26 @@ export class InventoryService extends BaseService<Inventory> {
   }
 
   /**
-   * Lay lich su bien dong ton kho.
+   * Lay lich su bien dong ton kho — paginated.
    */
-  async getMovements(inventoryId?: string): Promise<InventoryMovement[]> {
+  async getMovements(
+    inventoryId?: string,
+    page = 1,
+    limit = 50,
+  ): Promise<{ items: InventoryMovement[]; total: number; page: number; limit: number }> {
+    const safeLimit = Math.min(Math.max(1, Number(limit) || 50), 200);
+    const safePage = Math.max(1, Number(page) || 1);
     const qb = this.movementRepository
       .createQueryBuilder('m')
       .orderBy('m.created_at', 'DESC')
-      .take(100);
+      .skip((safePage - 1) * safeLimit)
+      .take(safeLimit);
 
     if (inventoryId) {
       qb.where('m.inventory_id = :inventoryId', { inventoryId });
     }
 
-    return qb.getMany();
+    const [items, total] = await qb.getManyAndCount();
+    return { items, total, page: safePage, limit: safeLimit };
   }
 }

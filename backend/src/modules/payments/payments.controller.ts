@@ -35,18 +35,27 @@ export class PaymentsController {
   async create(
     @Body() dto: CreatePaymentDto,
     @CurrentUser() user: ICurrentUser,
+    @Req() req: Request,
   ) {
     const order = await this.ordersService.getOrderWithItems(dto.order_id);
     const isAdmin =
       user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
     if (!isAdmin && order.user_id !== user.id) {
-      throw new ForbiddenException('Bạn không có quyền thanh toán đơn hàng này');
+      throw new ForbiddenException(
+        'Bạn không có quyền thanh toán đơn hàng này',
+      );
     }
     const payment = await this.paymentsService.createPayment(
       dto.order_id,
       dto.method,
     );
-    const paymentUrl = await this.paymentsService.createPaymentUrl(payment);
+    // Lay client IP cho VNPay vnp_IpAddr — uu tien X-Forwarded-For (sau proxy/CDN)
+    const xff = (req.headers['x-forwarded-for'] || '') as string;
+    const clientIp = xff.split(',')[0]?.trim() || req.ip || req.socket?.remoteAddress;
+    const paymentUrl = await this.paymentsService.createPaymentUrl(
+      payment,
+      clientIp,
+    );
     return successResponse(
       { payment, payment_url: paymentUrl || null },
       'Payment created',
@@ -57,15 +66,14 @@ export class PaymentsController {
    * Lay chi tiet giao dich. Non-admin chi xem payment cua don cua chinh minh.
    */
   @Get(':id')
-  async findById(
-    @Param('id') id: string,
-    @CurrentUser() user: ICurrentUser,
-  ) {
+  async findById(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     const payment = await this.paymentsService.findById(id);
     const isAdmin =
       user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;
     if (!isAdmin) {
-      const order = await this.ordersService.getOrderWithItems(payment.order_id);
+      const order = await this.ordersService.getOrderWithItems(
+        payment.order_id,
+      );
       if (order.user_id !== user.id) {
         throw new ForbiddenException('Bạn không có quyền xem thanh toán này');
       }

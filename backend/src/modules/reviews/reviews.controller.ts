@@ -35,10 +35,11 @@ export class ReviewsController {
     @CurrentUser() user: ICurrentUser,
     @Body() dto: CreateReviewDto,
   ) {
-    const review = await this.reviewsService.create({
-      ...dto,
-      user_id: user.id,
-    } as any);
+    const review = await this.reviewsService.createReview(
+      user.id,
+      dto,
+      user.tenantId || null,
+    );
     return successResponse(review, 'Review created');
   }
 

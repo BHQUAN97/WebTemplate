@@ -128,6 +128,24 @@ export class PaymentsService extends BaseService<Payment> {
     // Xac nhan ket qua tu response code cua gateway (sau khi signature da valid)
     const isSuccess = this.isCallbackSuccess(gateway, data);
 
+    // Amount validation — gateway co the gui amount khac voi payment.amount
+    // (do tampered request hoac config sai). Reject neu khong khop.
+    if (isSuccess) {
+      const callbackAmount = this.extractCallbackAmount(gateway, data);
+      if (callbackAmount !== null) {
+        const expected = Math.round(Number(payment.amount));
+        const actual = Math.round(callbackAmount);
+        if (expected !== actual) {
+          payment.status = PaymentStatus.FAILED;
+          payment.gateway_response = {
+            ...(data as any),
+            __error: `Amount mismatch: expected=${expected}, got=${actual}`,
+          };
+          return this.paymentsRepository.save(payment);
+        }
+      }
+    }
+
     payment.status = isSuccess ? PaymentStatus.PAID : PaymentStatus.FAILED;
     payment.gateway_response = data as any;
     payment.transaction_id =
@@ -138,6 +156,39 @@ export class PaymentsService extends BaseService<Payment> {
     }
 
     return this.paymentsRepository.save(payment);
+  }
+
+  /**
+   * Trich xuat amount tu callback theo gateway de check khop voi payment.amount.
+   * VNPay tra vnp_Amount * 100 — chia 100 truoc khi so sanh.
+   */
+  private extractCallbackAmount(
+    gateway: string,
+    data: PaymentCallbackDto,
+  ): number | null {
+    const payload = data as unknown as Record<string, any>;
+    switch (gateway) {
+      case 'vnpay': {
+        const v = Number(payload.vnp_Amount);
+        return Number.isFinite(v) ? v / 100 : null;
+      }
+      case 'momo': {
+        const v = Number(payload.amount);
+        return Number.isFinite(v) ? v : null;
+      }
+      case 'stripe': {
+        // Stripe webhook payload: amount tinh theo unit nho nhat (cents)
+        const v = Number(payload.amount_total ?? payload.amount);
+        if (!Number.isFinite(v)) return null;
+        const currency = String(
+          payload.currency || payload.__currency || 'usd',
+        ).toUpperCase();
+        const zeroDecimal = ['VND', 'JPY', 'KRW'];
+        return zeroDecimal.includes(currency) ? v : v / 100;
+      }
+      default:
+        return null;
+    }
   }
 
   /**
@@ -168,11 +219,12 @@ export class PaymentsService extends BaseService<Payment> {
   /**
    * Tao URL thanh toan cho gateway.
    * Method async vi Momo/Stripe yeu cau goi API server-to-server.
+   * clientIp duoc dung cho VNPay vnp_IpAddr (gateway expect IP nguoi dung that).
    */
-  async createPaymentUrl(payment: Payment): Promise<string> {
+  async createPaymentUrl(payment: Payment, clientIp?: string): Promise<string> {
     switch (payment.method) {
       case 'vnpay':
-        return this.buildVnpayUrl(payment);
+        return this.buildVnpayUrl(payment, clientIp);
       case 'momo':
         return this.buildMomoUrl(payment);
       case 'stripe':
@@ -205,16 +257,8 @@ export class PaymentsService extends BaseService<Payment> {
     const redirectUrl = process.env.MOMO_REDIRECT_URL;
     const ipnUrl = process.env.MOMO_IPN_URL;
 
-    if (
-      !partnerCode ||
-      !accessKey ||
-      !secretKey ||
-      !redirectUrl ||
-      !ipnUrl
-    ) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+    if (!partnerCode || !accessKey || !secretKey || !redirectUrl || !ipnUrl) {
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     // Momo yeu cau amount la integer, tra bang VND — khong co decimal
@@ -289,9 +333,7 @@ export class PaymentsService extends BaseService<Payment> {
     }
 
     if (!resJson.payUrl) {
-      throw new InternalServerErrorException(
-        'Momo response missing payUrl',
-      );
+      throw new InternalServerErrorException('Momo response missing payUrl');
     }
 
     return resJson.payUrl as string;
@@ -341,9 +383,7 @@ export class PaymentsService extends BaseService<Payment> {
     const cancelUrl = process.env.STRIPE_CANCEL_URL;
 
     if (!secretKey || !successUrl || !cancelUrl) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     let Stripe: any;
@@ -351,9 +391,7 @@ export class PaymentsService extends BaseService<Payment> {
       // eslint-disable-next-line @typescript-eslint/no-require-imports
       Stripe = require('stripe');
     } catch {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     const stripe = new Stripe(secretKey, { apiVersion: '2024-06-20' });
@@ -388,9 +426,7 @@ export class PaymentsService extends BaseService<Payment> {
       });
 
       if (!session?.url) {
-        throw new InternalServerErrorException(
-          'Stripe session missing url',
-        );
+        throw new InternalServerErrorException('Stripe session missing url');
       }
 
       return session.url;
@@ -408,7 +444,18 @@ export class PaymentsService extends BaseService<Payment> {
    * Khac: nhan 100 (USD cents, EUR cents...).
    */
   private toStripeAmount(amount: number, currency: string): number {
-    const zeroDecimal = ['VND', 'JPY', 'KRW', 'CLP', 'PYG', 'RWF', 'UGX', 'VUV', 'XAF', 'XOF'];
+    const zeroDecimal = [
+      'VND',
+      'JPY',
+      'KRW',
+      'CLP',
+      'PYG',
+      'RWF',
+      'UGX',
+      'VUV',
+      'XAF',
+      'XOF',
+    ];
     if (zeroDecimal.includes(currency.toUpperCase())) {
       return Math.round(amount);
     }
@@ -422,17 +469,16 @@ export class PaymentsService extends BaseService<Payment> {
   /**
    * Build URL thanh toan VNPay chuan 2.1.0.
    * Sort tham so theo alphabet, tinh HMAC-SHA512 tren query string.
+   * clientIp PHAI la IP that cua user — VNPay reject loopback trong production.
    */
-  private buildVnpayUrl(payment: Payment): string {
+  private buildVnpayUrl(payment: Payment, clientIp?: string): string {
     const tmnCode = process.env.VNPAY_TMN_CODE;
     const secret = process.env.VNPAY_HASH_SECRET;
     const vnpUrl = process.env.VNPAY_URL;
     const returnUrl = process.env.VNPAY_RETURN_URL;
 
     if (!tmnCode || !secret || !vnpUrl || !returnUrl) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     // Format yyyyMMddHHmmss theo spec VNPay
@@ -446,6 +492,10 @@ export class PaymentsService extends BaseService<Payment> {
       pad(now.getMinutes()) +
       pad(now.getSeconds());
 
+    // Sanitize IP: chap nhan IPv4/IPv6, fallback 0.0.0.0 thay vi 127.0.0.1
+    // (loopback bi VNPay reject trong production env).
+    const safeIp = this.sanitizeIp(clientIp);
+
     const params: Record<string, string> = {
       vnp_Version: '2.1.0',
       vnp_Command: 'pay',
@@ -457,7 +507,7 @@ export class PaymentsService extends BaseService<Payment> {
       vnp_OrderType: 'other',
       vnp_Locale: 'vn',
       vnp_ReturnUrl: returnUrl,
-      vnp_IpAddr: '127.0.0.1',
+      vnp_IpAddr: safeIp,
       vnp_CreateDate: createDate,
     };
 
@@ -471,13 +521,37 @@ export class PaymentsService extends BaseService<Payment> {
   }
 
   /**
+   * Sanitize IP cho payment gateway. Bo Express IPv6-mapped IPv4 prefix (::ffff:).
+   * Reject loopback/private trong production de VNPay accept.
+   */
+  private sanitizeIp(ip?: string): string {
+    if (!ip) return '0.0.0.0';
+    let cleaned = ip.trim();
+    // Bo IPv6-mapped IPv4 prefix
+    if (cleaned.startsWith('::ffff:')) cleaned = cleaned.slice(7);
+    // Loopback: tra ve 0.0.0.0 trong prod, giu lai trong dev
+    if (
+      (cleaned === '127.0.0.1' || cleaned === '::1') &&
+      process.env.NODE_ENV === 'production'
+    ) {
+      return '0.0.0.0';
+    }
+    // Validate format thoi: chu, so, dau cham, hai cham — chong injection
+    if (!/^[a-fA-F0-9.:]+$/.test(cleaned)) return '0.0.0.0';
+    return cleaned;
+  }
+
+  /**
    * Tao sorted query string theo key alphabet, encode RFC3986.
    * Dung chung cho build URL va verify signature (phai nhat quan).
    */
   private buildSortedQuery(params: Record<string, string>): string {
     const keys = Object.keys(params).sort();
     return keys
-      .filter((k) => params[k] !== undefined && params[k] !== null && params[k] !== '')
+      .filter(
+        (k) =>
+          params[k] !== undefined && params[k] !== null && params[k] !== '',
+      )
       .map(
         (k) =>
           `${encodeURIComponent(k).replace(/%20/g, '+')}=${encodeURIComponent(params[k]).replace(/%20/g, '+')}`,
@@ -493,10 +567,7 @@ export class PaymentsService extends BaseService<Payment> {
    * Dispatch verify signature theo gateway.
    * Return true neu hop le, false neu khong — gateway tu biet reject.
    */
-  private verifySignature(
-    gateway: string,
-    data: PaymentCallbackDto,
-  ): boolean {
+  private verifySignature(gateway: string, data: PaymentCallbackDto): boolean {
     switch (gateway) {
       case 'vnpay':
         return this.verifyVnpaySignature(data);
@@ -521,9 +592,7 @@ export class PaymentsService extends BaseService<Payment> {
   private verifyVnpaySignature(data: PaymentCallbackDto): boolean {
     const secret = process.env.VNPAY_HASH_SECRET;
     if (!secret) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     const payload = data as unknown as Record<string, any>;
@@ -567,9 +636,7 @@ export class PaymentsService extends BaseService<Payment> {
     const secret = process.env.MOMO_SECRET_KEY;
     const accessKey = process.env.MOMO_ACCESS_KEY;
     if (!secret || !accessKey) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     const payload = data as unknown as Record<string, any>;
@@ -609,9 +676,7 @@ export class PaymentsService extends BaseService<Payment> {
   private verifyStripeSignature(data: PaymentCallbackDto): boolean {
     const endpointSecret = process.env.STRIPE_WEBHOOK_SECRET;
     if (!endpointSecret) {
-      throw new InternalServerErrorException(
-        'Cau hinh thanh toan chua day du',
-      );
+      throw new InternalServerErrorException('Cau hinh thanh toan chua day du');
     }
 
     const payload = data as unknown as Record<string, any>;
