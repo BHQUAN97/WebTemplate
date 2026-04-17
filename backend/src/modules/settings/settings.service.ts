@@ -1,4 +1,9 @@
-import { Injectable, Logger, NotFoundException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
@@ -11,7 +16,10 @@ import { UpdateSettingDto } from './dto/update-setting.dto.js';
  * Ho tro get/set tung key, get theo group, va seed gia tri mac dinh.
  */
 @Injectable()
-export class SettingsService extends BaseService<Setting> {
+export class SettingsService
+  extends BaseService<Setting>
+  implements OnModuleInit
+{
   protected searchableFields = ['key', 'description'];
 
   constructor(
@@ -19,6 +27,17 @@ export class SettingsService extends BaseService<Setting> {
     private readonly settingRepo: Repository<Setting>,
   ) {
     super(settingRepo, 'Setting');
+  }
+
+  // Seed cac key mac dinh khi backend khoi dong (chi tao key chua ton tai)
+  async onModuleInit(): Promise<void> {
+    try {
+      await this.initDefaults();
+    } catch (err) {
+      this.logger.warn(
+        `Bo qua seed settings (co the DB chua san sang): ${(err as Error).message}`,
+      );
+    }
   }
 
   /**
@@ -200,6 +219,103 @@ export class SettingsService extends BaseService<Setting> {
         description:
           'Cho phep flow quen mat khau qua email. Neu false, /auth/forgot-password se no-op',
         is_public: false,
+      },
+      // === CTA settings — dieu khien cac nut lien he noi bat tren frontend ===
+      {
+        key: 'cta.zalo_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut Zalo floating',
+        is_public: true,
+      },
+      {
+        key: 'cta.zalo_phone',
+        value: '',
+        type: SettingType.STRING,
+        group: 'cta',
+        description: 'So dien thoai Zalo (dang 84xxxxxxxxx hoac 0xxxxxxxxx)',
+        is_public: true,
+      },
+      {
+        key: 'cta.messenger_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut Messenger floating',
+        is_public: true,
+      },
+      {
+        key: 'cta.messenger_url',
+        value: '',
+        type: SettingType.STRING,
+        group: 'cta',
+        description: 'Link Messenger (https://m.me/your-page)',
+        is_public: true,
+      },
+      {
+        key: 'cta.phone_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut goi dien floating',
+        is_public: true,
+      },
+      {
+        key: 'cta.phone_number',
+        value: '',
+        type: SettingType.STRING,
+        group: 'cta',
+        description: 'So dien thoai hotline (dung cho tel: link)',
+        is_public: true,
+      },
+      {
+        key: 'cta.whatsapp_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut WhatsApp floating',
+        is_public: true,
+      },
+      {
+        key: 'cta.whatsapp_number',
+        value: '',
+        type: SettingType.STRING,
+        group: 'cta',
+        description: 'So WhatsApp (dang quoc te, vd: 84901234567)',
+        is_public: true,
+      },
+      {
+        key: 'cta.email_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut Email floating',
+        is_public: true,
+      },
+      {
+        key: 'cta.email_address',
+        value: '',
+        type: SettingType.STRING,
+        group: 'cta',
+        description: 'Email lien he (dung cho mailto: link)',
+        is_public: true,
+      },
+      {
+        key: 'cta.back_to_top_enabled',
+        value: 'true',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi nut cuon len dau trang (chi khi scroll >300px)',
+        is_public: true,
+      },
+      {
+        key: 'cta.bottom_tab_enabled',
+        value: 'true',
+        type: SettingType.BOOLEAN,
+        group: 'cta',
+        description: 'Hien thi bottom tab bar tren mobile (Home/Search/Cart/Account)',
+        is_public: true,
       },
     ];
 
