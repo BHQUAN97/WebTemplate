@@ -1,9 +1,4 @@
-import {
-  IsString,
-  IsOptional,
-  IsArray,
-  MaxLength,
-} from 'class-validator';
+import { IsString, IsOptional, IsArray, MaxLength } from 'class-validator';
 
 export class CreateEmailTemplateDto {
   @IsString()

@@ -17,9 +17,7 @@ function formatErrors(errors: ValidationError[]): string[] {
     // Xu ly nested validation errors
     if (error.children && error.children.length > 0) {
       const childMessages = formatErrors(error.children);
-      messages.push(
-        ...childMessages.map((msg) => `${error.property}.${msg}`),
-      );
+      messages.push(...childMessages.map((msg) => `${error.property}.${msg}`));
     }
   }
 

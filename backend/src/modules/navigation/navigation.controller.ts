@@ -10,7 +10,10 @@ import {
   Query,
 } from '@nestjs/common';
 import { NavigationService } from './navigation.service.js';
-import { CreateNavigationDto, CreateNavigationItemDto } from './dto/create-navigation.dto.js';
+import {
+  CreateNavigationDto,
+  CreateNavigationItemDto,
+} from './dto/create-navigation.dto.js';
 import { UpdateNavigationDto } from './dto/update-navigation.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import {

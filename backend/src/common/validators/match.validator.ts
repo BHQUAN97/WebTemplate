@@ -8,10 +8,7 @@ import {
  * @Match('otherField') — so sanh 2 field trong cung 1 DTO.
  * Dung cho confirmPassword === password.
  */
-export function Match(
-  property: string,
-  validationOptions?: ValidationOptions,
-) {
+export function Match(property: string, validationOptions?: ValidationOptions) {
   return function (object: object, propertyName: string) {
     registerDecorator({
       name: 'match',

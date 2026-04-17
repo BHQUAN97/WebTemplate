@@ -66,7 +66,11 @@ export class ProductsService extends BaseService<Product> {
   ): Promise<Product[]> {
     const safeLimit = Math.max(1, Math.min(500, Number(limit) || 100));
     return this.productsRepository.find({
-      where: { category_id: categoryId, is_active: true, deleted_at: null as any },
+      where: {
+        category_id: categoryId,
+        is_active: true,
+        deleted_at: null as any,
+      },
       relations: ['variants'],
       order: { sort_order: 'ASC' },
       take: safeLimit,
@@ -165,7 +169,9 @@ export class ProductsService extends BaseService<Product> {
     }
 
     if (query.is_active !== undefined) {
-      qb.andWhere('entity.is_active = :isActive', { isActive: query.is_active });
+      qb.andWhere('entity.is_active = :isActive', {
+        isActive: query.is_active,
+      });
     }
 
     if (query.is_featured !== undefined) {

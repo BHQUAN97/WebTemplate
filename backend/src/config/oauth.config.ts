@@ -24,8 +24,7 @@ export default registerAs('oauth', () => ({
       'http://localhost:6001/api/auth/facebook/callback',
   },
   successRedirect:
-    process.env.OAUTH_SUCCESS_REDIRECT ||
-    'http://localhost:6000/auth/callback',
+    process.env.OAUTH_SUCCESS_REDIRECT || 'http://localhost:6000/auth/callback',
   failureRedirect:
     process.env.OAUTH_FAILURE_REDIRECT ||
     'http://localhost:6000/login?error=oauth',

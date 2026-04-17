@@ -20,11 +20,25 @@ export function ApiPaginated() {
     // eslint-disable-next-line @typescript-eslint/no-require-imports
     const swagger = require('@nestjs/swagger');
     return applyDecorators(
-      swagger.ApiQuery({ name: 'page', required: false, type: Number, example: 1 }),
-      swagger.ApiQuery({ name: 'limit', required: false, type: Number, example: 20 }),
+      swagger.ApiQuery({
+        name: 'page',
+        required: false,
+        type: Number,
+        example: 1,
+      }),
+      swagger.ApiQuery({
+        name: 'limit',
+        required: false,
+        type: Number,
+        example: 20,
+      }),
       swagger.ApiQuery({ name: 'search', required: false, type: String }),
       swagger.ApiQuery({ name: 'sort', required: false, type: String }),
-      swagger.ApiQuery({ name: 'order', required: false, enum: ['ASC', 'DESC'] }),
+      swagger.ApiQuery({
+        name: 'order',
+        required: false,
+        enum: ['ASC', 'DESC'],
+      }),
     );
   } catch {
     // Swagger chua cai → no-op

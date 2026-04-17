@@ -39,7 +39,11 @@ export class HealthController {
     return this.health.check([
       () => this.db.pingCheck('database', { timeout: 3000 }),
       () => this.checkRedis('redis'),
-      () => this.disk.checkStorage('disk', { path: process.platform === 'win32' ? 'C:\\' : '/', thresholdPercent: 0.9 }),
+      () =>
+        this.disk.checkStorage('disk', {
+          path: process.platform === 'win32' ? 'C:\\' : '/',
+          thresholdPercent: 0.9,
+        }),
       () => this.memory.checkHeap('memory_heap', 512 * 1024 * 1024),
       () => this.memory.checkRSS('memory_rss', 1024 * 1024 * 1024),
     ]);
@@ -83,7 +87,8 @@ export class HealthController {
   private async checkRedis(key: string): Promise<HealthIndicatorResult> {
     const host = this.configService.get<string>('redis.host') || 'localhost';
     const port = this.configService.get<number>('redis.port') || 6379;
-    const password = this.configService.get<string>('redis.password') || undefined;
+    const password =
+      this.configService.get<string>('redis.password') || undefined;
     const db = this.configService.get<number>('redis.db') ?? 0;
 
     const client = new Redis({
@@ -101,7 +106,9 @@ export class HealthController {
       const pong = await client.ping();
       await client.quit();
       if (pong !== 'PONG') {
-        return { [key]: { status: 'down', message: 'Unexpected ping response' } };
+        return {
+          [key]: { status: 'down', message: 'Unexpected ping response' },
+        };
       }
       return { [key]: { status: 'up' } };
     } catch (err) {
@@ -113,7 +120,8 @@ export class HealthController {
       return {
         [key]: {
           status: 'down',
-          message: err instanceof Error ? err.message : 'Redis connection failed',
+          message:
+            err instanceof Error ? err.message : 'Redis connection failed',
         },
       };
     }

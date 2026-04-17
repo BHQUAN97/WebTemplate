@@ -90,10 +90,7 @@ export class FaqController {
    */
   @Public()
   @Post(':id/vote')
-  async vote(
-    @Param('id') id: string,
-    @Body('helpful') helpful: boolean,
-  ) {
+  async vote(@Param('id') id: string, @Body('helpful') helpful: boolean) {
     // Tang luot xem luon khi vote
     await this.faqService.incrementView(id);
     const faq = await this.faqService.vote(id, helpful);

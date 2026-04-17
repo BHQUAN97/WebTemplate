@@ -60,10 +60,7 @@ export class EmailTemplatesController {
    */
   @Patch(':id')
   @Roles(UserRole.ADMIN)
-  async update(
-    @Param('id') id: string,
-    @Body() dto: UpdateEmailTemplateDto,
-  ) {
+  async update(@Param('id') id: string, @Body() dto: UpdateEmailTemplateDto) {
     const template = await this.emailTemplatesService.update(id, dto as any);
     return successResponse(template, 'Email template updated');
   }

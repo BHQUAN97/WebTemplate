@@ -170,9 +170,7 @@ export class ExportService {
       try {
         await browser.close();
       } catch (err) {
-        this.logger.warn(
-          `browser.close() failed: ${(err as Error).message}`,
-        );
+        this.logger.warn(`browser.close() failed: ${(err as Error).message}`);
       }
     }
   }

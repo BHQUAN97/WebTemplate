@@ -1,7 +1,4 @@
-import {
-  NotFoundException,
-  Logger,
-} from '@nestjs/common';
+import { NotFoundException, Logger } from '@nestjs/common';
 import {
   Repository,
   DeepPartial,
@@ -82,9 +79,7 @@ export abstract class BaseService<T extends BaseEntity> {
     // Cho phep child class them dieu kien
     this.applyFilters(qb, options);
 
-    qb.orderBy(`entity.${sortField}`, sortOrder)
-      .skip(skip)
-      .take(limit);
+    qb.orderBy(`entity.${sortField}`, sortOrder).skip(skip).take(limit);
 
     const [items, total] = await qb.getManyAndCount();
 
@@ -176,7 +171,9 @@ export abstract class BaseService<T extends BaseEntity> {
     });
 
     if (!entity) {
-      throw new NotFoundException(`${this.entityName} with ID "${id}" not found`);
+      throw new NotFoundException(
+        `${this.entityName} with ID "${id}" not found`,
+      );
     }
 
     return entity;

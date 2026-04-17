@@ -135,7 +135,8 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
         html_body: `<h1>Chao mung ban, {{user_name}}!</h1>
 <p>Cam on ban da dang ky tai khoan tai <strong>{{site_name}}</strong>.</p>
 <p>Hay bat dau kham pha ngay!</p>`,
-        text_body: 'Chao mung {{user_name}}! Cam on ban da dang ky tai {{site_name}}.',
+        text_body:
+          'Chao mung {{user_name}}! Cam on ban da dang ky tai {{site_name}}.',
         variables: ['user_name', 'site_name'],
       },
       {
@@ -145,7 +146,8 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
 <p>Xin chao {{user_name}},</p>
 <p>Chung toi da nhan don hang cua ban voi tong gia tri: <strong>{{total}}</strong>.</p>
 <p>Ban se nhan hang trong {{estimated_delivery}}.</p>`,
-        text_body: 'Don hang #{{order_number}} da duoc xac nhan. Tong: {{total}}.',
+        text_body:
+          'Don hang #{{order_number}} da duoc xac nhan. Tong: {{total}}.',
         variables: ['user_name', 'order_number', 'total', 'estimated_delivery'],
       },
       {
@@ -155,7 +157,8 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
 <p>Xin chao {{user_name}},</p>
 <p>Don hang #{{order_number}} da duoc giao cho don vi van chuyen.</p>
 <p>Ma van don: <strong>{{tracking_number}}</strong></p>`,
-        text_body: 'Don hang #{{order_number}} dang giao. Ma van don: {{tracking_number}}.',
+        text_body:
+          'Don hang #{{order_number}} dang giao. Ma van don: {{tracking_number}}.',
         variables: ['user_name', 'order_number', 'tracking_number'],
       },
       {
@@ -216,7 +219,8 @@ Link het han sau 24 gio. Neu khong phai ban, bo qua email nay.`,
         html_body: `<h1>{{title}}</h1>
 <div>{{content}}</div>
 <p><a href="{{unsubscribe_link}}">Huy dang ky</a></p>`,
-        text_body: '{{title}}\n\n{{content}}\n\nHuy dang ky: {{unsubscribe_link}}',
+        text_body:
+          '{{title}}\n\n{{content}}\n\nHuy dang ky: {{unsubscribe_link}}',
         variables: ['subject_line', 'title', 'content', 'unsubscribe_link'],
       },
       {

@@ -19,9 +19,7 @@ const AUTH_TAG_LENGTH = 16; // 128 bits
  */
 function resolveKey(keyHex: string): Buffer {
   if (!keyHex || typeof keyHex !== 'string') {
-    throw new Error(
-      '[crypto.util] Encryption key is missing or not a string',
-    );
+    throw new Error('[crypto.util] Encryption key is missing or not a string');
   }
   if (!/^[0-9a-fA-F]+$/.test(keyHex)) {
     throw new Error('[crypto.util] Encryption key must be a hex string');
@@ -69,7 +67,10 @@ export function decrypt(ciphertext: string, keyHex: string): string {
   const encrypted = buf.subarray(IV_LENGTH + AUTH_TAG_LENGTH);
   const decipher = crypto.createDecipheriv(ALGORITHM, key, iv);
   decipher.setAuthTag(authTag);
-  const decrypted = Buffer.concat([decipher.update(encrypted), decipher.final()]);
+  const decrypted = Buffer.concat([
+    decipher.update(encrypted),
+    decipher.final(),
+  ]);
   return decrypted.toString('utf8');
 }
 

@@ -117,12 +117,12 @@ export class AppLoggerService implements LoggerService {
 
   private getColor(level: string): string {
     const colors: Record<string, string> = {
-      error: '\x1b[31m',   // red
-      warn: '\x1b[33m',    // yellow
-      info: '\x1b[32m',    // green
-      debug: '\x1b[36m',   // cyan
+      error: '\x1b[31m', // red
+      warn: '\x1b[33m', // yellow
+      info: '\x1b[32m', // green
+      debug: '\x1b[36m', // cyan
       verbose: '\x1b[35m', // magenta
-      access: '\x1b[34m',  // blue
+      access: '\x1b[34m', // blue
     };
     return colors[level] || '\x1b[0m';
   }

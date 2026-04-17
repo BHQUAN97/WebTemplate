@@ -104,7 +104,7 @@ export class ProductsController {
     const updated = await this.productsService.createWithVariants({
       name: product.name,
       description: product.description,
-      price: product.price as number,
+      price: product.price,
       variants,
     });
     return successResponse(updated, 'Variants updated');

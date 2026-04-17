@@ -88,9 +88,7 @@ export class WebhooksService extends BaseService<Webhook> {
     const webhooks = await qb.getMany();
 
     // Loc webhook co event phu hop
-    const matched = webhooks.filter((w) =>
-      (w.events as string[]).includes(event),
-    );
+    const matched = webhooks.filter((w) => w.events.includes(event));
 
     const jobIds: string[] = [];
     for (const webhook of matched) {

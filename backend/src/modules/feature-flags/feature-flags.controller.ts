@@ -15,7 +15,10 @@ import { UpdateFeatureFlagDto } from './dto/update-feature-flag.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { UserRole } from '../../common/constants/index.js';
-import { successResponse, paginatedResponse } from '../../common/utils/response.js';
+import {
+  successResponse,
+  paginatedResponse,
+} from '../../common/utils/response.js';
 
 /**
  * Admin CRUD cho feature flags.

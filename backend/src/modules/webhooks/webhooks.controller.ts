@@ -134,7 +134,10 @@ export class WebhooksController {
     }
     const deliveries = await this.webhooksService.trigger(
       'test.ping',
-      { message: 'This is a test webhook delivery', timestamp: new Date().toISOString() },
+      {
+        message: 'This is a test webhook delivery',
+        timestamp: new Date().toISOString(),
+      },
       webhook.tenant_id,
     );
     return successResponse(deliveries, 'Test webhook sent');

@@ -97,10 +97,11 @@ export class ExportController {
    * Sanitize filename — chi giu alnum + dash/underscore/dot, force extension.
    */
   private sanitizeFilename(raw: string, ext: string): string {
-    const base = raw
-      .replace(/\.[^.]+$/, '')
-      .replace(/[^A-Za-z0-9_\-]+/g, '_')
-      .slice(0, 80) || 'export';
+    const base =
+      raw
+        .replace(/\.[^.]+$/, '')
+        .replace(/[^A-Za-z0-9_\-]+/g, '_')
+        .slice(0, 80) || 'export';
     return `${base}.${ext}`;
   }
 }

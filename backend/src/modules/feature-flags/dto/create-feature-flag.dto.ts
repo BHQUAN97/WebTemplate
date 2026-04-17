@@ -1,11 +1,26 @@
-import { IsString, IsOptional, IsBoolean, IsInt, Min, Max, IsArray, Matches, Length } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsBoolean,
+  IsInt,
+  Min,
+  Max,
+  IsArray,
+  Matches,
+  Length,
+} from 'class-validator';
 import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 
 export class CreateFeatureFlagDto {
-  @ApiProperty({ description: 'Unique key (snake_case)', example: 'new_checkout' })
+  @ApiProperty({
+    description: 'Unique key (snake_case)',
+    example: 'new_checkout',
+  })
   @IsString()
   @Length(2, 100)
-  @Matches(/^[a-z0-9_]+$/, { message: 'key chi chap nhan chu thuong, so va dau gach duoi' })
+  @Matches(/^[a-z0-9_]+$/, {
+    message: 'key chi chap nhan chu thuong, so va dau gach duoi',
+  })
   key: string;
 
   @ApiPropertyOptional({ default: false })

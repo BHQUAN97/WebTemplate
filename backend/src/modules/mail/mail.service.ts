@@ -127,9 +127,7 @@ export class MailService {
     });
     this.logger.log(
       `Queued email to ${params.to} template="${params.template}" job=${job.id}` +
-        (attachmentsPayload
-          ? ` attachments=${attachmentsPayload.length}`
-          : ''),
+        (attachmentsPayload ? ` attachments=${attachmentsPayload.length}` : ''),
     );
     return { jobId: job.id || null };
   }

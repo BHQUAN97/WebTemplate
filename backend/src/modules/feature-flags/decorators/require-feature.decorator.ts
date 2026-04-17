@@ -13,4 +13,5 @@ export const REQUIRE_FEATURE_KEY = 'require_feature_key';
  * newCheckout() { ... }
  * ```
  */
-export const RequireFeature = (key: string) => SetMetadata(REQUIRE_FEATURE_KEY, key);
+export const RequireFeature = (key: string) =>
+  SetMetadata(REQUIRE_FEATURE_KEY, key);

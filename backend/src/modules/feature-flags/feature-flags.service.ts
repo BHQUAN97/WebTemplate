@@ -1,4 +1,9 @@
-import { Injectable, BadRequestException, NotFoundException, OnModuleInit } from '@nestjs/common';
+import {
+  Injectable,
+  BadRequestException,
+  NotFoundException,
+  OnModuleInit,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { createHash } from 'crypto';
@@ -13,11 +18,17 @@ import type { ICurrentUser } from '../../common/interfaces/index.js';
  * Cache in-memory TTL 30s de tranh query DB moi lan check flag.
  */
 @Injectable()
-export class FeatureFlagsService extends BaseService<FeatureFlag> implements OnModuleInit {
+export class FeatureFlagsService
+  extends BaseService<FeatureFlag>
+  implements OnModuleInit
+{
   protected searchableFields = ['key', 'description'];
 
   /** Cache: key -> { flag, expiresAt } */
-  private readonly cache = new Map<string, { flag: FeatureFlag | null; expiresAt: number }>();
+  private readonly cache = new Map<
+    string,
+    { flag: FeatureFlag | null; expiresAt: number }
+  >();
   private readonly CACHE_TTL_MS = 30_000;
 
   constructor(
@@ -42,7 +53,10 @@ export class FeatureFlagsService extends BaseService<FeatureFlag> implements OnM
    *  3. Neu rollout_percentage < 100, hash userId % 100 de quyet dinh
    *  4. Khong co user ma rollout<100 -> false (tranh leak random features)
    */
-  async isEnabled(key: string, user?: Pick<ICurrentUser, 'id' | 'role'>): Promise<boolean> {
+  async isEnabled(
+    key: string,
+    user?: Pick<ICurrentUser, 'id' | 'role'>,
+  ): Promise<boolean> {
     const flag = await this.getFlagCached(key);
     if (!flag || !flag.enabled) return false;
 
@@ -69,7 +83,9 @@ export class FeatureFlagsService extends BaseService<FeatureFlag> implements OnM
   async createFlag(dto: CreateFeatureFlagDto): Promise<FeatureFlag> {
     const exists = await this.flagRepo.findOne({ where: { key: dto.key } });
     if (exists) {
-      throw new BadRequestException(`Feature flag voi key "${dto.key}" da ton tai`);
+      throw new BadRequestException(
+        `Feature flag voi key "${dto.key}" da ton tai`,
+      );
     }
     const saved = await this.create(dto as any);
     this.invalidate(dto.key);
@@ -79,7 +95,10 @@ export class FeatureFlagsService extends BaseService<FeatureFlag> implements OnM
   /**
    * Cap nhat flag. Neu doi key, invalidate cache ca key cu va moi.
    */
-  async updateFlag(id: string, dto: UpdateFeatureFlagDto): Promise<FeatureFlag> {
+  async updateFlag(
+    id: string,
+    dto: UpdateFeatureFlagDto,
+  ): Promise<FeatureFlag> {
     const existing = await this.findById(id);
     const updated = await this.update(id, dto as any);
     this.invalidate(existing.key);
@@ -160,14 +179,18 @@ export class FeatureFlagsService extends BaseService<FeatureFlag> implements OnM
 
     for (const item of defaults) {
       try {
-        const exists = await this.flagRepo.findOne({ where: { key: item.key } });
+        const exists = await this.flagRepo.findOne({
+          where: { key: item.key },
+        });
         if (!exists) {
           await this.create(item as any);
           this.logger.log(`Seeded feature flag: ${item.key}`);
         }
       } catch (err) {
         // Bo qua loi seed (vi du table chua migrate) — khong block boot
-        this.logger.warn(`Seed feature flag "${item.key}" skipped: ${(err as Error).message}`);
+        this.logger.warn(
+          `Seed feature flag "${item.key}" skipped: ${(err as Error).message}`,
+        );
         break;
       }
     }

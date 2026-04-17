@@ -66,10 +66,7 @@ export class ArticlesController {
    */
   @Public()
   @Get(':id/related')
-  async findRelated(
-    @Param('id') id: string,
-    @Query('limit') limit?: number,
-  ) {
+  async findRelated(@Param('id') id: string, @Query('limit') limit?: number) {
     const items = await this.articlesService.findRelated(id, limit || 5);
     return successResponse(items);
   }

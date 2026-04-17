@@ -91,7 +91,9 @@ export class FaqService extends BaseService<Faq> {
   /**
    * Sap xep lai thu tu FAQ.
    */
-  async reorder(items: Array<{ id: string; sort_order: number }>): Promise<void> {
+  async reorder(
+    items: Array<{ id: string; sort_order: number }>,
+  ): Promise<void> {
     const promises = items.map((item) =>
       this.faqRepository.update(item.id, { sort_order: item.sort_order }),
     );
