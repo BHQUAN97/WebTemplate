@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import Link from 'next/link';
-import { useSearchParams, useRouter } from 'next/navigation';
+import { useSearchParams } from 'next/navigation';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { Eye, EyeOff, CheckCircle } from 'lucide-react';
@@ -11,16 +11,18 @@ import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { resetPasswordSchema, type ResetPasswordFormData } from '@/lib/validations';
 import { authApi } from '@/lib/api/modules/auth.api';
+import { ApiError } from '@/lib/api/client';
 
 /**
- * Trang dat lai mat khau — token tu URL, form new password
+ * Trang dat lai mat khau — token tu URL, form new password.
+ * Xu ly UX rieng khi token het han/invalid → goi y gui lai link.
  */
 export default function ResetPasswordPage() {
   const searchParams = useSearchParams();
-  const router = useRouter();
   const token = searchParams.get('token') ?? '';
   const [showPassword, setShowPassword] = useState(false);
   const [error, setError] = useState('');
+  const [expired, setExpired] = useState(false);
   const [success, setSuccess] = useState(false);
 
   const {
@@ -37,23 +39,37 @@ export default function ResetPasswordPage() {
       return;
     }
     setError('');
+    setExpired(false);
     try {
       await authApi.resetPassword(token, data.password);
       setSuccess(true);
     } catch (err: any) {
+      // Detect token expired/invalid — BE thuong tra 400 voi message chua tu khoa
+      const status = err instanceof ApiError ? err.status : err?.status;
+      const msg = (err?.message || '').toString().toLowerCase();
+      const isExpired =
+        status === 400 &&
+        (msg.includes('expired') ||
+          msg.includes('invalid') ||
+          msg.includes('het han') ||
+          msg.includes('khong hop le'));
+      if (isExpired) {
+        setExpired(true);
+        return;
+      }
       setError(err.message || 'Co loi xay ra, vui long thu lai');
     }
   };
 
-  if (!token) {
+  if (!token || expired) {
     return (
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-red-500 mb-4">
-            Link dat lai mat khau khong hop le hoac da het han.
+            Link da het han. Vui long yeu cau link moi.
           </p>
           <Button asChild>
-            <Link href="/forgot-password">Gui lai email</Link>
+            <Link href="/forgot-password">Quay ve quen mat khau</Link>
           </Button>
         </CardContent>
       </Card>

@@ -33,7 +33,8 @@ export const registerSchema = z
         /[a-z]/,
         'Mat khau phai co it nhat 1 chu thuong',
       )
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmPassword: z
       .string({
         error: 'Vui long xac nhan mat khau',
@@ -59,7 +60,8 @@ export const resetPasswordSchema = z
       .min(8, 'Mat khau phai co it nhat 8 ky tu')
       .regex(/[A-Z]/, 'Mat khau phai co it nhat 1 chu hoa')
       .regex(/[a-z]/, 'Mat khau phai co it nhat 1 chu thuong')
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmPassword: z
       .string({
         error: 'Vui long xac nhan mat khau',
@@ -85,7 +87,8 @@ export const changePasswordSchema = z
       .min(8, 'Mat khau moi phai co it nhat 8 ky tu')
       .regex(/[A-Z]/, 'Mat khau phai co it nhat 1 chu hoa')
       .regex(/[a-z]/, 'Mat khau phai co it nhat 1 chu thuong')
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmNewPassword: z
       .string({
         error: 'Vui long xac nhan mat khau moi',

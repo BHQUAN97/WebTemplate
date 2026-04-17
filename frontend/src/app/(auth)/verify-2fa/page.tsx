@@ -7,9 +7,19 @@ import { ShieldCheck } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
 import { useAuthStore } from '@/lib/stores/auth-store';
+import { authApi } from '@/lib/api/modules/auth.api';
+
+interface PendingContext {
+  email: string;
+  password: string;
+  remember: boolean;
+  redirect: string;
+}
 
 /**
  * Trang xac thuc 2FA — nhap 6 chu so, resend code
+ * Flow: login page luu context vao sessionStorage khi BE tra TWO_FACTOR_REQUIRED,
+ * page nay doc context va goi lai /auth/login voi totp_code.
  */
 export default function Verify2faPage() {
   const router = useRouter();
@@ -18,7 +28,23 @@ export default function Verify2faPage() {
   const [error, setError] = useState('');
   const [submitting, setSubmitting] = useState(false);
   const [resendCooldown, setResendCooldown] = useState(0);
+  const [pending, setPending] = useState<PendingContext | null>(null);
   const inputRefs = useRef<(HTMLInputElement | null)[]>([]);
+
+  // Doc context login tu sessionStorage — neu khong co thi quay ve /login
+  useEffect(() => {
+    if (typeof window === 'undefined') return;
+    const raw = sessionStorage.getItem('2fa_pending');
+    if (!raw) {
+      router.replace('/login');
+      return;
+    }
+    try {
+      setPending(JSON.parse(raw) as PendingContext);
+    } catch {
+      router.replace('/login');
+    }
+  }, [router]);
 
   // Cooldown timer cho resend
   useEffect(() => {
@@ -73,14 +99,29 @@ export default function Verify2faPage() {
       setError('Vui long nhap du 6 chu so');
       return;
     }
+    if (!pending) {
+      setError('Phien dang nhap het han. Vui long dang nhap lai.');
+      return;
+    }
 
     setSubmitting(true);
     setError('');
     try {
-      // TODO: Call verify 2FA API
-      // const res = await authApi.verify2fa(fullCode);
-      // setAuth(res.data.user, res.data.accessToken);
-      router.push('/');
+      // Set remember_me truoc khi goi login de client chon dung storage
+      if (typeof window !== 'undefined') {
+        localStorage.setItem('remember_me', pending.remember ? '1' : '0');
+      }
+      const res = await authApi.verify2fa(
+        pending.email,
+        pending.password,
+        fullCode,
+      );
+      setAuth(res.user, res.accessToken);
+      // Clear context pending
+      if (typeof window !== 'undefined') {
+        sessionStorage.removeItem('2fa_pending');
+      }
+      router.push(pending.redirect || '/');
     } catch (err: any) {
       setError(err.message || 'Ma xac thuc khong dung');
       setCode(Array(6).fill(''));
@@ -93,9 +134,11 @@ export default function Verify2faPage() {
   const handleResend = async () => {
     setResendCooldown(60);
     try {
-      // TODO: Call resend 2FA API
+      // BE su dung TOTP (app authenticator) — khong can resend.
+      // Neu BE them fallback email OTP sau nay, authApi.resend2faCode() se work.
+      await authApi.resend2faCode().catch(() => null);
     } catch {
-      // Ignore
+      // Ignore — bam nut xong van enable cooldown
     }
   };
 

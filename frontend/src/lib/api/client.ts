@@ -43,15 +43,37 @@ class ApiClient {
     this.baseUrl = baseUrl;
   }
 
+  /**
+   * Tra ve storage dung dua tren flag remember_me.
+   * - remember_me === '0' → sessionStorage (clear khi dong tab)
+   * - mac dinh → localStorage (persist across sessions)
+   */
+  private getStorage(): Storage | null {
+    if (typeof window === 'undefined') return null;
+    const remember = localStorage.getItem('remember_me');
+    return remember === '0' ? sessionStorage : localStorage;
+  }
+
   private getToken(): string | null {
     if (typeof window === 'undefined') return null;
-    return localStorage.getItem('access_token');
+    // Doc ca 2 storage de robust — uu tien storage khop voi flag
+    const primary = this.getStorage();
+    return (
+      primary?.getItem('access_token') ??
+      localStorage.getItem('access_token') ??
+      sessionStorage.getItem('access_token')
+    );
   }
 
   private setToken(token: string | null) {
     if (typeof window === 'undefined') return;
-    if (token) localStorage.setItem('access_token', token);
-    else localStorage.removeItem('access_token');
+    const storage = this.getStorage() ?? localStorage;
+    if (token) {
+      storage.setItem('access_token', token);
+    } else {
+      localStorage.removeItem('access_token');
+      sessionStorage.removeItem('access_token');
+    }
   }
 
   private buildUrl(

@@ -73,7 +73,11 @@ export const useAuthStore = create<AuthState>()(
           // Van clear state du API loi
         }
         if (typeof window !== 'undefined') {
+          // Clean triet de — xoa token o ca 2 storage va flag remember
           localStorage.removeItem('access_token');
+          sessionStorage.removeItem('access_token');
+          localStorage.removeItem('remember_me');
+          sessionStorage.removeItem('2fa_pending');
         }
         set({ user: null, token: null, isAuthenticated: false });
       },

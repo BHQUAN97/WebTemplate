@@ -6,40 +6,70 @@ import { routing } from './i18n/routing';
 // Middleware next-intl — xu ly locale routing (cookie NEXT_LOCALE, prefix /en, ...)
 const intlMiddleware = createIntlMiddleware(routing);
 
+/** Route yeu cau dang nhap */
+const PROTECTED_ROUTES = [
+  '/dashboard',
+  '/profile',
+  '/settings',
+  '/admin',
+];
+
+/** Route auth cong khai — da dang nhap thi redirect ve / */
+const PUBLIC_AUTH_ROUTES = [
+  '/login',
+  '/register',
+  '/forgot-password',
+  '/reset-password',
+  '/verify-2fa',
+  '/verify-email',
+];
+
+/**
+ * Khop path voi 1 danh sach route, ho tro ca ban co prefix locale.
+ */
+function matchRoute(pathname: string, routes: string[]): boolean {
+  return routes.some(
+    (r) =>
+      pathname === r ||
+      pathname.startsWith(r + '/') ||
+      pathname.startsWith(r + '?') ||
+      routing.locales.some(
+        (l) =>
+          pathname === `/${l}${r}` ||
+          pathname.startsWith(`/${l}${r}/`) ||
+          pathname.startsWith(`/${l}${r}?`),
+      ),
+  );
+}
+
 /**
  * Proxy (Next.js 16 — thay the middleware)
  * Chain 2 lop:
- *   1. Auth: bao ve /admin, /dashboard va redirect /login khi da dang nhap
+ *   1. Auth: gate /admin, /dashboard, /profile, /settings + redirect khoi trang auth neu da login
  *   2. i18n: next-intl xu ly locale (cookie/prefix)
- * Response tra ve la merge cua ca hai.
+ * Su dung cookie refreshToken (HttpOnly, BE set khi login) de detect session —
+ * access_token co the chi luu client-side nen middleware khong doc duoc.
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
   // --- Lop 1: auth guard ---
-  const token =
-    request.cookies.get('access_token')?.value ||
-    request.headers.get('authorization')?.replace('Bearer ', '');
+  // Uu tien refreshToken (HttpOnly cookie BE set), fallback access_token cu
+  const hasSession =
+    !!request.cookies.get('refreshToken')?.value ||
+    !!request.cookies.get('access_token')?.value ||
+    !!request.headers.get('authorization');
 
-  const protectedPaths = ['/admin', '/dashboard'];
-  const isProtected = protectedPaths.some((path) =>
-    pathname.startsWith(path) ||
-    routing.locales.some((l) => pathname.startsWith(`/${l}${path}`)),
-  );
-
-  if (isProtected && !token) {
+  if (matchRoute(pathname, PROTECTED_ROUTES) && !hasSession) {
     const loginUrl = new URL('/login', request.url);
-    loginUrl.searchParams.set('redirect', pathname);
+    loginUrl.searchParams.set(
+      'redirect',
+      pathname + request.nextUrl.search,
+    );
     return NextResponse.redirect(loginUrl);
   }
 
-  const authPaths = ['/login', '/register'];
-  const isAuthPage = authPaths.some((path) =>
-    pathname.startsWith(path) ||
-    routing.locales.some((l) => pathname.startsWith(`/${l}${path}`)),
-  );
-
-  if (isAuthPage && token) {
+  if (matchRoute(pathname, PUBLIC_AUTH_ROUTES) && hasSession) {
     return NextResponse.redirect(new URL('/', request.url));
   }
 

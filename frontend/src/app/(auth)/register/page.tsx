@@ -121,7 +121,7 @@ export default function RegisterPage() {
               <Input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="It nhat 8 ky tu"
+                placeholder="8+ ky tu, hoa/thuong/so/dac biet"
                 autoComplete="new-password"
               />
               <button

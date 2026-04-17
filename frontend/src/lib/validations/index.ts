@@ -33,7 +33,8 @@ export const registerSchema = z
       .min(8, 'Mat khau phai co it nhat 8 ky tu')
       .regex(/[A-Z]/, 'Mat khau phai co it nhat 1 chu in hoa')
       .regex(/[a-z]/, 'Mat khau phai co it nhat 1 chu thuong')
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmPassword: z.string().min(1, 'Vui long xac nhan mat khau'),
     terms: z.boolean().refine((val) => val === true, {
       message: 'Ban phai dong y voi dieu khoan su dung',
@@ -63,7 +64,8 @@ export const resetPasswordSchema = z
       .min(8, 'Mat khau phai co it nhat 8 ky tu')
       .regex(/[A-Z]/, 'Mat khau phai co it nhat 1 chu in hoa')
       .regex(/[a-z]/, 'Mat khau phai co it nhat 1 chu thuong')
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmPassword: z.string().min(1, 'Vui long xac nhan mat khau'),
   })
   .refine((data) => data.password === data.confirmPassword, {
@@ -174,7 +176,8 @@ export const changePasswordSchema = z
       .min(8, 'Mat khau phai co it nhat 8 ky tu')
       .regex(/[A-Z]/, 'Mat khau phai co it nhat 1 chu in hoa')
       .regex(/[a-z]/, 'Mat khau phai co it nhat 1 chu thuong')
-      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so'),
+      .regex(/[0-9]/, 'Mat khau phai co it nhat 1 chu so')
+      .regex(/[^a-zA-Z0-9]/, 'Mat khau phai co it nhat 1 ky tu dac biet'),
     confirmNewPassword: z.string().min(1, 'Vui long xac nhan mat khau moi'),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
