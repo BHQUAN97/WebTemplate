@@ -7,6 +7,14 @@ import {
   EmailJobAttachment,
 } from '../../common/queue/email.processor.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { MediaService } from '../media/media.service.js';
+
+/**
+ * Nguong offload attachment sang S3. Attachment (Buffer) lon hon nguong
+ * nay se duoc upload vao `tmp/mail-attach/` va chi s3Key di vao payload
+ * queue — tranh phinh Redis khi gui weekly report PDF cho nhieu admin.
+ */
+export const ATTACHMENT_INLINE_LIMIT = 1 * 1024 * 1024; // 1MB
 
 /**
  * Attachment input cho MailService. `content` chap nhan Buffer (nhi phan)
@@ -51,6 +59,7 @@ export class MailService {
     @InjectQueue(QUEUE_NAMES.EMAIL)
     private readonly emailQueue: Queue<EmailJobData>,
     private readonly settingsService: SettingsService,
+    private readonly mediaService: MediaService,
   ) {}
 
   /**
@@ -70,29 +79,44 @@ export class MailService {
       return { jobId: null };
     }
 
-    // Normalize attachments: Buffer -> base64 string (BullMQ luu JSON vao Redis,
-    // khong ho tro raw Buffer — serializer se chuyen sang { type:'Buffer', data:[...] }
-    // kem memory blow-up voi PDF lon. Dung base64 on dinh + gon hon).
-    const attachmentsPayload: EmailJobAttachment[] | undefined =
-      params.attachments && params.attachments.length > 0
-        ? params.attachments.map((a) => {
-            if (Buffer.isBuffer(a.content)) {
+    // Normalize attachments:
+    //  - Buffer > ATTACHMENT_INLINE_LIMIT -> upload S3, payload chi co s3Key.
+    //  - Buffer <= limit -> base64 inline (BullMQ khong ho tro raw Buffer).
+    //  - string -> utf8 inline.
+    let attachmentsPayload: EmailJobAttachment[] | undefined;
+    if (params.attachments && params.attachments.length > 0) {
+      attachmentsPayload = await Promise.all(
+        params.attachments.map(async (a) => {
+          if (Buffer.isBuffer(a.content)) {
+            if (a.content.length > ATTACHMENT_INLINE_LIMIT) {
+              const { key } = await this.mediaService.uploadTempAttachment(
+                a.content,
+                a.filename,
+                a.contentType || 'application/octet-stream',
+              );
               return {
                 filename: a.filename,
-                content: a.content.toString('base64'),
                 contentType: a.contentType,
-                encoding: 'base64',
+                s3Key: key,
               };
             }
-            // Da la string (caller da encode hoac la text content)
             return {
               filename: a.filename,
-              content: a.content,
+              content: a.content.toString('base64'),
               contentType: a.contentType,
-              encoding: 'utf8',
+              encoding: 'base64',
             };
-          })
-        : undefined;
+          }
+          // Da la string (caller da encode hoac la text content)
+          return {
+            filename: a.filename,
+            content: a.content,
+            contentType: a.contentType,
+            encoding: 'utf8',
+          };
+        }),
+      );
+    }
 
     const job = await this.emailQueue.add('send', {
       to: params.to,

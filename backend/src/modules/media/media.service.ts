@@ -332,6 +332,65 @@ export class MediaService extends BaseService<Media> {
   }
 
   /**
+   * Upload attachment tam thoi cho mail queue (offload large payloads khoi Redis).
+   *
+   * OPS NOTE: Bucket lifecycle rule PHAI duoc config de auto-expire objects co prefix
+   * `tmp/mail-attach/` sau 7 ngay. Vi du (AWS S3 lifecycle):
+   *   Prefix: tmp/mail-attach/
+   *   Expiration: 7 days
+   * Neu thieu rule nay, stale attachments se tich tu khi worker fail vinh vien.
+   *
+   * Tra ve S3 key — worker dung `downloadTempAttachment(key)` truoc khi gui Resend.
+   */
+  async uploadTempAttachment(
+    buffer: Buffer,
+    filename: string,
+    contentType: string,
+  ): Promise<{ key: string }> {
+    const sanitized = filename
+      .toLowerCase()
+      .replace(/[^a-z0-9.]+/g, '-')
+      .replace(/^-+|-+$/g, '')
+      .slice(0, 80) || 'attachment';
+    const key = `tmp/mail-attach/${Date.now()}-${ulid()}/${sanitized}`;
+    await this.s3.send(
+      new PutObjectCommand({
+        Bucket: this.bucket,
+        Key: key,
+        Body: buffer,
+        ContentType: contentType,
+      }),
+    );
+    return { key };
+  }
+
+  /**
+   * Download lai attachment tam — dung trong email processor truoc khi gui Resend.
+   */
+  async downloadTempAttachment(key: string): Promise<Buffer> {
+    const resp = await this.s3.send(
+      new GetObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+    const body = resp.Body as any;
+    if (!body) {
+      throw new NotFoundException(`Temp attachment ${key} not found`);
+    }
+    const bytes: Uint8Array = await body.transformToByteArray();
+    return Buffer.from(bytes);
+  }
+
+  /**
+   * Xoa attachment tam sau khi gui email thanh cong.
+   * Chi goi tren success path — retry path se reuse key cu.
+   * Lifecycle rule van la safety net cho stale objects.
+   */
+  async deleteTempAttachment(key: string): Promise<void> {
+    await this.s3.send(
+      new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
+    );
+  }
+
+  /**
    * Build storage key: folder/{ulid}-{sanitized-filename}.
    * Sanitize: chi giu chu, so, dau cham, gach duoi + gach ngang.
    */

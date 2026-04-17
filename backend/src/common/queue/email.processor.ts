@@ -9,18 +9,29 @@ import { Resend } from 'resend';
 import { EmailTemplate } from '../../modules/email-templates/entities/email-template.entity.js';
 import { QUEUE_NAMES } from './queue.module.js';
 import { DeadLetterService } from './dead-letter.service.js';
+import { MediaService } from '../../modules/media/media.service.js';
 
 /**
  * Attachment da serialize de put vao Redis via BullMQ.
+ *
+ * Hai mode:
+ *  - inline: `content` la base64 (hoac utf8) — dung cho file nho (<1MB).
+ *  - s3: `s3Key` tro toi object tren S3 (prefix `tmp/mail-attach/`) — worker
+ *    download truoc khi gui Resend, delete sau khi gui thanh cong. Dung cho
+ *    attachment lon de tranh phinh Redis.
+ *
  * `encoding='base64'` -> processor se decode ve Buffer truoc khi pass sang Resend.
  * `encoding='utf8'` -> content da la string (vd CSV text), pass nguyen.
  * Neu thieu encoding, default base64 (backward compat).
  */
 export interface EmailJobAttachment {
   filename: string;
-  content: string;
   contentType?: string;
+  /** Inline mode: base64/utf8 content. Absent khi dung s3Key. */
+  content?: string;
   encoding?: 'base64' | 'utf8';
+  /** S3 mode: key tro toi object tren tmp/mail-attach/ prefix. */
+  s3Key?: string;
 }
 
 /**
@@ -56,6 +67,7 @@ export class EmailProcessor extends WorkerHost {
     @InjectRepository(EmailTemplate)
     private readonly templateRepo: Repository<EmailTemplate>,
     private readonly dlqService: DeadLetterService,
+    private readonly mediaService: MediaService,
   ) {
     super();
     const apiKey = this.configService.get<string>('RESEND_API_KEY', '');
@@ -78,7 +90,8 @@ export class EmailProcessor extends WorkerHost {
     if ((job.attemptsMade ?? 0) >= maxAttempts) {
       try {
         // Strip attachments payload truoc khi ghi DLQ — tranh phinh DB voi
-        // base64 PDF. Thay bang metadata goi nho (filename + size).
+        // base64 PDF. Giu lai s3Key (neu co) de manual replay sau nay;
+        // S3 lifecycle rule se handle cleanup stale objects.
         const payloadForDlq = {
           ...job.data,
           attachments: job.data.attachments?.map((a) => ({
@@ -86,6 +99,7 @@ export class EmailProcessor extends WorkerHost {
             contentType: a.contentType,
             encoding: a.encoding,
             contentLength: a.content?.length ?? 0,
+            s3Key: a.s3Key,
           })),
         };
         await this.dlqService.moveToDlq({
@@ -145,17 +159,35 @@ export class EmailProcessor extends WorkerHost {
       ? Handlebars.compile(template.text_body)(variables)
       : undefined;
 
-    // Decode attachments base64 -> Buffer de pass sang Resend SDK
-    const resendAttachments = attachments?.map((a) => {
-      const encoding = a.encoding ?? 'base64';
-      const content =
-        encoding === 'base64' ? Buffer.from(a.content, 'base64') : a.content;
-      return {
-        filename: a.filename,
-        content,
-        contentType: a.contentType,
-      };
-    });
+    // Decode attachments: ho tro 2 mode
+    //  - s3Key: download tu S3 (offload payload lon khoi Redis)
+    //  - inline: base64 / utf8 content truyen qua queue
+    const resendAttachments = attachments
+      ? await Promise.all(
+          attachments.map(async (a) => {
+            if (a.s3Key) {
+              const content = await this.mediaService.downloadTempAttachment(
+                a.s3Key,
+              );
+              return {
+                filename: a.filename,
+                content,
+                contentType: a.contentType,
+              };
+            }
+            const encoding = a.encoding ?? 'base64';
+            const content =
+              encoding === 'base64'
+                ? Buffer.from(a.content ?? '', 'base64')
+                : (a.content ?? '');
+            return {
+              filename: a.filename,
+              content,
+              contentType: a.contentType,
+            };
+          }),
+        )
+      : undefined;
 
     const result = await this.resend.emails.send({
       from: from || this.defaultFrom,
@@ -168,13 +200,29 @@ export class EmailProcessor extends WorkerHost {
 
     const err: unknown = (result as any).error;
     if (err) {
-      // Resend tra loi — throw de Bull retry
+      // Resend tra loi — throw de Bull retry. KHONG delete S3 temp attachments
+      // de retry lan sau co the reuse (BullMQ retry se goi lai process()).
       this.logger.error(
         `Resend error for ${to} (${templateName}): ${JSON.stringify(err)}`,
       );
       throw new Error(
         typeof err === 'string' ? err : JSON.stringify(err),
       );
+    }
+
+    // Success path — cleanup S3 temp attachments (best effort, khong fail job).
+    if (attachments) {
+      for (const a of attachments) {
+        if (a.s3Key) {
+          try {
+            await this.mediaService.deleteTempAttachment(a.s3Key);
+          } catch (cleanupErr) {
+            this.logger.warn(
+              `Failed to delete temp attachment ${a.s3Key}: ${(cleanupErr as Error).message}`,
+            );
+          }
+        }
+      }
     }
 
     this.logger.log(
