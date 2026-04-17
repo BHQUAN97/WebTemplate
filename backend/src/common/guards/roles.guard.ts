@@ -13,7 +13,19 @@ import { ICurrentUser } from '../interfaces/index.js';
  * Guard that checks if the current user has one of the required roles.
  * Works with the @Roles() decorator.
  *
- * If no @Roles() is set on the handler, access is allowed (no role restriction).
+ * IMPORTANT — Default policy is "AUTHENTICATED USERS ONLY":
+ *   - Khi KHONG co @Roles() tren route: guard tra ve true, nghia la
+ *     ROUTE VAN YEU CAU LOGIN (vi JwtAuthGuard chay truoc da xac thuc
+ *     user), chi khong yeu cau role cu the.
+ *   - De BYPASS auth (public endpoint): developer PHAI dung @Public()
+ *     decorator — JwtAuthGuard se skip, va nguoi dung chua login van
+ *     goi duoc route.
+ *   - De GATE theo role (admin/manager/...): dung @Roles(UserRole.ADMIN).
+ *
+ * Noi cach khac:
+ *   - @Public()              → ai cung goi duoc
+ *   - Khong decorator        → phai login (any role)
+ *   - @Roles(UserRole.ADMIN) → phai login VA co role = admin
  */
 @Injectable()
 export class RolesGuard implements CanActivate {
@@ -25,7 +37,8 @@ export class RolesGuard implements CanActivate {
       [context.getHandler(), context.getClass()],
     );
 
-    // Khong co @Roles() → cho phep tat ca
+    // Khong co @Roles() -> mac dinh "authenticated users" (JwtAuthGuard da xac thuc)
+    // De cho phep public, dung @Public() de bypass JwtAuthGuard.
     if (!requiredRoles || requiredRoles.length === 0) {
       return true;
     }

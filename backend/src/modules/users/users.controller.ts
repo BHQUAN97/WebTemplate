@@ -1,4 +1,5 @@
 import {
+  BadRequestException,
   Controller,
   Get,
   Post,
@@ -83,10 +84,15 @@ export class UsersController {
 
   /**
    * DELETE /users/:id — admin soft delete user.
+   * Reject neu admin co gang xoa chinh minh — tranh lock out accidentally.
+   * softDelete() cung revoke tat ca refresh tokens cua user qua override.
    */
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: string) {
+  async remove(@Param('id') id: string, @CurrentUser() currentUser: ICurrentUser) {
+    if (id === currentUser.id) {
+      throw new BadRequestException('Cannot delete yourself');
+    }
     await this.usersService.softDelete(id);
     return { message: 'User deleted successfully' };
   }

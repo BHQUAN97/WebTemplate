@@ -7,7 +7,7 @@ import {
 import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { RefreshToken } from './entities/refresh-token.entity.js';
 import { User } from '../users/entities/user.entity.js';
 import { UsersService } from '../users/users.service.js';
@@ -19,8 +19,10 @@ import { ResetPasswordDto } from './dto/reset-password.dto.js';
 import { randomUUID } from 'crypto';
 import { comparePassword, hashPassword } from '../../common/utils/hash.js';
 import { sha256 } from '../../common/utils/hash.js';
-import { ICurrentUser } from '../../common/interfaces/index.js';
 import { TwoFactorService } from './two-factor.service.js';
+import { SettingsService } from '../settings/settings.service.js';
+import { MailService } from '../mail/mail.service.js';
+import { UserRole } from '../../common/constants/index.js';
 
 interface TokenPair {
   accessToken: string;
@@ -28,40 +30,230 @@ interface TokenPair {
 }
 
 /**
- * Auth service — xu ly dang ky, dang nhap, refresh token, doi mat khau.
- * Refresh token duoc hash SHA256 truoc khi luu vao DB.
+ * Payload OAuth tu passport strategies (Google/Facebook).
+ */
+export interface OAuthProfile {
+  provider: 'google' | 'facebook';
+  providerId: string;
+  email: string;
+  name: string;
+  avatar: string | null;
+}
+
+/**
+ * Tracker login attempts — Redis neu co, fallback in-memory Map.
+ * Key: login_attempts:{email}. Value: so lan thu lien tiep. TTL 15 phut.
+ */
+interface AttemptEntry {
+  count: number;
+  expiresAt: number;
+}
+
+/**
+ * Auth service — xu ly dang ky, dang nhap, refresh token, doi mat khau,
+ * OAuth login, email verification, account lockout.
  */
 @Injectable()
 export class AuthService {
   private readonly logger = new Logger('AuthService');
 
+  /** Gioi han so lan sai password lien tiep truoc khi khoa tam thoi. */
+  private readonly MAX_LOGIN_ATTEMPTS = 5;
+  /** Thoi gian khoa sau khi vuot gioi han (ms). */
+  private readonly LOCKOUT_TTL_MS = 15 * 60 * 1000;
+
+  /**
+   * In-memory fallback cho login attempts — dung khi khong co Redis san.
+   * TODO: chuyen sang Redis khi co @InjectRedis() moi truong production thuc te.
+   */
+  private readonly attemptsMap = new Map<string, AttemptEntry>();
+
   constructor(
     @InjectRepository(RefreshToken)
     private readonly refreshTokenRepo: Repository<RefreshToken>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly twoFactorService: TwoFactorService,
+    private readonly settingsService: SettingsService,
+    private readonly mailService: MailService,
   ) {}
+
+  // ==========================================================================
+  // REGISTER
+  // ==========================================================================
 
   /**
    * Dang ky tai khoan moi.
+   * - Neu email.enabled + email.verification_required: tao user voi
+   *   is_email_verified=false, gui link verify, KHONG cap access token.
+   * - Neu tat: auto mark email_verified=true, cap ngay access token.
    */
-  async register(dto: RegisterDto): Promise<TokenPair> {
+  async register(
+    dto: RegisterDto,
+  ): Promise<TokenPair | { message: string; requiresVerification: true }> {
     // Kiem tra email da ton tai
     const existing = await this.usersService.findByEmail(dto.email);
     if (existing) {
       throw new BadRequestException('Email already registered');
     }
 
-    const user = await this.usersService.createUser({
-      email: dto.email,
-      password: dto.password,
-      name: dto.name,
-    });
+    const emailEnabled = await this.settingsService.getBoolean(
+      'email.enabled',
+      false,
+    );
+    const verifyRequired = await this.settingsService.getBoolean(
+      'email.verification_required',
+      false,
+    );
+    const welcomeEnabled = await this.settingsService.getBoolean(
+      'email.welcome_enabled',
+      false,
+    );
+
+    const passwordHash = await hashPassword(dto.password);
+    // Tao user — neu verify required va email bat, set is_email_verified=false
+    const shouldRequireVerify = emailEnabled && verifyRequired;
+    const user = await this.userRepo.save(
+      this.userRepo.create({
+        email: dto.email,
+        password_hash: passwordHash,
+        name: dto.name,
+        role: UserRole.USER,
+        is_email_verified: !shouldRequireVerify,
+      }),
+    );
+
+    // Queue welcome email neu bat
+    if (emailEnabled && welcomeEnabled) {
+      await this.mailService.sendMail({
+        to: user.email,
+        template: 'welcome',
+        context: {
+          user_name: user.name,
+          site_name:
+            this.configService.get<string>('app.name') || 'WebTemplate',
+        },
+      });
+    }
+
+    if (shouldRequireVerify) {
+      // Sinh JWT verify token + luu JTI vao user
+      await this.sendVerificationEmail(user);
+      return {
+        message:
+          'Account created. Please check your email to verify your address before logging in.',
+        requiresVerification: true,
+      };
+    }
 
     return this.generateTokens(user);
   }
+
+  /**
+   * Gui email xac thuc: sinh JWT type='email_verify' + luu JTI + queue mail.
+   * Link trong mail: {frontendUrl}/verify-email?token=...
+   */
+  private async sendVerificationEmail(user: User): Promise<void> {
+    const verifySecret =
+      this.configService.get<string>('jwt.resetSecret') ||
+      this.configService.get<string>('jwt.accessSecret');
+    if (!verifySecret) {
+      throw new Error(
+        '[AuthService] jwt.resetSecret/accessSecret must be configured',
+      );
+    }
+
+    const jti = randomUUID();
+    const verifyToken = this.jwtService.sign(
+      { sub: user.id, type: 'email_verify', jti },
+      {
+        secret: verifySecret,
+        expiresIn: '24h' as any,
+      },
+    );
+
+    await this.userRepo.update(user.id, {
+      email_verification_jti: jti,
+    } as any);
+
+    const frontendUrl =
+      this.configService.get<string>('MAIL_FRONTEND_URL') ||
+      process.env.MAIL_FRONTEND_URL ||
+      'http://localhost:6000';
+    const verifyLink = `${frontendUrl}/verify-email?token=${verifyToken}`;
+
+    await this.mailService.sendMail({
+      to: user.email,
+      template: 'verify_email',
+      context: {
+        user_name: user.name,
+        verify_link: verifyLink,
+      },
+    });
+  }
+
+  /**
+   * Verify email bang token — mark user.is_email_verified = true.
+   */
+  async verifyEmail(token: string): Promise<void> {
+    const verifySecret =
+      this.configService.get<string>('jwt.resetSecret') ||
+      this.configService.get<string>('jwt.accessSecret');
+    if (!verifySecret) {
+      throw new Error('[AuthService] jwt verify secret not configured');
+    }
+
+    let payload: any;
+    try {
+      payload = this.jwtService.verify(token, { secret: verifySecret });
+    } catch {
+      throw new BadRequestException('Invalid or expired verification token');
+    }
+    if (payload.type !== 'email_verify') {
+      throw new BadRequestException('Invalid token type');
+    }
+
+    const user = await this.userRepo.findOneBy({ id: payload.sub });
+    if (
+      !user ||
+      !user.email_verification_jti ||
+      user.email_verification_jti !== payload.jti
+    ) {
+      throw new BadRequestException(
+        'Verification token already used or invalidated',
+      );
+    }
+
+    await this.userRepo.update(user.id, {
+      is_email_verified: true,
+      email_verification_jti: null,
+    } as any);
+    this.logger.log(`Email verified for user ${user.id}`);
+  }
+
+  /**
+   * Resend verification email — yeu cau email, ne-op neu user khong ton tai
+   * hoac da verify roi (khong leak info).
+   */
+  async resendVerification(email: string): Promise<void> {
+    const user = await this.usersService.findByEmail(email);
+    if (!user || user.is_email_verified) return;
+
+    const enabled = await this.settingsService.getBoolean(
+      'email.enabled',
+      false,
+    );
+    if (!enabled) return;
+
+    await this.sendVerificationEmail(user);
+  }
+
+  // ==========================================================================
+  // LOGIN
+  // ==========================================================================
 
   /**
    * Dang nhap — xac thuc email/password, tra ve access + refresh token.
@@ -77,7 +269,6 @@ export class AuthService {
     // 2FA check — user da bat 2FA phai cung cap totp_code
     if (user.two_factor_enabled) {
       if (!dto.totp_code) {
-        // FE bat modal nhap code khi thay error code nay
         throw new UnauthorizedException({
           code: 'TWO_FACTOR_REQUIRED',
           message: 'Vui long nhap ma xac thuc 2FA',
@@ -93,17 +284,28 @@ export class AuthService {
     }
 
     // Cap nhat last_login_at
-    await this.usersService.update(user.id, { last_login_at: new Date() } as any);
+    await this.usersService.update(user.id, {
+      last_login_at: new Date(),
+    } as any);
 
     return this.generateTokens(user, ip, userAgent);
   }
 
   /**
-   * Xac thuc user bang email + password.
+   * Xac thuc user bang email + password — co account lockout sau 5 lan sai.
+   * Throw `Account locked...` khi vuot nguong.
    */
   async validateUser(email: string, password: string): Promise<User> {
+    // Check lockout TRUOC khi so sanh password — tranh leak info
+    if (this.isLockedOut(email)) {
+      throw new BadRequestException(
+        'Account locked. Try again in 15 minutes.',
+      );
+    }
+
     const user = await this.usersService.findByEmail(email);
     if (!user) {
+      this.recordFailedAttempt(email);
       throw new UnauthorizedException('Invalid email or password');
     }
 
@@ -111,13 +313,144 @@ export class AuthService {
       throw new UnauthorizedException('Account is disabled');
     }
 
+    // OAuth users khong co password -> neu login bang email/password, reject
+    if (!user.password_hash) {
+      throw new UnauthorizedException(
+        'Account uses social login. Please sign in with your provider.',
+      );
+    }
+
     const isMatch = await comparePassword(password, user.password_hash);
     if (!isMatch) {
+      this.recordFailedAttempt(email);
       throw new UnauthorizedException('Invalid email or password');
+    }
+
+    // Check email verification neu bat
+    const emailEnabled = await this.settingsService.getBoolean(
+      'email.enabled',
+      false,
+    );
+    const verifyRequired = await this.settingsService.getBoolean(
+      'email.verification_required',
+      false,
+    );
+    if (emailEnabled && verifyRequired && !user.is_email_verified) {
+      throw new UnauthorizedException(
+        'Email not verified. Please check your inbox.',
+      );
+    }
+
+    // Login thanh cong -> xoa counter
+    this.clearFailedAttempts(email);
+
+    return user;
+  }
+
+  /**
+   * Tang counter login attempts. Dung in-memory Map (TTL 15 phut).
+   */
+  private recordFailedAttempt(email: string): void {
+    const key = email.toLowerCase();
+    const now = Date.now();
+    const entry = this.attemptsMap.get(key);
+    if (!entry || entry.expiresAt < now) {
+      this.attemptsMap.set(key, {
+        count: 1,
+        expiresAt: now + this.LOCKOUT_TTL_MS,
+      });
+    } else {
+      entry.count += 1;
+    }
+  }
+
+  /**
+   * Check xem email co dang bi lockout khong.
+   */
+  private isLockedOut(email: string): boolean {
+    const key = email.toLowerCase();
+    const entry = this.attemptsMap.get(key);
+    if (!entry) return false;
+    if (entry.expiresAt < Date.now()) {
+      this.attemptsMap.delete(key);
+      return false;
+    }
+    return entry.count >= this.MAX_LOGIN_ATTEMPTS;
+  }
+
+  /**
+   * Xoa counter sau khi dang nhap thanh cong.
+   */
+  private clearFailedAttempts(email: string): void {
+    this.attemptsMap.delete(email.toLowerCase());
+  }
+
+  // ==========================================================================
+  // OAUTH
+  // ==========================================================================
+
+  /**
+   * Validate OAuth profile -> tim hoac tao user noi bo.
+   * - Match theo email (OAuth email la trusted -> is_email_verified=true).
+   * - Luu provider + provider_id de lien ket.
+   * - Khong tao password_hash cho OAuth user.
+   */
+  async validateOAuthUser(profile: OAuthProfile): Promise<User> {
+    let user = await this.usersService.findByEmail(profile.email);
+
+    if (user) {
+      // User da ton tai — link OAuth provider (neu chua) va bat is_email_verified
+      const updates: Partial<User> = {};
+      if (!user.provider) updates.provider = profile.provider;
+      if (!user.provider_id) updates.provider_id = profile.providerId;
+      if (!user.is_email_verified) updates.is_email_verified = true;
+      if (!user.avatar_url && profile.avatar) {
+        updates.avatar_url = profile.avatar;
+      }
+      if (Object.keys(updates).length > 0) {
+        await this.userRepo.update(user.id, updates as any);
+        user = (await this.userRepo.findOneBy({ id: user.id })) as User;
+      }
+    } else {
+      // Tao user moi — password_hash = null (OAuth-only)
+      user = await this.userRepo.save(
+        this.userRepo.create({
+          email: profile.email,
+          password_hash: null,
+          name: profile.name,
+          avatar_url: profile.avatar,
+          role: UserRole.USER,
+          is_active: true,
+          is_email_verified: true,
+          provider: profile.provider,
+          provider_id: profile.providerId,
+        }),
+      );
+      this.logger.log(
+        `Created OAuth user: ${user.email} via ${profile.provider}`,
+      );
     }
 
     return user;
   }
+
+  /**
+   * OAuth login — goi sau khi strategy validate xong, sinh token pair.
+   */
+  async oauthLogin(
+    user: User,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<TokenPair> {
+    await this.userRepo.update(user.id, {
+      last_login_at: new Date(),
+    } as any);
+    return this.generateTokens(user, ip, userAgent);
+  }
+
+  // ==========================================================================
+  // TOKEN MANAGEMENT
+  // ==========================================================================
 
   /**
    * Refresh token — verify hash, revoke cu, tao cap token moi (rotation).
@@ -127,7 +460,6 @@ export class AuthService {
     ip?: string,
     userAgent?: string,
   ): Promise<TokenPair> {
-    // Verify JWT refresh token
     let payload: any;
     try {
       payload = this.jwtService.verify(token, {
@@ -137,7 +469,6 @@ export class AuthService {
       throw new UnauthorizedException('Invalid refresh token');
     }
 
-    // Tim token hash trong DB
     const tokenHash = this.hashToken(token);
     const storedToken = await this.refreshTokenRepo.findOne({
       where: { token_hash: tokenHash, is_revoked: false },
@@ -145,7 +476,6 @@ export class AuthService {
     });
 
     if (!storedToken) {
-      // Token reuse detection — revoke tat ca token cua user
       await this.revokeAllUserTokens(payload.sub);
       throw new UnauthorizedException('Refresh token reuse detected');
     }
@@ -154,11 +484,9 @@ export class AuthService {
       throw new UnauthorizedException('Refresh token expired');
     }
 
-    // Revoke token cu
     storedToken.is_revoked = true;
     await this.refreshTokenRepo.save(storedToken);
 
-    // Tao cap token moi
     return this.generateTokens(storedToken.user, ip, userAgent);
   }
 
@@ -185,26 +513,41 @@ export class AuthService {
     dto: ChangePasswordDto,
   ): Promise<void> {
     const user = await this.usersService.findById(userId);
-    const isMatch = await comparePassword(dto.currentPassword, user.password_hash);
+    if (!user.password_hash) {
+      throw new BadRequestException(
+        'OAuth account khong the doi password — dang nhap qua provider',
+      );
+    }
+    const isMatch = await comparePassword(
+      dto.currentPassword,
+      user.password_hash,
+    );
     if (!isMatch) {
       throw new BadRequestException('Current password is incorrect');
     }
 
     const newHash = await hashPassword(dto.newPassword);
-    await this.usersService.update(userId, { password_hash: newHash } as any);
+    await this.usersService.update(userId, {
+      password_hash: newHash,
+    } as any);
 
-    // Revoke tat ca refresh token — bat buoc dang nhap lai
     await this.revokeAllUserTokens(userId);
   }
 
   /**
    * Quen mat khau — tao reset token, luu JTI vao user, queue email.
-   * Khong log token ra console — bao mat.
    */
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      // Khong leak thong tin — van tra ve thanh cong
+      // Khong leak — tra ve thanh cong
+      return;
+    }
+    if (!user.password_hash) {
+      // OAuth user -> khong the reset password
+      this.logger.warn(
+        `forgotPassword: user ${user.id} is OAuth — skipping reset`,
+      );
       return;
     }
 
@@ -213,7 +556,6 @@ export class AuthService {
       throw new Error('[AuthService] jwt.resetSecret is not configured');
     }
 
-    // Tao JTI duy nhat — luu vao user de token chi dung duoc 1 lan
     const jti = randomUUID();
     const resetExpires =
       this.configService.get<string>('jwt.resetExpires') || '1h';
@@ -226,15 +568,40 @@ export class AuthService {
       },
     );
 
-    // Luu JTI vao user — invalidate token cu (neu co)
     await this.usersService.update(user.id, {
       reset_token_jti: jti,
     } as any);
 
-    // TODO: send via email via queue (khong log token — tranh leak)
-    this.logger.log(`Password reset requested for ${dto.email}`);
-    // Tranh warning: resetToken dung khi email service san sang
-    void resetToken;
+    const emailEnabled = await this.settingsService.getBoolean(
+      'email.enabled',
+      false,
+    );
+    const resetEnabled = await this.settingsService.getBoolean(
+      'email.password_reset_enabled',
+      true,
+    );
+
+    const frontendUrl =
+      this.configService.get<string>('MAIL_FRONTEND_URL') ||
+      process.env.MAIL_FRONTEND_URL ||
+      'http://localhost:6000';
+    const resetLink = `${frontendUrl}/reset-password?token=${resetToken}`;
+
+    if (emailEnabled && resetEnabled) {
+      await this.mailService.sendMail({
+        to: user.email,
+        template: 'password_reset',
+        context: {
+          user_name: user.name,
+          reset_link: resetLink,
+        },
+      });
+    } else {
+      // Dev mode — log link de developer co the reset thu nghiem
+      this.logger.warn(
+        `[dev] password reset link for ${user.email}: ${resetLink}`,
+      );
+    }
   }
 
   /**
@@ -249,9 +616,7 @@ export class AuthService {
 
     let payload: any;
     try {
-      payload = this.jwtService.verify(dto.token, {
-        secret: resetSecret,
-      });
+      payload = this.jwtService.verify(dto.token, { secret: resetSecret });
     } catch {
       throw new BadRequestException('Invalid or expired reset token');
     }
@@ -260,20 +625,17 @@ export class AuthService {
       throw new BadRequestException('Invalid token type');
     }
 
-    // Verify JTI — token da dung hoac bi superseded thi reject
     const user = await this.usersService.findById(payload.sub);
     if (!user || !user.reset_token_jti || user.reset_token_jti !== payload.jti) {
       throw new BadRequestException('Reset token already used or invalidated');
     }
 
     const newHash = await hashPassword(dto.newPassword);
-    // Mark used: xoa JTI sau khi reset thanh cong
     await this.usersService.update(payload.sub, {
       password_hash: newHash,
       reset_token_jti: null,
     } as any);
 
-    // Revoke tat ca refresh token
     await this.revokeAllUserTokens(payload.sub);
   }
 
@@ -302,16 +664,18 @@ export class AuthService {
 
     const accessToken = this.jwtService.sign(jwtPayload, {
       secret: accessSecret,
-      expiresIn: (this.configService.get<string>('jwt.accessExpires') || '15m') as any,
+      expiresIn: (this.configService.get<string>('jwt.accessExpires') ||
+        '15m') as any,
     });
 
     const refreshToken = this.jwtService.sign(jwtPayload, {
       secret: refreshSecret,
-      expiresIn: (this.configService.get<string>('jwt.refreshExpires') || '7d') as any,
+      expiresIn: (this.configService.get<string>('jwt.refreshExpires') ||
+        '7d') as any,
     });
 
-    // Luu refresh token hash vao DB
-    const refreshExpires = this.configService.get<string>('jwt.refreshExpires') || '7d';
+    const refreshExpires =
+      this.configService.get<string>('jwt.refreshExpires') || '7d';
     const expiresAt = new Date();
     const days = parseInt(refreshExpires) || 7;
     expiresAt.setDate(expiresAt.getDate() + days);
@@ -336,9 +700,11 @@ export class AuthService {
   }
 
   /**
-   * Revoke tat ca refresh token cua user — dung khi doi password hoac detect reuse.
+   * Revoke tat ca refresh token cua user — dung khi doi password / detect reuse
+   * / admin soft-delete user.
+   * PUBLIC de UsersService goi duoc khi soft delete.
    */
-  private async revokeAllUserTokens(userId: string): Promise<void> {
+  async revokeAllUserTokens(userId: string): Promise<void> {
     await this.refreshTokenRepo.update(
       { user_id: userId, is_revoked: false },
       { is_revoked: true },

@@ -13,6 +13,7 @@ import * as QRCode from 'qrcode';
 import * as crypto from 'crypto';
 import { User } from '../users/entities/user.entity.js';
 import { comparePassword } from '../../common/utils/hash.js';
+import { sha256 } from '../../common/utils/hash.js';
 import { decrypt, encrypt } from '../../common/utils/crypto.util.js';
 
 /**
@@ -27,6 +28,7 @@ export interface TwoFactorSetupResult {
 /**
  * Service xu ly 2FA (TOTP): tao secret, verify code, enable/disable,
  * sinh va verify backup codes. Secret duoc ma hoa AES-256-GCM truoc khi luu DB.
+ * Backup codes duoc hash SHA-256 truoc khi luu.
  */
 @Injectable()
 export class TwoFactorService {
@@ -137,9 +139,12 @@ export class TwoFactorService {
 
   /**
    * Internal: verify TOTP hoac backup code cho user da load.
+   * - TOTP (6 digits): check qua authenticator secret
+   * - Backup code (8 hex chars): hash + so sanh + remove khoi array sau khi dung
    */
   private async verifyCode(user: User, code: string): Promise<boolean> {
     const trimmed = code.replace(/\s/g, '');
+
     // TOTP code — 6 chu so
     if (/^\d{6}$/.test(trimmed)) {
       try {
@@ -155,35 +160,58 @@ export class TwoFactorService {
         return false;
       }
     }
-    // Backup code — 8 ky tu alphanumeric — check trong backup_codes_hash
-    // TODO: can them cot `backup_codes_hash` (JSON) vao user entity + migration
-    // Hien tai chua co cot -> skip backup code path.
+
+    // Backup code — 8 ky tu hex (case-insensitive). Check trong backup_codes_hash.
+    if (/^[A-Fa-f0-9]{8}$/.test(trimmed)) {
+      if (!user.backup_codes_hash || user.backup_codes_hash.length === 0) {
+        return false;
+      }
+      // Hash voi upper-case de khop voi format khi sinh (crypto -> uppercase hex)
+      const candidateHash = sha256(trimmed.toUpperCase());
+      const idx = user.backup_codes_hash.indexOf(candidateHash);
+      if (idx === -1) return false;
+
+      // Remove code da dung — single-use
+      const remaining = [...user.backup_codes_hash];
+      remaining.splice(idx, 1);
+      await this.userRepo.update(user.id, {
+        backup_codes_hash: remaining,
+      } as any);
+      this.logger.warn(`Backup code used for user ${user.id}`);
+      return true;
+    }
+
     return false;
   }
 
   /**
    * Disable 2FA — yeu cau xac nhan password de bao mat.
+   * Xoa ca secret lan backup codes.
    */
   async disable(userId: string, currentPassword: string): Promise<void> {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
+    if (!user.password_hash) {
+      // User OAuth khong co password -> khong the disable bang password
+      throw new BadRequestException(
+        'Tai khoan OAuth khong the tat 2FA bang password',
+      );
+    }
     const ok = await comparePassword(currentPassword, user.password_hash);
     if (!ok) throw new UnauthorizedException('Mat khau khong dung');
 
     await this.userRepo.update(userId, {
       two_factor_secret: null,
       two_factor_enabled: false,
+      backup_codes_hash: null,
     } as any);
     this.logger.log(`2FA disabled for user: ${userId}`);
   }
 
   /**
-   * Sinh 10 backup codes moi (8 ky tu moi code). Tra ve plaintext
-   * cho user luu lai (hien MOT LAN duy nhat). Luu hash vao DB.
-   *
-   * NOTE: Can them cot `backup_codes_hash` (JSON text) vao user entity
-   * + migration. Hien tai method nay tra ve plaintext nhung khong persist
-   * hash (comment TODO) — tranh loi compile do thieu cot.
+   * Sinh 10 backup codes moi (8 ky tu hex/code). Tra ve plaintext cho user
+   * luu lai (hien MOT LAN duy nhat). Luu hash SHA-256 vao user.backup_codes_hash.
+   * Goi method nay se ghi de backup codes cu (neu co).
    */
   async generateBackupCodes(userId: string): Promise<string[]> {
     const user = await this.userRepo.findOneBy({ id: userId });
@@ -195,13 +223,34 @@ export class TwoFactorService {
       codes.push(crypto.randomBytes(4).toString('hex').toUpperCase());
     }
 
-    // TODO: persist hashes khi user.entity co cot `backup_codes_hash`
-    // const hashes = codes.map((c) => sha256(c));
-    // await this.userRepo.update(userId, { backup_codes_hash: JSON.stringify(hashes) });
+    // Luu hash — khong bao gio luu plaintext
+    const hashes = codes.map((c) => sha256(c));
+    await this.userRepo.update(userId, {
+      backup_codes_hash: hashes,
+    } as any);
 
-    this.logger.warn(
-      `Backup codes generated for user ${userId} but NOT persisted — migration needed for backup_codes_hash column`,
-    );
+    this.logger.log(`Backup codes generated for user ${userId}`);
     return codes;
+  }
+
+  /**
+   * Regenerate backup codes — yeu cau password xac nhan truoc khi ghi de codes cu.
+   * OAuth users khong co password se bi reject (khong phai luong thuong dung).
+   */
+  async regenerateBackupCodes(
+    userId: string,
+    currentPassword: string,
+  ): Promise<string[]> {
+    const user = await this.userRepo.findOneBy({ id: userId });
+    if (!user) throw new NotFoundException('User not found');
+    if (!user.password_hash) {
+      throw new BadRequestException(
+        'Tai khoan OAuth khong the regenerate backup codes bang password',
+      );
+    }
+    const ok = await comparePassword(currentPassword, user.password_hash);
+    if (!ok) throw new UnauthorizedException('Mat khau khong dung');
+
+    return this.generateBackupCodes(userId);
   }
 }

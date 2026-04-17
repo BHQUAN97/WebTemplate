@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { forwardRef, Module, Provider } from '@nestjs/common';
 import { JwtModule } from '@nestjs/jwt';
 import { PassportModule } from '@nestjs/passport';
 import { TypeOrmModule } from '@nestjs/typeorm';
@@ -11,6 +11,24 @@ import { JwtStrategy } from './strategies/jwt.strategy.js';
 import { UsersModule } from '../users/users.module.js';
 import { TwoFactorService } from './two-factor.service.js';
 import { TwoFactorController } from './two-factor.controller.js';
+import { SettingsModule } from '../settings/settings.module.js';
+import { GoogleStrategy } from './strategies/google.strategy.js';
+import { FacebookStrategy } from './strategies/facebook.strategy.js';
+
+/**
+ * Tao list providers — chi register Google/Facebook strategy neu enabled.
+ * Kiem tra bang env var truc tiep (chua inject ConfigService duoc trong class factory).
+ */
+function getOAuthProviders(): Provider[] {
+  const providers: Provider[] = [];
+  if (process.env.OAUTH_GOOGLE_ENABLED === 'true') {
+    providers.push(GoogleStrategy);
+  }
+  if (process.env.OAUTH_FACEBOOK_ENABLED === 'true') {
+    providers.push(FacebookStrategy);
+  }
+  return providers;
+}
 
 @Module({
   imports: [
@@ -30,12 +48,21 @@ import { TwoFactorController } from './two-factor.controller.js';
         };
       },
     }),
-    // Register User repo cho TwoFactorService (update two_factor_secret/enabled)
+    // Register User repo cho TwoFactorService + JwtStrategy
     TypeOrmModule.forFeature([RefreshToken, User]),
-    UsersModule,
+    // forwardRef UsersModule — tranh circular dep khi UsersService can AuthService
+    forwardRef(() => UsersModule),
+    // SettingsModule needed for email flags in auth.service
+    SettingsModule,
   ],
   controllers: [AuthController, TwoFactorController],
-  providers: [AuthService, JwtStrategy, TwoFactorService],
+  providers: [
+    AuthService,
+    JwtStrategy,
+    TwoFactorService,
+    // OAuth strategies chi add khi env bat
+    ...getOAuthProviders(),
+  ],
   exports: [AuthService, TwoFactorService],
 })
 export class AuthModule {}

@@ -1,4 +1,5 @@
 import { Body, Controller, HttpCode, HttpStatus, Post } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { TwoFactorService } from './two-factor.service.js';
 import { Enable2FADto } from './dto/enable-2fa.dto.js';
 import { Disable2FADto, Verify2FADto } from './dto/verify-2fa.dto.js';
@@ -9,6 +10,9 @@ import { successResponse } from '../../common/utils/response.js';
 /**
  * Controller 2FA — tat ca route deu require auth (khong @Public()).
  * Se di qua JwtAuthGuard global -> req.user co san.
+ *
+ * Throttle 10 req / 5 phut — han che brute-force TOTP (100 ma TOTP hop le thoi
+ * vao moi cua so 30s khi nguoi tan cong co secret). Chi tight cho sensitive routes.
  */
 @Controller('auth/2fa')
 export class TwoFactorController {
@@ -28,6 +32,7 @@ export class TwoFactorController {
   /**
    * POST /auth/2fa/enable — verify code TOTP lan dau de bat 2FA.
    */
+  @Throttle({ auth: { limit: 10, ttl: 300000 } })
   @Post('enable')
   @HttpCode(HttpStatus.OK)
   async enable(
@@ -41,6 +46,7 @@ export class TwoFactorController {
   /**
    * POST /auth/2fa/disable — tat 2FA, yeu cau xac nhan password.
    */
+  @Throttle({ auth: { limit: 10, ttl: 300000 } })
   @Post('disable')
   @HttpCode(HttpStatus.OK)
   async disable(
@@ -54,6 +60,7 @@ export class TwoFactorController {
   /**
    * POST /auth/2fa/verify — verify code (dung cho flow kiem tra step-up auth).
    */
+  @Throttle({ auth: { limit: 10, ttl: 300000 } })
   @Post('verify')
   @HttpCode(HttpStatus.OK)
   async verify(
@@ -67,11 +74,19 @@ export class TwoFactorController {
   /**
    * POST /auth/2fa/backup-codes — sinh lai 10 backup codes.
    * Tra ve plaintext MOT LAN — user tu luu.
+   * Yeu cau password de xac nhan (Disable2FADto chua currentPassword).
    */
+  @Throttle({ auth: { limit: 10, ttl: 300000 } })
   @Post('backup-codes')
   @HttpCode(HttpStatus.OK)
-  async backupCodes(@CurrentUser() user: ICurrentUser) {
-    const codes = await this.twoFactorService.generateBackupCodes(user.id);
+  async backupCodes(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: Disable2FADto,
+  ) {
+    const codes = await this.twoFactorService.regenerateBackupCodes(
+      user.id,
+      dto.currentPassword,
+    );
     return successResponse(
       { codes },
       'Luu lai cac ma nay — chi hien thi 1 lan',

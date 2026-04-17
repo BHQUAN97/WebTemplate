@@ -41,6 +41,31 @@ export class SettingsService extends BaseService<Setting> {
   }
 
   /**
+   * Helper lay gia tri voi default — tra ve default neu key khong ton tai
+   * (khong throw). Dung cho flags/toggles trong code thong thuong.
+   */
+  async getOrDefault<T extends string | number | boolean | object>(
+    key: string,
+    defaultValue: T,
+  ): Promise<T> {
+    const setting = await this.settingRepo.findOne({ where: { key } });
+    if (!setting) return defaultValue;
+    try {
+      return this.parseValue(setting.value, setting.type) as T;
+    } catch {
+      return defaultValue;
+    }
+  }
+
+  /**
+   * Shortcut: lay boolean flag voi default. Dung cho feature toggles.
+   */
+  async getBoolean(key: string, defaultValue = false): Promise<boolean> {
+    const val = await this.getOrDefault<boolean>(key, defaultValue);
+    return Boolean(val);
+  }
+
+  /**
    * Set gia tri cho 1 key. Tao moi neu chua ton tai.
    */
   async set(key: string, value: string): Promise<Setting> {
@@ -139,6 +164,41 @@ export class SettingsService extends BaseService<Setting> {
         type: SettingType.BOOLEAN,
         group: 'system',
         description: 'Bat/tat che do bao tri',
+        is_public: false,
+      },
+      // === Email settings — flags dieu khien luong gui email ===
+      {
+        key: 'email.enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'email',
+        description: 'Master switch — neu false, moi email se bi skip (log warning)',
+        is_public: false,
+      },
+      {
+        key: 'email.verification_required',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'email',
+        description:
+          'Yeu cau xac thuc email truoc khi dang nhap (gui link verify sau khi register)',
+        is_public: false,
+      },
+      {
+        key: 'email.welcome_enabled',
+        value: 'false',
+        type: SettingType.BOOLEAN,
+        group: 'email',
+        description: 'Gui email chao mung cho user moi dang ky',
+        is_public: false,
+      },
+      {
+        key: 'email.password_reset_enabled',
+        value: 'true',
+        type: SettingType.BOOLEAN,
+        group: 'email',
+        description:
+          'Cho phep flow quen mat khau qua email. Neu false, /auth/forgot-password se no-op',
         is_public: false,
       },
     ];

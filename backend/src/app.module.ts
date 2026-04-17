@@ -11,6 +11,7 @@ import {
   jwtConfig,
   storageConfig,
   redisConfig,
+  oauthConfig,
 } from './config/index.js';
 import { QueueModule } from './common/queue/queue.module.js';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard.js';
@@ -66,6 +67,9 @@ import { HealthModule } from './modules/health/health.module.js';
 import { AuditLogsModule } from './modules/audit-logs/audit-logs.module.js';
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module.js';
 
+// Mail — wrapper cao cap quanh email queue + settings.enabled flag
+import { MailModule } from './modules/mail/mail.module.js';
+
 @Module({
   imports: [
     // Sentry error tracking — chi active neu SENTRY_DSN set (xem instrument.ts)
@@ -74,7 +78,7 @@ import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module
     ConfigModule.forRoot({
       isGlobal: true,
       envFilePath: ['.env.local', '.env'],
-      load: [appConfig, jwtConfig, storageConfig, redisConfig],
+      load: [appConfig, jwtConfig, storageConfig, redisConfig, oauthConfig],
     }),
 
     // TypeORM — ket noi MySQL
@@ -160,6 +164,9 @@ import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module
     HealthModule,
     AuditLogsModule,
     FeatureFlagsModule,
+
+    // === Mail wrapper (global) ===
+    MailModule,
   ],
   providers: [
     // Sentry exception capture — PHAI dang ky TRUOC AllExceptionsFilter

@@ -170,6 +170,18 @@ export class EmailTemplatesService extends BaseService<EmailTemplate> {
         variables: ['user_name', 'reset_link'],
       },
       {
+        name: 'verify_email',
+        subject: 'Xac thuc dia chi email',
+        html_body: `<h1>Xac thuc email</h1>
+<p>Xin chao {{user_name}},</p>
+<p>Nhan vao link sau de xac thuc dia chi email cua ban:</p>
+<p><a href="{{verify_link}}">Xac thuc email</a></p>
+<p>Link nay se het han sau 24 gio. Neu ban khong dang ky tai khoan, vui long bo qua email nay.</p>`,
+        text_body:
+          'Xac thuc email: {{verify_link}} (het han sau 24 gio). Neu khong phai ban, bo qua email nay.',
+        variables: ['user_name', 'verify_link'],
+      },
+      {
         name: 'review_request',
         subject: 'Danh gia san pham {{product_name}}',
         html_body: `<h1>Ban nghi gi ve {{product_name}}?</h1>

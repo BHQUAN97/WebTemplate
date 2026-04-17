@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { forwardRef, Inject, Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
@@ -8,6 +8,7 @@ import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
 import { UserRole } from '../../common/constants/index.js';
 import { hashPassword } from '../../common/utils/hash.js';
+import { AuthService } from '../auth/auth.service.js';
 
 /**
  * Users service — quan ly nguoi dung, extends BaseService de co san CRUD + pagination.
@@ -19,6 +20,9 @@ export class UsersService extends BaseService<User> {
   constructor(
     @InjectRepository(User)
     private readonly usersRepository: Repository<User>,
+    // forwardRef tranh circular dep: AuthModule -> UsersModule -> AuthModule
+    @Inject(forwardRef(() => AuthService))
+    private readonly authService: AuthService,
   ) {
     super(usersRepository, 'User');
   }
@@ -68,14 +72,22 @@ export class UsersService extends BaseService<User> {
   }
 
   /**
+   * Override softDelete: sau khi mark deleted_at, revoke tat ca refresh token
+   * cua user de session active bi invalidate ngay.
+   * JwtStrategy cung se reject access token (vi deleted_at != null).
+   */
+  async softDelete(id: string): Promise<void> {
+    await super.softDelete(id);
+    await this.authService.revokeAllUserTokens(id);
+  }
+
+  /**
    * Override applyFilters de ho tro search theo email/name.
-   * BaseService da xu ly search tren searchableFields, day la hook cho custom filters.
    */
   protected applyFilters(
     _qb: SelectQueryBuilder<User>,
     _options: PaginationDto,
   ): void {
     // BaseService da handle search qua searchableFields
-    // Them custom filters o day neu can
   }
 }
