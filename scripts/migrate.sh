@@ -131,6 +131,12 @@ case "$COMMAND" in
     log "Migration generated at src/database/migrations/"
     ;;
 
+  seed:chat)
+    info "Seeding chat scenarios + schedules..."
+    cd "$BACKEND_DIR"
+    npm run seed:chat 2>&1 && log "Chat seed complete" || error "Chat seed failed"
+    ;;
+
   seed)
     info "Seeding initial data..."
     ADMIN_EXISTS=$(npx ts-node -e "
@@ -167,17 +173,24 @@ case "$COMMAND" in
         npx ts-node "$seed_file" 2>/dev/null || warn "Seed failed: $(basename "$seed_file")"
       done
     fi
+
+    # Chat seed co runner rieng (chat-runner.ts) — chay qua npm script
+    if grep -q '"seed:chat"' package.json 2>/dev/null; then
+      info "Running chat seed..."
+      npm run seed:chat 2>&1 || warn "Chat seed failed"
+    fi
     log "Seeding complete"
     ;;
 
   *)
-    echo "Usage: ./scripts/migrate.sh [run|revert|generate|seed] [name] [--yes] [--skip-backup]"
+    echo "Usage: ./scripts/migrate.sh [run|revert|generate|seed|seed:chat] [name] [--yes] [--skip-backup]"
     echo ""
     echo "Commands:"
     echo "  run              Run pending migrations"
     echo "  revert           Revert last migration"
     echo "  generate [name]  Generate new migration"
-    echo "  seed             Seed admin + initial data"
+    echo "  seed             Seed admin + initial data + chat scenarios"
+    echo "  seed:chat        Seed chat scenarios + schedules only"
     echo ""
     echo "Flags:"
     echo "  --yes            Skip confirm on production"

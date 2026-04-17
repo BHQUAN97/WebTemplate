@@ -70,6 +70,17 @@ export class NotificationsService extends BaseService<Notification> {
   }
 
   /**
+   * Xoa 1 thong bao cua chinh user (soft delete). Tranh IDOR: verify ownership.
+   */
+  async removeOwned(id: string, userId: string): Promise<void> {
+    const notification = await this.findById(id);
+    if (notification.user_id !== userId) {
+      throw new (await import('@nestjs/common')).ForbiddenException('Not your notification');
+    }
+    await this.softDelete(id);
+  }
+
+  /**
    * Danh dau tat ca thong bao cua user la da doc.
    */
   async markAllRead(userId: string): Promise<void> {
@@ -113,6 +124,22 @@ export class NotificationsService extends BaseService<Notification> {
     );
     const saved = await this.notificationsRepository.save(notifications);
     return saved.length;
+  }
+
+  /**
+   * Xoa hang loat cac thong bao da doc cua user hien tai (soft delete).
+   * Dung cho bulk-delete o notification center.
+   */
+  async deleteReadByUser(userId: string): Promise<number> {
+    const result = await this.notificationsRepository
+      .createQueryBuilder()
+      .softDelete()
+      .where('user_id = :userId', { userId })
+      .andWhere('read_at IS NOT NULL')
+      .andWhere('deleted_at IS NULL')
+      .execute();
+
+    return result.affected || 0;
   }
 
   /**

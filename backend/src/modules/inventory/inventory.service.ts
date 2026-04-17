@@ -76,6 +76,8 @@ export class InventoryService extends BaseService<Inventory> {
 
   /**
    * Dat truoc ton kho cho don hang.
+   * ATOMIC: dung UPDATE ... WHERE quantity-reserved >= :qty de tranh oversell
+   * khi 2 order dat cung luc (check-then-act race condition).
    */
   async reserveStock(
     productId: string,
@@ -87,15 +89,33 @@ export class InventoryService extends BaseService<Inventory> {
       throw new BadRequestException('Inventory record not found');
     }
 
-    const available = inventory.quantity - inventory.reserved;
-    if (available < quantity && !inventory.allow_backorder) {
-      throw new BadRequestException(
-        `Insufficient stock. Available: ${available}`,
+    if (inventory.allow_backorder) {
+      // Cho phep backorder — khong can check available, chi tang reserved
+      await this.inventoryRepository.increment(
+        { id: inventory.id },
+        'reserved',
+        quantity,
       );
-    }
+    } else {
+      // Atomic UPDATE voi dieu kien con du stock
+      const result = await this.inventoryRepository
+        .createQueryBuilder()
+        .update(Inventory)
+        .set({ reserved: () => `reserved + ${Number(quantity) || 0}` })
+        .where('id = :id', { id: inventory.id })
+        .andWhere('quantity - reserved >= :qty', { qty: quantity })
+        .execute();
 
-    inventory.reserved += quantity;
-    await this.inventoryRepository.save(inventory);
+      if (!result.affected) {
+        const fresh = await this.getStock(productId, variantId);
+        const available = fresh
+          ? fresh.quantity - fresh.reserved
+          : 0;
+        throw new BadRequestException(
+          `Insufficient stock. Available: ${available}`,
+        );
+      }
+    }
 
     await this.recordMovement({
       inventory_id: inventory.id,
@@ -107,6 +127,7 @@ export class InventoryService extends BaseService<Inventory> {
 
   /**
    * Giai phong ton kho da dat truoc (huy don).
+   * ATOMIC: dung UPDATE voi GREATEST de tranh reserved am.
    */
   async releaseStock(
     productId: string,
@@ -118,8 +139,15 @@ export class InventoryService extends BaseService<Inventory> {
       throw new BadRequestException('Inventory record not found');
     }
 
-    inventory.reserved = Math.max(0, inventory.reserved - quantity);
-    await this.inventoryRepository.save(inventory);
+    await this.inventoryRepository
+      .createQueryBuilder()
+      .update(Inventory)
+      .set({
+        reserved: () =>
+          `GREATEST(0, reserved - ${Number(quantity) || 0})`,
+      })
+      .where('id = :id', { id: inventory.id })
+      .execute();
 
     await this.recordMovement({
       inventory_id: inventory.id,

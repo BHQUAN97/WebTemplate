@@ -1,13 +1,14 @@
 'use client';
 
-import { useState } from 'react';
+import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import { saveAs } from 'file-saver';
-import { Eye, EyeOff, Trash2, Upload, ShieldCheck, Download } from 'lucide-react';
+import { Eye, EyeOff, Trash2, Upload, ShieldCheck, Download, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import {
   profileSchema,
@@ -17,7 +18,9 @@ import {
 } from '@/lib/validations';
 import { usersApi } from '@/lib/api/modules/users.api';
 import { authApi } from '@/lib/api/modules/auth.api';
+import { apiClient } from '@/lib/api/client';
 import { useHydration } from '@/lib/hooks';
+import { toast } from '@/lib/hooks/use-toast';
 
 /**
  * Trang ho so — edit profile, change password, 2FA, delete account
@@ -35,6 +38,108 @@ export default function ProfilePage() {
   const [deleteConfirm, setDeleteConfirm] = useState(false);
   const [exportLoading, setExportLoading] = useState(false);
   const [exportMsg, setExportMsg] = useState('');
+
+  // Avatar upload state — dung file input an thay vi mount lai ImageUpload
+  const avatarInputRef = useRef<HTMLInputElement>(null);
+  const [avatarLoading, setAvatarLoading] = useState(false);
+  const [avatarDeleting, setAvatarDeleting] = useState(false);
+
+  const apiBase = process.env.NEXT_PUBLIC_API_URL ?? '';
+
+  // Lay auth token tu store / storage de gan Authorization header
+  const getAuthHeaders = (): HeadersInit => {
+    const headers: HeadersInit = {};
+    if (typeof window !== 'undefined') {
+      const token =
+        useAuthStore.getState().token ||
+        localStorage.getItem('access_token') ||
+        sessionStorage.getItem('access_token');
+      if (token) headers['Authorization'] = `Bearer ${token}`;
+    }
+    return headers;
+  };
+
+  const handleAvatarPick = () => avatarInputRef.current?.click();
+
+  const handleAvatarChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    // Reset input ngay de user co the chon lai cung 1 file sau khi loi
+    e.target.value = '';
+
+    // Validate phia client (mirror BE: ~5MB, image only)
+    if (!file.type.startsWith('image/')) {
+      toast('Tep khong hop le', 'Vui long chon file anh', 'destructive');
+      return;
+    }
+    if (file.size > 5 * 1024 * 1024) {
+      toast('Tep qua lon', 'Anh khong duoc vuot qua 5MB', 'destructive');
+      return;
+    }
+
+    setAvatarLoading(true);
+    try {
+      const fd = new FormData();
+      fd.append('file', file);
+      // Dung apiClient.upload() de tan dung 401 refresh-token interceptor
+      // va xu ly loi dong nhat voi cac API goi khac.
+      const data = (await apiClient.upload<Record<string, unknown>>(
+        '/users/me/avatar',
+        fd,
+      )) ?? {};
+      const newUrl =
+        (data as { avatar_url?: string; url?: string }).avatar_url ??
+        (data as { url?: string }).url ??
+        null;
+
+      if (newUrl) {
+        updateUser({ avatar_url: newUrl });
+      } else {
+        // Server khong tra URL — refetch profile de dong bo
+        try {
+          const me = await authApi.me();
+          if (me) updateUser(me);
+        } catch {
+          // Khong critical
+        }
+      }
+      toast('Da cap nhat anh dai dien', undefined, 'success');
+    } catch (err) {
+      toast(
+        'Loi khi upload',
+        (err as Error).message || 'Vui long thu lai',
+        'destructive',
+      );
+    } finally {
+      setAvatarLoading(false);
+    }
+  };
+
+  const handleAvatarRemove = async () => {
+    if (!user?.avatar_url) return;
+    setAvatarDeleting(true);
+    try {
+      const res = await fetch(`${apiBase}/api/users/me/avatar`, {
+        method: 'DELETE',
+        credentials: 'include',
+        headers: getAuthHeaders(),
+      });
+      if (!res.ok) {
+        const text = await res.text().catch(() => '');
+        throw new Error(text || `HTTP ${res.status}`);
+      }
+      updateUser({ avatar_url: null });
+      toast('Da xoa anh dai dien', undefined, 'success');
+    } catch (err) {
+      toast(
+        'Loi khi xoa anh',
+        (err as Error).message || 'Vui long thu lai',
+        'destructive',
+      );
+    } finally {
+      setAvatarDeleting(false);
+    }
+  };
 
   // Profile form
   const profileForm = useForm<ProfileFormData>({
@@ -122,15 +227,56 @@ export default function ProfilePage() {
             onSubmit={profileForm.handleSubmit(onProfileSubmit)}
             className="space-y-4"
           >
-            {/* Avatar */}
-            <div className="flex items-center gap-4">
-              <div className="w-16 h-16 rounded-full bg-blue-100 flex items-center justify-center text-xl font-bold text-blue-600 flex-shrink-0">
-                {user?.name?.charAt(0) ?? '?'}
+            {/* Avatar — upload / xoa */}
+            <div className="flex items-center gap-4 flex-wrap">
+              <Avatar className="w-16 h-16">
+                {user?.avatar_url && (
+                  <AvatarImage
+                    src={user.avatar_url}
+                    alt={user?.name ? `Anh dai dien cua ${user.name}` : 'Anh dai dien'}
+                  />
+                )}
+                <AvatarFallback className="text-xl font-bold bg-blue-100 text-blue-600">
+                  {user?.name?.charAt(0)?.toUpperCase() ?? '?'}
+                </AvatarFallback>
+              </Avatar>
+
+              <div className="flex items-center gap-2 flex-wrap">
+                <Button
+                  variant="outline"
+                  size="sm"
+                  type="button"
+                  onClick={handleAvatarPick}
+                  disabled={avatarLoading || avatarDeleting}
+                >
+                  <Upload className="h-4 w-4 mr-1" />
+                  {avatarLoading ? 'Dang tai len...' : 'Doi anh'}
+                </Button>
+
+                {user?.avatar_url && (
+                  <Button
+                    variant="outline"
+                    size="sm"
+                    type="button"
+                    onClick={handleAvatarRemove}
+                    disabled={avatarLoading || avatarDeleting}
+                    className="text-red-600 border-red-300 hover:bg-red-50"
+                  >
+                    <X className="h-4 w-4 mr-1" />
+                    {avatarDeleting ? 'Dang xoa...' : 'Xoa anh'}
+                  </Button>
+                )}
+
+                {/* File input an — trigger qua button "Doi anh" */}
+                <input
+                  ref={avatarInputRef}
+                  type="file"
+                  accept="image/*"
+                  className="hidden"
+                  onChange={handleAvatarChange}
+                  aria-label="Chon anh dai dien moi"
+                />
               </div>
-              <Button variant="outline" size="sm" type="button">
-                <Upload className="h-4 w-4 mr-1" />
-                Doi anh dai dien
-              </Button>
             </div>
 
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">

@@ -14,7 +14,19 @@ export const notificationsApi = {
     return apiClient.patch<Notification>(`/notifications/${id}/read`);
   },
 
+  /**
+   * Danh dau tat ca da doc — backend canonical la PATCH
+   * (POST alias duoc giu ben BE de tuong thich nguoc).
+   */
   markAllRead() {
-    return apiClient.post<null>('/notifications/read-all');
+    return apiClient.patch<null>('/notifications/read-all');
+  },
+
+  /**
+   * Xoa bulk tat ca notifications da doc cua user hien tai.
+   * Tra ve so luong bi xoa.
+   */
+  deleteReadBulk() {
+    return apiClient.delete<{ deletedCount: number }>('/notifications/read');
   },
 };

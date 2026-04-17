@@ -133,3 +133,6 @@ export function getOrderStatusInfo(status: string): {
   };
   return map[status] || { label: status, color: 'bg-gray-100 text-gray-800' };
 }
+
+// Re-export cac hook tach rieng file
+export { useFocusFirstError } from './use-focus-first-error';

@@ -132,7 +132,7 @@ export function NotificationBell() {
 
         <div className="p-2 border-t border-gray-200">
           <Link
-            href="/admin/notifications"
+            href="/dashboard/notifications"
             onClick={() => setOpen(false)}
             className="block text-center text-sm text-blue-600 hover:underline py-1"
           >

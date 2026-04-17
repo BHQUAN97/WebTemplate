@@ -1,8 +1,8 @@
 'use client';
 
 import Link from 'next/link';
-import { useState } from 'react';
-import { ShoppingCart, Heart, User, Menu, X, Search } from 'lucide-react';
+import { useEffect, useState } from 'react';
+import { ShoppingCart, Heart, User, Menu, X, Search, Command } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -13,9 +13,23 @@ import { useHydration } from '@/lib/hooks';
  */
 export function Header() {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [isMac, setIsMac] = useState(false);
   const hydrated = useHydration();
   const itemCount = useCartStore((s) => s.getItemCount());
   const isAuthenticated = useAuthStore((s) => s.isAuthenticated);
+
+  // Detect platform de hien thi ⌘K hoac Ctrl+K cho dung
+  useEffect(() => {
+    if (typeof navigator === 'undefined') return;
+    // navigator.platform deprecated nhung van chinh xac cho detect Mac
+    setIsMac(/Mac|iPhone|iPad|iPod/i.test(navigator.platform));
+  }, []);
+
+  const openPalette = () => {
+    if (typeof window !== 'undefined') {
+      window.dispatchEvent(new CustomEvent('open-command-palette'));
+    }
+  };
 
   const navLinks = [
     { href: '/', label: 'Trang chu' },
@@ -27,7 +41,7 @@ export function Header() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200">
+    <header className="sticky top-0 z-50 bg-background border-b border-border">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -41,7 +55,7 @@ export function Header() {
               <Link
                 key={link.href}
                 href={link.href}
-                className="text-sm font-medium text-gray-700 hover:text-blue-600 transition-colors"
+                className="text-sm font-medium text-foreground/80 hover:text-primary transition-colors"
               >
                 {link.label}
               </Link>
@@ -55,6 +69,20 @@ export function Header() {
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
+
+            {/* Command palette trigger — chi hien desktop, hien thi hint phim tat */}
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={openPalette}
+              aria-label="Open command palette"
+              className="hidden md:inline-flex items-center gap-2 text-muted-foreground"
+            >
+              <Command className="h-4 w-4" />
+              <span className="text-xs font-medium">
+                {isMac ? '⌘K' : 'Ctrl+K'}
+              </span>
+            </Button>
 
             <Link href="/cart" className="relative">
               <Button variant="ghost" size="icon" aria-label="Gio hang">

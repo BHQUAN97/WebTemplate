@@ -36,7 +36,34 @@
     "no_account": "Chưa có tài khoản?",
     "has_account": "Đã có tài khoản?",
     "verify_email": "Xác thực email",
-    "two_factor": "Xác thực 2 bước"
+    "two_factor": "Xác thực 2 bước",
+    "oauth": {
+      "divider": "hoặc tiếp tục với",
+      "google": "Google",
+      "facebook": "Facebook",
+      "apple": "Apple",
+      "loading": "Đang chuyển hướng..."
+    }
+  },
+  "cookies": {
+    "title": "Chúng tôi tôn trọng quyền riêng tư của bạn",
+    "description": "Chúng tôi sử dụng cookies để cải thiện trải nghiệm của bạn, phân tích lưu lượng và cá nhân hoá nội dung.",
+    "privacyLink": "Chính sách bảo mật",
+    "cookieLink": "Chính sách cookie",
+    "acceptAll": "Chấp nhận tất cả",
+    "necessaryOnly": "Chỉ cần thiết",
+    "customize": "Tùy chỉnh",
+    "customizeDescription": "Chọn loại cookie bạn muốn cho phép. Cookie cần thiết luôn được bật để trang hoạt động đúng.",
+    "savePrefs": "Lưu lựa chọn",
+    "cancel": "Huỷ",
+    "necessary": "Cần thiết",
+    "necessaryDesc": "Bắt buộc để trang hoạt động: đăng nhập, giỏ hàng, bảo mật.",
+    "analytics": "Phân tích",
+    "analyticsDesc": "Giúp chúng tôi hiểu cách bạn sử dụng trang để cải thiện.",
+    "marketing": "Tiếp thị",
+    "marketingDesc": "Hiển thị quảng cáo và nội dung phù hợp với bạn.",
+    "preferences": "Tuỳ chọn",
+    "preferencesDesc": "Nhớ lựa chọn của bạn (ngôn ngữ, giao diện, khu vực)."
   },
   "nav": {
     "home": "Trang chủ",
@@ -62,7 +89,95 @@
     "settings": "Cài đặt",
     "logs": "Nhật ký",
     "reports": "Báo cáo",
-    "media": "Tập tin"
+    "media": "Tập tin",
+    "chat": {
+      "title": "Trò chuyện với khách",
+      "description": "Quản lý và trả lời các cuộc trò chuyện từ khách hàng",
+      "section": "Chăm sóc khách hàng",
+      "conversations": "Hộp thoại",
+      "scenarios_nav": "Kịch bản",
+      "schedules_nav": "Khung giờ",
+      "tabs": {
+        "all": "Tất cả",
+        "waiting": "Chờ nhân viên",
+        "in_progress": "Đang xử lý",
+        "ai": "AI đang trả lời",
+        "closed": "Đã đóng"
+      },
+      "search_placeholder": "Tìm khách / tin nhắn...",
+      "empty_title": "Chưa có cuộc chat",
+      "empty_description": "Các hội thoại mới sẽ xuất hiện ở đây",
+      "no_messages": "Chưa có tin nhắn",
+      "select_conversation": "Chọn một cuộc trò chuyện để bắt đầu",
+      "assign_self": "Nhận cuộc chat",
+      "transfer": "Chuyển",
+      "close_chat": "Đóng cuộc chat",
+      "closed_notice": "Cuộc trò chuyện đã đóng",
+      "input_placeholder": "Nhập tin nhắn... (Enter để gửi, Shift+Enter để xuống dòng)",
+      "canned_responses": "Tin nhắn mẫu",
+      "attachment": "Đính kèm",
+      "send": "Gửi",
+      "new_waiting_toast": "Có khách chờ",
+      "modes": {
+        "ai": "AI tự động",
+        "human": "Nhân viên",
+        "hybrid": "Kết hợp",
+        "offline": "Offline"
+      },
+      "scenarios": {
+        "title": "Kịch bản chatbot",
+        "description": "Quản lý các kịch bản tự động phản hồi khách",
+        "create": "Tạo kịch bản",
+        "edit": "Chỉnh sửa kịch bản",
+        "delete_confirm": "Bạn có chắc muốn xoá kịch bản này?",
+        "fields": {
+          "name": "Tên kịch bản",
+          "description": "Mô tả",
+          "trigger_type": "Loại trigger",
+          "trigger_value": "Giá trị trigger",
+          "conditions": "Điều kiện bổ sung (JSON)",
+          "response": "Nội dung phản hồi",
+          "response_type": "Loại phản hồi",
+          "follow_up": "Kịch bản tiếp theo",
+          "delay": "Độ trễ (ms)",
+          "priority": "Độ ưu tiên",
+          "active": "Kích hoạt",
+          "match_count": "Lượt khớp"
+        },
+        "trigger_types": {
+          "keyword": "Từ khoá",
+          "intent": "Intent",
+          "event": "Sự kiện",
+          "fallback": "Fallback",
+          "schedule": "Lịch"
+        },
+        "preview": "Xem trước"
+      },
+      "schedules": {
+        "title": "Khung giờ chăm sóc",
+        "description": "Định nghĩa giờ làm việc của nhân viên và AI",
+        "create": "Thêm khung giờ",
+        "edit": "Chỉnh sửa khung giờ",
+        "delete_confirm": "Bạn có chắc muốn xoá khung giờ này?",
+        "fields": {
+          "name": "Tên khung giờ",
+          "days_of_week": "Ngày trong tuần",
+          "start_time": "Giờ bắt đầu",
+          "end_time": "Giờ kết thúc",
+          "mode": "Chế độ",
+          "timezone": "Múi giờ",
+          "priority": "Độ ưu tiên",
+          "fallback_message": "Tin nhắn mặc định",
+          "active": "Kích hoạt"
+        },
+        "timeline": "Lịch theo tuần",
+        "presets": {
+          "weekday": "T2-T6",
+          "all": "Tất cả",
+          "weekend": "Cuối tuần"
+        }
+      }
+    }
   },
   "errors": {
     "required": "Trường này là bắt buộc",
@@ -78,5 +193,23 @@
   "locale": {
     "vi": "Tiếng Việt",
     "en": "English"
+  },
+  "chat": {
+    "title": "Hỗ trợ khách hàng",
+    "placeholder": "Nhập tin nhắn...",
+    "send": "Gửi",
+    "typing": "Đang soạn tin...",
+    "welcome": "Xin chào! Chúng tôi có thể giúp gì?",
+    "name": "Họ tên",
+    "email": "Email",
+    "phone": "Số điện thoại",
+    "firstMessage": "Tin nhắn đầu tiên...",
+    "startChat": "Bắt đầu chat",
+    "skip": "Bỏ qua, chat ẩn danh",
+    "connectionLost": "Mất kết nối — tin nhắn vẫn gửi qua HTTP.",
+    "mode_ai": "AI đang hỗ trợ",
+    "mode_human": "Nhân viên {name} đang trả lời",
+    "mode_offline": "Đang ngoài giờ trực",
+    "unreadBadge": "{count} tin chưa đọc"
   }
 }

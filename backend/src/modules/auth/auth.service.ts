@@ -592,9 +592,9 @@ export class AuthService {
         },
       });
     } else {
-      // Dev mode — log link de developer co the reset thu nghiem
+      // Email bi disabled — chi log ma KHONG emit token de tranh lo token trong log.
       this.logger.warn(
-        `[dev] password reset link for ${user.email}: ${resetLink}`,
+        `[auth] password reset requested for ${user.email} but email delivery disabled`,
       );
     }
   }

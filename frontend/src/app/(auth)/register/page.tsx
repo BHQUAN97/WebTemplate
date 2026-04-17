@@ -9,6 +9,7 @@ import { Eye, EyeOff } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Input } from '@/components/ui/input';
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card';
+import { OAuthButtons } from '@/components/shared/oauth-buttons';
 import { registerSchema, type RegisterFormData } from '@/lib/validations';
 import { authApi } from '@/lib/api/modules/auth.api';
 import { useAuthStore } from '@/lib/stores/auth-store';
@@ -80,7 +81,10 @@ export default function RegisterPage() {
         </p>
       </CardHeader>
       <CardContent>
-        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
+        {/* OAuth providers — Google / Facebook / Apple */}
+        <OAuthButtons mode="register" />
+
+        <form onSubmit={handleSubmit(onSubmit)} className="space-y-4 mt-6">
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">

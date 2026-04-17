@@ -22,9 +22,10 @@ export class Navigation extends BaseEntity {
   @Column({ type: 'char', length: 26, nullable: true })
   tenant_id: string | null;
 
+  // Khong dung eager — list endpoint se load toan bo items gay chi phi lon.
+  // Caller phai explicit request qua relations: ['items'] khi can.
   @OneToMany(() => NavigationItem, (item) => item.navigation, {
     cascade: true,
-    eager: true,
   })
   items: NavigationItem[];
 }

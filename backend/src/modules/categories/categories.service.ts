@@ -86,19 +86,34 @@ export class CategoriesService extends BaseService<Category> {
       order: { sort_order: 'ASC' },
     });
 
-    // Load children recursively (2 cap)
+    // Gom tat ca child IDs de load grandchildren trong 1 query (tranh N+1).
+    const childIds: string[] = [];
     for (const root of roots) {
       if (root.children?.length) {
         root.children = root.children.filter((c) => !c.deleted_at);
         root.children.sort((a, b) => a.sort_order - b.sort_order);
+        for (const c of root.children) childIds.push(c.id);
+      }
+    }
 
-        // Load grandchildren
-        for (const child of root.children) {
-          const grandchildren = await this.categoryRepo.find({
-            where: { parent_id: child.id, deleted_at: IsNull() },
-            order: { sort_order: 'ASC' },
-          });
-          child.children = grandchildren;
+    if (childIds.length > 0) {
+      const { In } = await import('typeorm');
+      const grandchildren = await this.categoryRepo.find({
+        where: { parent_id: In(childIds), deleted_at: IsNull() },
+        order: { sort_order: 'ASC' },
+      });
+
+      // Index grandchildren theo parent_id de gan nhanh
+      const byParent = new Map<string, typeof grandchildren>();
+      for (const gc of grandchildren) {
+        const list = byParent.get(gc.parent_id as string) || [];
+        list.push(gc);
+        byParent.set(gc.parent_id as string, list);
+      }
+
+      for (const root of roots) {
+        for (const child of root.children || []) {
+          child.children = byParent.get(child.id) || [];
         }
       }
     }

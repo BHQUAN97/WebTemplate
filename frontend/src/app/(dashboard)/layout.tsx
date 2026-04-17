@@ -59,9 +59,9 @@ export default function DashboardLayout({
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-muted/30 dark:bg-background">
       {/* Mobile header */}
-      <div className="lg:hidden sticky top-0 z-50 bg-white border-b border-gray-200 px-4 h-14 flex items-center justify-between">
+      <div className="lg:hidden sticky top-0 z-50 bg-background border-b border-border px-4 h-14 flex items-center justify-between">
         <Link href="/" className="text-lg font-bold text-blue-600">
           WebTemplate
         </Link>
@@ -79,24 +79,24 @@ export default function DashboardLayout({
         {/* Sidebar */}
         <aside
           className={cn(
-            'fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-white border-r border-gray-200 transition-transform lg:translate-x-0',
+            'fixed lg:sticky top-0 left-0 z-40 h-screen w-64 bg-background border-r border-border transition-transform lg:translate-x-0',
             sidebarOpen ? 'translate-x-0' : '-translate-x-full',
           )}
         >
           <div className="flex flex-col h-full">
             {/* Logo */}
-            <div className="hidden lg:flex items-center h-14 px-6 border-b border-gray-200">
-              <Link href="/" className="text-lg font-bold text-blue-600">
+            <div className="hidden lg:flex items-center h-14 px-6 border-b border-border">
+              <Link href="/" className="text-lg font-bold text-primary">
                 WebTemplate
               </Link>
             </div>
 
             {/* User info */}
-            <div className="px-6 py-4 border-b border-gray-100">
-              <p className="text-sm font-medium text-gray-900 truncate">
+            <div className="px-6 py-4 border-b border-border">
+              <p className="text-sm font-medium text-foreground truncate">
                 {hydrated ? user?.name : '...'}
               </p>
-              <p className="text-xs text-gray-500 truncate">
+              <p className="text-xs text-muted-foreground truncate">
                 {hydrated ? user?.email : '...'}
               </p>
             </div>
@@ -111,10 +111,10 @@ export default function DashboardLayout({
                     href={link.href}
                     onClick={() => setSidebarOpen(false)}
                     className={cn(
-                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors',
+                      'flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring',
                       isActive
-                        ? 'bg-blue-50 text-blue-600'
-                        : 'text-gray-700 hover:bg-gray-100',
+                        ? 'bg-primary/10 text-primary'
+                        : 'text-foreground/80 hover:bg-accent hover:text-foreground',
                     )}
                   >
                     <link.icon className="h-5 w-5" />
@@ -125,10 +125,10 @@ export default function DashboardLayout({
             </nav>
 
             {/* Logout */}
-            <div className="px-3 py-4 border-t border-gray-100">
+            <div className="px-3 py-4 border-t border-border">
               <button
                 onClick={handleLogout}
-                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-red-600 hover:bg-red-50 w-full transition-colors"
+                className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 w-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <LogOut className="h-5 w-5" />
                 Dang xuat

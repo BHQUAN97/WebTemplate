@@ -11,6 +11,10 @@ import { AnalyticsService } from './analytics.service.js';
 import { TrackPageviewDto } from './dto/track-pageview.dto.js';
 import { TrackEventDto } from './dto/track-event.dto.js';
 import { QueryAnalyticsDto } from './dto/query-analytics.dto.js';
+import {
+  RangeQueryDto,
+  TopProductsQueryDto,
+} from './dto/range-query.dto.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { UserRole } from '../../common/constants/index.js';
@@ -75,14 +79,20 @@ export class AnalyticsController {
 
   /**
    * Admin — top trang xem nhieu.
+   * Coerce + clamp limit tai service layer de phong truong hop FE gui string.
    */
   @Roles(UserRole.ADMIN)
   @Get('top-pages')
   async getTopPages(
     @Query() query: QueryAnalyticsDto,
-    @Query('limit') limit?: number,
+    @Query('limit') limit?: string,
   ) {
-    const pages = await this.analyticsService.getTopPages(query, limit || 10);
+    const parsed = limit ? parseInt(limit, 10) : 10;
+    const safeLimit = Math.max(
+      1,
+      Math.min(100, Number.isFinite(parsed) ? parsed : 10),
+    );
+    const pages = await this.analyticsService.getTopPages(query, safeLimit);
     return successResponse(pages);
   }
 
@@ -117,5 +127,34 @@ export class AnalyticsController {
   async getSources(@Query() query: QueryAnalyticsDto) {
     const sources = await this.analyticsService.getTrafficSources(query);
     return successResponse(sources);
+  }
+
+  /**
+   * Admin — breakdown don hang theo trang thai + % so voi tong.
+   * Range filter optional (from/to). Khong truyen → all-time.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('orders-by-status')
+  async getOrdersByStatus(@Query() query: RangeQueryDto) {
+    const data = await this.analyticsService.getOrdersByStatus(
+      query.from,
+      query.to,
+    );
+    return successResponse(data);
+  }
+
+  /**
+   * Admin — top san pham ban chay trong khoang thoi gian.
+   * limit default 5, toi da 50.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('top-products')
+  async getTopProducts(@Query() query: TopProductsQueryDto) {
+    const data = await this.analyticsService.getTopProducts(
+      query.from,
+      query.to,
+      query.limit ?? 5,
+    );
+    return successResponse(data);
   }
 }

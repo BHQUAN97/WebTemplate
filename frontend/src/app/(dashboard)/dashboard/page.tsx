@@ -11,6 +11,8 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { useWishlistStore } from '@/lib/stores/wishlist-store';
 import { ordersApi } from '@/lib/api/modules/orders.api';
 import { useHydration, formatPrice, formatDate, getOrderStatusInfo } from '@/lib/hooks';
+import { OnboardingTour } from '@/components/shared/onboarding-tour';
+import { dashboardTourSteps } from '@/lib/config/onboarding-steps';
 import type { Order } from '@/lib/types';
 
 /**
@@ -156,6 +158,9 @@ export default function DashboardPage() {
           </Link>
         ))}
       </div>
+
+      {/* Onboarding tour cho user moi */}
+      <OnboardingTour steps={dashboardTourSteps} storageKey="onboarding.dashboard.v1" />
     </div>
   );
 }

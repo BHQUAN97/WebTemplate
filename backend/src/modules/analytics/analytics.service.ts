@@ -3,9 +3,34 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { PageView } from './entities/page-view.entity.js';
 import { Event } from './entities/event.entity.js';
+import { Order } from '../orders/entities/order.entity.js';
+import { OrderItem } from '../orders/entities/order-item.entity.js';
+import { Product } from '../products/entities/product.entity.js';
 import { TrackPageviewDto } from './dto/track-pageview.dto.js';
 import { TrackEventDto } from './dto/track-event.dto.js';
 import { QueryAnalyticsDto } from './dto/query-analytics.dto.js';
+
+/**
+ * Ket qua breakdown theo trang thai don hang.
+ */
+export interface OrderStatusBreakdown {
+  status: string;
+  count: number;
+  percentage: number;
+}
+
+/**
+ * Ket qua top product — san pham ban chay.
+ */
+export interface TopProductRow {
+  productId: string;
+  name: string;
+  slug: string;
+  image: string | null;
+  soldQty: number;
+  revenue: number;
+  orderCount: number;
+}
 
 /**
  * Analytics service — tracking page views, events, dashboard stats.
@@ -19,6 +44,12 @@ export class AnalyticsService {
     private readonly pageViewRepository: Repository<PageView>,
     @InjectRepository(Event)
     private readonly eventRepository: Repository<Event>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
+    @InjectRepository(OrderItem)
+    private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
   ) {}
 
   /**
@@ -198,5 +229,122 @@ export class AnalyticsService {
       default:
         return '%Y-%m-%d';
     }
+  }
+
+  /**
+   * Thong ke don hang theo trang thai — dem va tinh % so voi tong.
+   * @param from ISO date (optional) — neu khong co thi khong filter lower bound
+   * @param to   ISO date (optional) — neu khong co thi khong filter upper bound
+   */
+  async getOrdersByStatus(
+    from?: string,
+    to?: string,
+  ): Promise<OrderStatusBreakdown[]> {
+    const qb = this.orderRepository
+      .createQueryBuilder('o')
+      .select('o.status', 'status')
+      .addSelect('COUNT(*)', 'count')
+      .where('o.deleted_at IS NULL');
+
+    if (from && to) {
+      qb.andWhere('o.created_at BETWEEN :from AND :to', { from, to });
+    } else if (from) {
+      qb.andWhere('o.created_at >= :from', { from });
+    } else if (to) {
+      qb.andWhere('o.created_at <= :to', { to });
+    }
+
+    const rows = await qb.groupBy('o.status').getRawMany<{
+      status: string;
+      count: string;
+    }>();
+
+    // Tinh total de xac dinh %
+    const total = rows.reduce((sum, r) => sum + parseInt(r.count, 10), 0);
+
+    return rows.map((r) => {
+      const count = parseInt(r.count, 10);
+      const percentage = total > 0 ? Math.round((count / total) * 10000) / 100 : 0;
+      return { status: r.status, count, percentage };
+    });
+  }
+
+  /**
+   * Top san pham ban chay — group theo product_id, SUM quantity va revenue.
+   * Join products de lay name/slug/image va dem so don hang unique.
+   */
+  async getTopProducts(
+    from?: string,
+    to?: string,
+    limit: number = 5,
+  ): Promise<TopProductRow[]> {
+    const safeLimit = Math.max(1, Math.min(50, Number(limit) || 5));
+
+    const qb = this.orderItemRepository
+      .createQueryBuilder('oi')
+      .innerJoin('orders', 'o', 'o.id = oi.order_id')
+      .leftJoin('products', 'p', 'p.id = oi.product_id')
+      .select('oi.product_id', 'productId')
+      .addSelect('SUM(oi.quantity)', 'soldQty')
+      .addSelect('SUM(oi.quantity * oi.price)', 'revenue')
+      .addSelect('COUNT(DISTINCT oi.order_id)', 'orderCount')
+      .addSelect('p.name', 'name')
+      .addSelect('p.slug', 'slug')
+      .addSelect('p.images', 'images')
+      .where('o.deleted_at IS NULL')
+      .andWhere('oi.deleted_at IS NULL');
+
+    if (from && to) {
+      qb.andWhere('o.created_at BETWEEN :from AND :to', { from, to });
+    } else if (from) {
+      qb.andWhere('o.created_at >= :from', { from });
+    } else if (to) {
+      qb.andWhere('o.created_at <= :to', { to });
+    }
+
+    const rows = await qb
+      .groupBy('oi.product_id')
+      .addGroupBy('p.name')
+      .addGroupBy('p.slug')
+      .addGroupBy('p.images')
+      .orderBy('soldQty', 'DESC')
+      .limit(safeLimit)
+      .getRawMany<{
+        productId: string;
+        name: string | null;
+        slug: string | null;
+        images: string | null;
+        soldQty: string;
+        revenue: string;
+        orderCount: string;
+      }>();
+
+    // Trich anh dau tien tu field images (JSON array)
+    return rows.map((r) => ({
+      productId: r.productId,
+      name: r.name ?? '',
+      slug: r.slug ?? '',
+      image: this.extractFirstImage(r.images),
+      soldQty: parseInt(r.soldQty, 10) || 0,
+      revenue: parseFloat(r.revenue) || 0,
+      orderCount: parseInt(r.orderCount, 10) || 0,
+    }));
+  }
+
+  /**
+   * Parse JSON images field va tra ve URL anh dau tien.
+   * MySQL json co the tra ve string (khi dung getRawMany) hoac object.
+   */
+  private extractFirstImage(images: string | null | any[]): string | null {
+    if (!images) return null;
+    try {
+      const arr = typeof images === 'string' ? JSON.parse(images) : images;
+      if (Array.isArray(arr) && arr.length > 0 && arr[0]?.url) {
+        return arr[0].url;
+      }
+    } catch {
+      // ignore malformed json
+    }
+    return null;
   }
 }

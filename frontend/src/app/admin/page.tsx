@@ -12,6 +12,8 @@ import { Table, TableHeader, TableBody, TableRow, TableHead, TableCell } from '@
 import { Skeleton } from '@/components/ui/skeleton';
 import { useApi } from '@/lib/hooks/use-api';
 import { formatPrice, formatDate, formatOrderStatus } from '@/lib/utils/format';
+import { OnboardingTour } from '@/components/shared/onboarding-tour';
+import { adminTourSteps } from '@/lib/config/onboarding-steps';
 import type { ApiResponse, DashboardStats, Order, Product } from '@/lib/types';
 
 /** Trang dashboard chinh cua admin */
@@ -201,6 +203,9 @@ export default function AdminDashboardPage() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Onboarding tour cho admin moi */}
+      <OnboardingTour steps={adminTourSteps} storageKey="onboarding.admin.v1" />
     </div>
   );
 }

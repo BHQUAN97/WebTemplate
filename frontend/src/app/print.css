@@ -1,0 +1,107 @@
+/* ========================================================================
+   Print-specific styles — ap dung khi window.print() hoac Ctrl+P.
+   Muc tieu:
+   - An nav/header/footer/button ko can thiet
+   - Force mau sang, xoa shadow, bo mau background
+   - Cho phep page-break manual
+   - Show href sau <a> text (tien tham khao)
+   ======================================================================== */
+
+@media print {
+  /* Reset mau: force light */
+  html,
+  body {
+    background: #fff !important;
+    color: #000 !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  /* An nhung element khong can in */
+  nav,
+  aside,
+  header[data-app-header],
+  footer[data-app-footer],
+  [data-no-print],
+  .no-print,
+  button:not([data-print-ok]),
+  .print\:hidden {
+    display: none !important;
+  }
+
+  /* Show phan chi danh rieng cho print */
+  [data-print-only],
+  .print-only {
+    display: block !important;
+  }
+
+  /* Force content full width */
+  main,
+  [data-print-root] {
+    margin: 0 !important;
+    padding: 0 !important;
+    max-width: 100% !important;
+    width: 100% !important;
+    box-shadow: none !important;
+  }
+
+  /* Card / container — bo shadow de in sach */
+  .shadow,
+  .shadow-sm,
+  .shadow-md,
+  .shadow-lg,
+  .shadow-xl {
+    box-shadow: none !important;
+  }
+
+  /* Break control */
+  .page-break,
+  .page-break-before {
+    page-break-before: always;
+    break-before: page;
+  }
+
+  .page-break-after {
+    page-break-after: always;
+    break-after: page;
+  }
+
+  .avoid-break,
+  .page-break-avoid {
+    page-break-inside: avoid;
+    break-inside: avoid;
+  }
+
+  /* Table dep khi in — keep header lap lai moi trang */
+  table {
+    border-collapse: collapse !important;
+    width: 100% !important;
+  }
+  thead {
+    display: table-header-group;
+  }
+  tfoot {
+    display: table-footer-group;
+  }
+  tr,
+  img {
+    page-break-inside: avoid;
+  }
+  th,
+  td {
+    border: 1px solid #ccc !important;
+    padding: 4px 6px !important;
+  }
+
+  /* Show URL sau link neu la external/http */
+  a[href^='http']::after {
+    content: ' (' attr(href) ')';
+    font-size: 0.85em;
+    color: #555;
+  }
+
+  /* Page setup */
+  @page {
+    margin: 1.5cm;
+  }
+}

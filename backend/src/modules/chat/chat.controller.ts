@@ -99,7 +99,7 @@ export class ChatController {
    * (best-effort, khong fail request neu AI loi).
    */
   @Public()
-  @Throttle({ default: { ttl: 60000, limit: 30 } })
+  @Throttle({ default: { ttl: 60000, limit: 10 } })
   @Post('chat/conversations/:id/messages')
   async sendCustomerMessage(
     @Param('id') id: string,

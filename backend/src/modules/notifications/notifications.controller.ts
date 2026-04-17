@@ -62,11 +62,34 @@ export class NotificationsController {
 
   /**
    * Danh dau tat ca thong bao cua user hien tai la da doc.
+   * Canonical method la PATCH; POST alias duoc giu de tuong thich FE cu.
    */
   @Patch('read-all')
   async markAllRead(@CurrentUser() user: ICurrentUser) {
     await this.notificationsService.markAllRead(user.id);
     return successResponse(null, 'All notifications marked as read');
+  }
+
+  /**
+   * Alias POST cho markAllRead — giu tuong thich voi frontend hien dung POST.
+   */
+  @Post('read-all')
+  async markAllReadPost(@CurrentUser() user: ICurrentUser) {
+    await this.notificationsService.markAllRead(user.id);
+    return successResponse(null, 'All notifications marked as read');
+  }
+
+  /**
+   * Xoa hang loat notifications da doc cua user hien tai (soft delete).
+   * Tra ve so luong bi xoa.
+   * Phai nam TRUOC route @Delete(':id') de tranh bi match nham.
+   */
+  @Delete('read')
+  async removeReadBulk(@CurrentUser() user: ICurrentUser) {
+    const deletedCount = await this.notificationsService.deleteReadByUser(
+      user.id,
+    );
+    return successResponse({ deletedCount }, 'Read notifications deleted');
   }
 
   /**
@@ -80,11 +103,14 @@ export class NotificationsController {
   }
 
   /**
-   * Xoa thong bao.
+   * Xoa thong bao — chi owner moi duoc xoa.
    */
   @Delete(':id')
-  async remove(@Param('id') id: string) {
-    await this.notificationsService.softDelete(id);
+  async remove(
+    @CurrentUser() user: ICurrentUser,
+    @Param('id') id: string,
+  ) {
+    await this.notificationsService.removeOwned(id, user.id);
     return successResponse(null, 'Notification deleted');
   }
 }

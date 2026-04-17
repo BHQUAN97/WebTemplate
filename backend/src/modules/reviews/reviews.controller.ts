@@ -7,11 +7,14 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ReviewsService } from './reviews.service.js';
 import { CreateReviewDto } from './dto/create-review.dto.js';
 import { QueryReviewsDto } from './dto/query-reviews.dto.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
+import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
+import type { ICurrentUser } from '../../common/interfaces/index.js';
 import { UserRole } from '../../common/constants/index.js';
 import {
   successResponse,
@@ -23,12 +26,19 @@ export class ReviewsController {
   constructor(private readonly reviewsService: ReviewsService) {}
 
   /**
-   * Tao danh gia moi.
+   * Tao danh gia moi — user_id LAY TU JWT (khong tin client).
+   * Rate limit: toi da 5 review / phut / user de chong spam.
    */
+  @Throttle({ default: { ttl: 60000, limit: 5 } })
   @Post()
-  async create(@Body() dto: CreateReviewDto) {
-    // TODO: Lay user_id tu JWT token
-    const review = await this.reviewsService.create(dto as any);
+  async create(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: CreateReviewDto,
+  ) {
+    const review = await this.reviewsService.create({
+      ...dto,
+      user_id: user.id,
+    } as any);
     return successResponse(review, 'Review created');
   }
 

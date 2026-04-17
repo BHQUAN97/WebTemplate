@@ -4,12 +4,14 @@ import {
   NotFoundException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, SelectQueryBuilder } from 'typeorm';
+import { Repository, SelectQueryBuilder, In } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { OrderStatus } from '../../common/constants/index.js';
 import { Order } from './entities/order.entity.js';
 import { OrderItem } from './entities/order-item.entity.js';
+import { Product } from '../products/entities/product.entity.js';
+import { ProductVariant } from '../products/entities/product-variant.entity.js';
 import { CreateOrderDto } from './dto/create-order.dto.js';
 import { QueryOrdersDto } from './dto/query-orders.dto.js';
 
@@ -26,6 +28,10 @@ export class OrdersService extends BaseService<Order> {
     private readonly ordersRepository: Repository<Order>,
     @InjectRepository(OrderItem)
     private readonly orderItemRepository: Repository<OrderItem>,
+    @InjectRepository(Product)
+    private readonly productRepository: Repository<Product>,
+    @InjectRepository(ProductVariant)
+    private readonly variantRepository: Repository<ProductVariant>,
   ) {
     super(ordersRepository, 'Order');
   }
@@ -90,16 +96,76 @@ export class OrdersService extends BaseService<Order> {
 
   /**
    * Tao don hang truc tiep (khong qua cart).
+   * Gia san pham LAY TU DB (khong tin client) — chong gian lan price manipulation.
    */
   async createDirect(userId: string, dto: CreateOrderDto): Promise<Order> {
     if (!dto.items || dto.items.length === 0) {
       throw new BadRequestException('Order items are required');
     }
 
-    const subtotal = dto.items.reduce(
-      (sum, item) => sum + item.price * item.quantity,
-      0,
+    // Load all products va variants tu DB de verify gia
+    const productIds = Array.from(new Set(dto.items.map((i) => i.product_id)));
+    const variantIds = Array.from(
+      new Set(
+        dto.items.map((i) => i.variant_id).filter((v): v is string => !!v),
+      ),
     );
+
+    const products = await this.productRepository.find({
+      where: { id: In(productIds) },
+    });
+    const variants = variantIds.length
+      ? await this.variantRepository.find({ where: { id: In(variantIds) } })
+      : [];
+
+    const productMap = new Map(products.map((p) => [p.id, p]));
+    const variantMap = new Map(variants.map((v) => [v.id, v]));
+
+    // Resolve gia + ten an toan tu DB cho moi item
+    const resolvedItems = dto.items.map((item) => {
+      const product = productMap.get(item.product_id);
+      if (!product) {
+        throw new BadRequestException(
+          `Product ${item.product_id} not found or unavailable`,
+        );
+      }
+
+      let price: number = Number(product.price);
+      let variantName: string | null = null;
+      let sku: string | null = (product as any).sku ?? null;
+
+      if (item.variant_id) {
+        const variant = variantMap.get(item.variant_id);
+        if (!variant || variant.product_id !== product.id) {
+          throw new BadRequestException(
+            `Variant ${item.variant_id} not valid for product ${product.id}`,
+          );
+        }
+        price = Number(variant.price);
+        variantName = (variant as any).name ?? null;
+        sku = (variant as any).sku ?? sku;
+      }
+
+      if (!Number.isFinite(price) || price < 0) {
+        throw new BadRequestException(
+          `Invalid price for product ${product.id}`,
+        );
+      }
+
+      return {
+        product_id: product.id,
+        variant_id: item.variant_id || null,
+        product_name: product.name,
+        variant_name: variantName,
+        sku,
+        price,
+        quantity: item.quantity,
+        total: price * item.quantity,
+        image_url: (product as any).images?.[0]?.url ?? null,
+      };
+    });
+
+    const subtotal = resolvedItems.reduce((sum, i) => sum + i.total, 0);
 
     const order = await this.create({
       order_number: await this.generateOrderNumber(),
@@ -113,18 +179,10 @@ export class OrdersService extends BaseService<Order> {
       promotion_code: dto.promotion_code || null,
     } as any);
 
-    const items = dto.items.map((item) =>
+    const items = resolvedItems.map((item) =>
       this.orderItemRepository.create({
         order_id: order.id,
-        product_id: item.product_id,
-        variant_id: item.variant_id || null,
-        product_name: item.product_name,
-        variant_name: item.variant_name || null,
-        sku: item.sku || null,
-        price: item.price,
-        quantity: item.quantity,
-        total: item.price * item.quantity,
-        image_url: item.image_url || null,
+        ...item,
       }),
     );
 

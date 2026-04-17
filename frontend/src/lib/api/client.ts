@@ -149,24 +149,39 @@ class ApiClient {
     } = options;
 
     const token = this.getToken();
-    const reqHeaders: Record<string, string> = {
-      'Content-Type': 'application/json',
-      ...headers,
-    };
+    const isFormData =
+      typeof FormData !== 'undefined' && body instanceof FormData;
+    const reqHeaders: Record<string, string> = { ...headers };
+    // Khong tu set Content-Type khi la FormData — de browser dat boundary multipart
+    if (!isFormData && !reqHeaders['Content-Type']) {
+      reqHeaders['Content-Type'] = 'application/json';
+    }
     if (token) reqHeaders['Authorization'] = `Bearer ${token}`;
 
     const response = await fetch(this.buildUrl(endpoint, params), {
       method,
       headers: reqHeaders,
-      body: body ? JSON.stringify(body) : undefined,
+      body:
+        body === undefined || body === null
+          ? undefined
+          : isFormData
+            ? (body as FormData)
+            : JSON.stringify(body),
       credentials: 'include',
     });
 
-    // Interceptor: 401 -> thu refresh token 1 lan
+    // Interceptor: 401 -> thu refresh token 1 lan.
+    // Bo qua cac auth endpoint de tranh vong lap (login/refresh/logout cung duong).
+    const isAuthEndpoint =
+      endpoint.startsWith('/auth/login') ||
+      endpoint.startsWith('/auth/refresh') ||
+      endpoint.startsWith('/auth/logout') ||
+      endpoint.startsWith('/auth/register');
     if (
       response.status === 401 &&
       !_retry &&
       !skipAuthRefresh &&
+      !isAuthEndpoint &&
       typeof window !== 'undefined'
     ) {
       const newToken = await this.refreshAccessToken();

@@ -1,5 +1,8 @@
 import { z } from 'zod';
 
+// === Base primitives (shared FE+BE rules) ===
+export * from './base';
+
 // === Auth Validations ===
 
 export const loginSchema = z.object({
