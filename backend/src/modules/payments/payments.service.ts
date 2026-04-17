@@ -2,12 +2,12 @@ import {
   Injectable,
   BadRequestException,
   NotFoundException,
-  NotImplementedException,
   InternalServerErrorException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as crypto from 'crypto';
+import { ulid } from 'ulid';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaymentStatus } from '../../common/constants/index.js';
 import { Payment } from './entities/payment.entity.js';
@@ -157,22 +157,17 @@ export class PaymentsService extends BaseService<Payment> {
   }
 
   /**
-   * Tao URL thanh toan cho gateway. Implement VNPay day du; Momo/Stripe throw NotImplemented.
+   * Tao URL thanh toan cho gateway.
+   * Method async vi Momo/Stripe yeu cau goi API server-to-server.
    */
-  createPaymentUrl(payment: Payment): string {
+  async createPaymentUrl(payment: Payment): Promise<string> {
     switch (payment.method) {
       case 'vnpay':
         return this.buildVnpayUrl(payment);
       case 'momo':
-        // TODO: Implement Momo createPaymentUrl (AIO API)
-        throw new NotImplementedException(
-          'Momo payment URL chua duoc implement',
-        );
+        return this.buildMomoUrl(payment);
       case 'stripe':
-        // TODO: Implement Stripe Checkout Session creation
-        throw new NotImplementedException(
-          'Stripe payment URL chua duoc implement',
-        );
+        return this.buildStripeUrl(payment);
       case 'bank_transfer':
       case 'cod':
         // Khong can URL cho COD va chuyen khoan — tra chuoi rong
@@ -180,6 +175,233 @@ export class PaymentsService extends BaseService<Payment> {
       default:
         return '';
     }
+  }
+
+  // ==================================================================
+  // Momo AIO v2 — Build payUrl via server-to-server /v2/gateway/api/create
+  // ==================================================================
+
+  /**
+   * Goi Momo AIO v2 create API de lay payUrl.
+   * Signature = HMAC-SHA256 theo thu tu field co dinh trong docs (KHONG sort).
+   * Doc: https://developers.momo.vn/v3/docs/payment/api/wallet/onetime/
+   */
+  private async buildMomoUrl(payment: Payment): Promise<string> {
+    const partnerCode = process.env.MOMO_PARTNER_CODE;
+    const accessKey = process.env.MOMO_ACCESS_KEY;
+    const secretKey = process.env.MOMO_SECRET_KEY;
+    const endpoint =
+      process.env.MOMO_ENDPOINT ||
+      'https://test-payment.momo.vn/v2/gateway/api/create';
+    const redirectUrl = process.env.MOMO_REDIRECT_URL;
+    const ipnUrl = process.env.MOMO_IPN_URL;
+
+    if (
+      !partnerCode ||
+      !accessKey ||
+      !secretKey ||
+      !redirectUrl ||
+      !ipnUrl
+    ) {
+      throw new InternalServerErrorException(
+        'Cau hinh thanh toan chua day du',
+      );
+    }
+
+    // Momo yeu cau amount la integer, tra bang VND — khong co decimal
+    const amount = String(Math.round(Number(payment.amount)));
+    // orderId PHAI match voi processCallback (dispatcher tim theo order_id) -> dung payment.order_id
+    const orderId = payment.order_id;
+    const requestId = `${Date.now()}-${ulid()}`;
+    const orderInfo = `Thanh toan don hang ${payment.order_id}`;
+    const extraData = '';
+    const requestType = 'captureWallet';
+
+    const raw = this.buildMomoRawSignatureString({
+      accessKey,
+      amount,
+      extraData,
+      ipnUrl,
+      orderId,
+      orderInfo,
+      partnerCode,
+      redirectUrl,
+      requestId,
+      requestType,
+    });
+
+    const signature = crypto
+      .createHmac('sha256', secretKey)
+      .update(raw)
+      .digest('hex');
+
+    const body = {
+      partnerCode,
+      requestId,
+      amount,
+      orderId,
+      orderInfo,
+      redirectUrl,
+      ipnUrl,
+      extraData,
+      requestType,
+      signature,
+      lang: 'vi',
+    };
+
+    let resJson: any;
+    try {
+      const res = await fetch(endpoint, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(body),
+      });
+
+      if (!res.ok) {
+        throw new InternalServerErrorException(
+          `Momo create failed: HTTP ${res.status}`,
+        );
+      }
+
+      resJson = await res.json();
+    } catch (err: any) {
+      if (err instanceof InternalServerErrorException) throw err;
+      throw new InternalServerErrorException(
+        `Momo create error: ${err?.message || 'unknown'}`,
+      );
+    }
+
+    if (resJson?.resultCode !== 0) {
+      throw new InternalServerErrorException(
+        `Momo create failed: ${resJson?.message || 'unknown error'}`,
+      );
+    }
+
+    if (!resJson.payUrl) {
+      throw new InternalServerErrorException(
+        'Momo response missing payUrl',
+      );
+    }
+
+    return resJson.payUrl as string;
+  }
+
+  /**
+   * Build raw signature string cho Momo create request.
+   * Tach ra de de test — thu tu field PHAI giong docs Momo (alphabet).
+   */
+  private buildMomoRawSignatureString(params: {
+    accessKey: string;
+    amount: string;
+    extraData: string;
+    ipnUrl: string;
+    orderId: string;
+    orderInfo: string;
+    partnerCode: string;
+    redirectUrl: string;
+    requestId: string;
+    requestType: string;
+  }): string {
+    return (
+      `accessKey=${params.accessKey}` +
+      `&amount=${params.amount}` +
+      `&extraData=${params.extraData}` +
+      `&ipnUrl=${params.ipnUrl}` +
+      `&orderId=${params.orderId}` +
+      `&orderInfo=${params.orderInfo}` +
+      `&partnerCode=${params.partnerCode}` +
+      `&redirectUrl=${params.redirectUrl}` +
+      `&requestId=${params.requestId}` +
+      `&requestType=${params.requestType}`
+    );
+  }
+
+  // ==================================================================
+  // Stripe Checkout — tao session, return session.url
+  // ==================================================================
+
+  /**
+   * Tao Stripe Checkout Session va tra ve session.url.
+   * Dynamic require stripe package de module khong crash neu package chua cai.
+   */
+  private async buildStripeUrl(payment: Payment): Promise<string> {
+    const secretKey = process.env.STRIPE_SECRET_KEY;
+    const successUrl = process.env.STRIPE_SUCCESS_URL;
+    const cancelUrl = process.env.STRIPE_CANCEL_URL;
+
+    if (!secretKey || !successUrl || !cancelUrl) {
+      throw new InternalServerErrorException(
+        'Cau hinh thanh toan chua day du',
+      );
+    }
+
+    let Stripe: any;
+    try {
+      // eslint-disable-next-line @typescript-eslint/no-require-imports
+      Stripe = require('stripe');
+    } catch {
+      throw new InternalServerErrorException(
+        'Cau hinh thanh toan chua day du',
+      );
+    }
+
+    const stripe = new Stripe(secretKey, { apiVersion: '2024-06-20' });
+
+    const currency = (payment.currency || 'vnd').toLowerCase();
+    const unitAmount = this.toStripeAmount(
+      Number(payment.amount),
+      payment.currency || 'VND',
+    );
+
+    // Them payment_id vao success_url de frontend biet giao dich nao
+    const separator = successUrl.includes('?') ? '&' : '?';
+    const successUrlFull = `${successUrl}${separator}session_id={CHECKOUT_SESSION_ID}&payment_id=${payment.id}`;
+
+    try {
+      const session = await stripe.checkout.sessions.create({
+        mode: 'payment',
+        payment_method_types: ['card'],
+        line_items: [
+          {
+            price_data: {
+              currency,
+              product_data: { name: `Order ${payment.order_id}` },
+              unit_amount: unitAmount,
+            },
+            quantity: 1,
+          },
+        ],
+        client_reference_id: payment.id,
+        success_url: successUrlFull,
+        cancel_url: cancelUrl,
+      });
+
+      if (!session?.url) {
+        throw new InternalServerErrorException(
+          'Stripe session missing url',
+        );
+      }
+
+      return session.url;
+    } catch (err: any) {
+      if (err instanceof InternalServerErrorException) throw err;
+      throw new InternalServerErrorException(
+        `Stripe checkout error: ${err?.message || 'unknown'}`,
+      );
+    }
+  }
+
+  /**
+   * Tinh so tien theo don vi nho nhat cua currency cho Stripe.
+   * Zero-decimal currency (VND, JPY, KRW...): tra nguyen so.
+   * Khac: nhan 100 (USD cents, EUR cents...).
+   */
+  private toStripeAmount(amount: number, currency: string): number {
+    const zeroDecimal = ['VND', 'JPY', 'KRW', 'CLP', 'PYG', 'RWF', 'UGX', 'VUV', 'XAF', 'XOF'];
+    if (zeroDecimal.includes(currency.toUpperCase())) {
+      return Math.round(amount);
+    }
+    return Math.round(amount * 100);
   }
 
   // ==================================================================

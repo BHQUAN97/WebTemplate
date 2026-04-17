@@ -53,16 +53,23 @@ export class WeeklyReportCron {
       const dateFromLabel = lastMonday.toISOString().slice(0, 10);
       const dateToLabel = lastSunday.toISOString().slice(0, 10);
 
-      // Gen PDF attachment
+      // Gen PDF + XLSX song song — neu bat ky cai nao fail, skip toan bo batch
       let pdfBuffer: Buffer;
+      let xlsxBuffer: Buffer;
       try {
-        pdfBuffer = await this.reportsService.generateSalesPdf({
-          dateFrom: lastMonday,
-          dateTo: lastSunday,
-        });
+        [pdfBuffer, xlsxBuffer] = await Promise.all([
+          this.reportsService.generateSalesPdf({
+            dateFrom: lastMonday,
+            dateTo: lastSunday,
+          }),
+          this.reportsService.generateSalesXlsx({
+            dateFrom: lastMonday,
+            dateTo: lastSunday,
+          }),
+        ]);
       } catch (err) {
         this.logger.error(
-          `Weekly report PDF gen failed: ${(err as Error).message}`,
+          `Weekly report attachment gen failed: ${(err as Error).message}`,
         );
         return;
       }
@@ -118,6 +125,12 @@ export class WeeklyReportCron {
                 content: pdfBuffer,
                 contentType: 'application/pdf',
               },
+              {
+                filename: `weekly-report-${dateFromLabel}_${dateToLabel}.xlsx`,
+                content: xlsxBuffer,
+                contentType:
+                  'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet',
+              },
             ],
           });
           sent += 1;
@@ -130,7 +143,7 @@ export class WeeklyReportCron {
 
       this.logger.log(
         `Weekly report dispatched to ${sent}/${admins.length} admin(s) ` +
-          `[${dateFromLabel} .. ${dateToLabel}] pdf=${pdfBuffer.length}B`,
+          `[${dateFromLabel} .. ${dateToLabel}] pdf=${pdfBuffer.length}B xlsx=${xlsxBuffer.length}B`,
       );
     } catch (err) {
       this.logger.error(

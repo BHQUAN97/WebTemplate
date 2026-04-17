@@ -26,7 +26,7 @@ export class PaymentsController {
       dto.order_id,
       dto.method,
     );
-    const paymentUrl = this.paymentsService.createPaymentUrl(payment);
+    const paymentUrl = await this.paymentsService.createPaymentUrl(payment);
     return successResponse(
       { payment, payment_url: paymentUrl || null },
       'Payment created',
