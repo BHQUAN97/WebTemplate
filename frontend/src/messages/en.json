@@ -1,0 +1,82 @@
+{
+  "common": {
+    "save": "Save",
+    "cancel": "Cancel",
+    "delete": "Delete",
+    "edit": "Edit",
+    "create": "Create",
+    "update": "Update",
+    "confirm": "Confirm",
+    "back": "Back",
+    "next": "Next",
+    "previous": "Previous",
+    "loading": "Loading...",
+    "search": "Search",
+    "filter": "Filter",
+    "actions": "Actions",
+    "view": "View",
+    "download": "Download",
+    "upload": "Upload",
+    "yes": "Yes",
+    "no": "No",
+    "close": "Close",
+    "submit": "Submit",
+    "reset": "Reset"
+  },
+  "auth": {
+    "login": "Sign in",
+    "logout": "Sign out",
+    "register": "Sign up",
+    "email": "Email",
+    "password": "Password",
+    "confirm_password": "Confirm password",
+    "forgot_password": "Forgot password?",
+    "remember_me": "Remember me",
+    "sign_in_with": "Sign in with",
+    "no_account": "No account yet?",
+    "has_account": "Already have an account?",
+    "verify_email": "Verify email",
+    "two_factor": "Two-factor authentication"
+  },
+  "nav": {
+    "home": "Home",
+    "products": "Products",
+    "categories": "Categories",
+    "cart": "Cart",
+    "checkout": "Checkout",
+    "account": "Account",
+    "orders": "Orders",
+    "wishlist": "Wishlist",
+    "blog": "Blog",
+    "contact": "Contact",
+    "about": "About"
+  },
+  "admin": {
+    "dashboard": "Dashboard",
+    "users": "Users",
+    "products": "Products",
+    "orders": "Orders",
+    "categories": "Categories",
+    "articles": "Articles",
+    "pages": "Pages",
+    "settings": "Settings",
+    "logs": "Logs",
+    "reports": "Reports",
+    "media": "Media"
+  },
+  "errors": {
+    "required": "This field is required",
+    "invalid_email": "Invalid email",
+    "invalid_password": "Password must be at least 8 characters with uppercase, number and special character",
+    "invalid_phone": "Invalid phone number",
+    "password_mismatch": "Passwords do not match",
+    "server_error": "Server error, please try again",
+    "unauthorized": "You are not authorized",
+    "not_found": "Not found",
+    "network_error": "Network error"
+  },
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}

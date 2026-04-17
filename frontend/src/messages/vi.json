@@ -1,0 +1,82 @@
+{
+  "common": {
+    "save": "Lưu",
+    "cancel": "Huỷ",
+    "delete": "Xoá",
+    "edit": "Sửa",
+    "create": "Tạo mới",
+    "update": "Cập nhật",
+    "confirm": "Xác nhận",
+    "back": "Quay lại",
+    "next": "Tiếp theo",
+    "previous": "Trước",
+    "loading": "Đang tải...",
+    "search": "Tìm kiếm",
+    "filter": "Lọc",
+    "actions": "Thao tác",
+    "view": "Xem",
+    "download": "Tải xuống",
+    "upload": "Tải lên",
+    "yes": "Có",
+    "no": "Không",
+    "close": "Đóng",
+    "submit": "Gửi",
+    "reset": "Đặt lại"
+  },
+  "auth": {
+    "login": "Đăng nhập",
+    "logout": "Đăng xuất",
+    "register": "Đăng ký",
+    "email": "Email",
+    "password": "Mật khẩu",
+    "confirm_password": "Xác nhận mật khẩu",
+    "forgot_password": "Quên mật khẩu?",
+    "remember_me": "Ghi nhớ đăng nhập",
+    "sign_in_with": "Đăng nhập bằng",
+    "no_account": "Chưa có tài khoản?",
+    "has_account": "Đã có tài khoản?",
+    "verify_email": "Xác thực email",
+    "two_factor": "Xác thực 2 bước"
+  },
+  "nav": {
+    "home": "Trang chủ",
+    "products": "Sản phẩm",
+    "categories": "Danh mục",
+    "cart": "Giỏ hàng",
+    "checkout": "Thanh toán",
+    "account": "Tài khoản",
+    "orders": "Đơn hàng",
+    "wishlist": "Yêu thích",
+    "blog": "Bài viết",
+    "contact": "Liên hệ",
+    "about": "Giới thiệu"
+  },
+  "admin": {
+    "dashboard": "Bảng điều khiển",
+    "users": "Người dùng",
+    "products": "Sản phẩm",
+    "orders": "Đơn hàng",
+    "categories": "Danh mục",
+    "articles": "Bài viết",
+    "pages": "Trang",
+    "settings": "Cài đặt",
+    "logs": "Nhật ký",
+    "reports": "Báo cáo",
+    "media": "Tập tin"
+  },
+  "errors": {
+    "required": "Trường này là bắt buộc",
+    "invalid_email": "Email không hợp lệ",
+    "invalid_password": "Mật khẩu tối thiểu 8 ký tự, bao gồm chữ hoa, số và ký tự đặc biệt",
+    "invalid_phone": "Số điện thoại không hợp lệ",
+    "password_mismatch": "Mật khẩu không khớp",
+    "server_error": "Lỗi hệ thống, vui lòng thử lại",
+    "unauthorized": "Bạn không có quyền truy cập",
+    "not_found": "Không tìm thấy",
+    "network_error": "Lỗi kết nối mạng"
+  },
+  "locale": {
+    "vi": "Tiếng Việt",
+    "en": "English"
+  }
+}
