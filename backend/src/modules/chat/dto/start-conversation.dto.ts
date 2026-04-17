@@ -6,7 +6,10 @@ import {
   IsObject,
   IsString,
 } from 'class-validator';
-import { IsSafeText, IsVietnamPhone } from '../../../common/validators/index.js';
+import {
+  IsSafeText,
+  IsVietnamPhone,
+} from '../../../common/validators/index.js';
 import { ChannelType } from '../chat.constants.js';
 import type { ConversationMetadata } from '../entities/conversation.entity.js';
 

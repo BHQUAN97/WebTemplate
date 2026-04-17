@@ -4,6 +4,7 @@ import {
   UpdateDateColumn,
   DeleteDateColumn,
   BeforeInsert,
+  Index,
 } from 'typeorm';
 import { generateUlid } from '../utils/ulid.js';
 
@@ -30,6 +31,9 @@ export abstract class BaseEntity {
   @UpdateDateColumn({ name: 'updated_at', type: 'timestamp' })
   updated_at: Date;
 
+  // Index deleted_at de toi uu soft-delete filter (WHERE deleted_at IS NULL)
+  // — moi findAll qua BaseService deu co dieu kien nay.
+  @Index()
   @DeleteDateColumn({ name: 'deleted_at', type: 'timestamp', nullable: true })
   deleted_at: Date | null;
 

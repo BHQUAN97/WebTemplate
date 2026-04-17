@@ -12,6 +12,13 @@ import { PaginationDto } from '../../common/dto/pagination.dto.js';
 export class SeoService {
   private readonly logger = new Logger('SeoService');
 
+  // In-memory cache cho sitemap — reload moi 1h. Site map qua 50k URLs phai
+  // chuyen sang sitemap-index pattern (sitemap_1.xml, sitemap_2.xml).
+  private sitemapCache: { xml: string; at: number } | null = null;
+  private static readonly SITEMAP_TTL_MS = 60 * 60 * 1000; // 1h
+  private static readonly SITEMAP_MAX_ARTICLES = 5000;
+  private static readonly SITEMAP_MAX_PAGES = 1000;
+
   constructor(
     private readonly settingsService: SettingsService,
     private readonly articlesService: ArticlesService,
@@ -19,9 +26,25 @@ export class SeoService {
   ) {}
 
   /**
-   * Tao sitemap.xml — gom tat ca bai viet + trang da xuat ban.
+   * Invalidate cache — goi tu cron khi article/page thay doi.
+   * Hoac articles/pages services emit event de auto-clear.
+   */
+  invalidateSitemapCache(): void {
+    this.sitemapCache = null;
+  }
+
+  /**
+   * Tao sitemap.xml — gom bai viet + trang da xuat ban (capped).
+   * Cache 1h trong memory de tranh load DB moi request.
    */
   async generateSitemap(): Promise<string> {
+    if (
+      this.sitemapCache &&
+      Date.now() - this.sitemapCache.at < SeoService.SITEMAP_TTL_MS
+    ) {
+      return this.sitemapCache.xml;
+    }
+
     let siteUrl = 'https://example.com';
     try {
       const setting = await this.settingsService.get('site_url');
@@ -30,13 +53,17 @@ export class SeoService {
       // Dung gia tri mac dinh neu chua cau hinh
     }
 
-    // Lay tat ca bai viet da xuat ban
-    const { items: articles } = await this.articlesService.findPublished(
-      { page: 1, limit: 10000 } as PaginationDto,
-    );
+    // Lay bai viet da xuat ban (capped 5000 — sitemap.xml limit 50k URLs)
+    const { items: articles } = await this.articlesService.findPublished({
+      page: 1,
+      limit: SeoService.SITEMAP_MAX_ARTICLES,
+    } as PaginationDto);
 
-    // Lay tat ca trang da xuat ban
-    const pages = await this.pagesService.findPublished();
+    // Lay trang da xuat ban (capped 1000)
+    const pages = (await this.pagesService.findPublished()).slice(
+      0,
+      SeoService.SITEMAP_MAX_PAGES,
+    );
 
     const urls: string[] = [];
 
@@ -69,12 +96,14 @@ export class SeoService {
       );
     }
 
-    return [
+    const xml = [
       '<?xml version="1.0" encoding="UTF-8"?>',
       '<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">',
       ...urls,
       '</urlset>',
     ].join('\n');
+    this.sitemapCache = { xml, at: Date.now() };
+    return xml;
   }
 
   /**
@@ -134,10 +163,7 @@ export class SeoService {
   /**
    * Tao JSON-LD structured data.
    */
-  generateJsonLd(
-    type: string,
-    data: Record<string, any>,
-  ): Record<string, any> {
+  generateJsonLd(type: string, data: Record<string, any>): Record<string, any> {
     if (type === 'article') {
       return {
         '@context': 'https://schema.org',
@@ -184,12 +210,11 @@ export class SeoService {
     changefreq: string,
     lastmod?: Date,
   ): string {
-    const lines = [
-      '  <url>',
-      `    <loc>${baseUrl}${path}</loc>`,
-    ];
+    const lines = ['  <url>', `    <loc>${baseUrl}${path}</loc>`];
     if (lastmod) {
-      lines.push(`    <lastmod>${lastmod.toISOString().split('T')[0]}</lastmod>`);
+      lines.push(
+        `    <lastmod>${lastmod.toISOString().split('T')[0]}</lastmod>`,
+      );
     }
     lines.push(`    <changefreq>${changefreq}</changefreq>`);
     lines.push(`    <priority>${priority}</priority>`);

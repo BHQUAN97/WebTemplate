@@ -7,6 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
+import { json, raw } from 'express';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module.js';
@@ -16,18 +17,43 @@ async function bootstrap() {
   const configService = app.get(ConfigService);
   const port = configService.get<number>('app.port') || 6001;
   const appName = configService.get<string>('app.name') || 'WebTemplate';
-  const appUrl = configService.get<string>('app.url') || 'http://localhost:6000';
+  const appUrl =
+    configService.get<string>('app.url') || 'http://localhost:6000';
   const env = configService.get<string>('app.env') || 'development';
   const logger = new Logger('Bootstrap');
 
   // Security headers — cho phep iframe tu cung domain
-  app.use(helmet({
-    crossOriginResourcePolicy: { policy: 'cross-origin' },
-    contentSecurityPolicy: env === 'production' ? undefined : false,
-  }));
+  app.use(
+    helmet({
+      crossOriginResourcePolicy: { policy: 'cross-origin' },
+      contentSecurityPolicy: env === 'production' ? undefined : false,
+    }),
+  );
 
   // Parse cookies (cho refresh token)
   app.use(cookieParser());
+
+  // RAW BODY cho Stripe webhook — Stripe yeu cau raw bytes de verify signature.
+  // Phai dang ky TRUOC global JSON parser. Lay raw body, parse JSON sau, gan
+  // (req as any).rawBody de payments.controller doc.
+  app.use('/api/payments/callback/stripe', raw({ type: 'application/json' }));
+  app.use((req: any, _res: any, next: any) => {
+    if (
+      req.originalUrl === '/api/payments/callback/stripe' &&
+      Buffer.isBuffer(req.body)
+    ) {
+      req.rawBody = req.body;
+      try {
+        req.body = JSON.parse(req.body.toString('utf-8'));
+      } catch {
+        req.body = {};
+      }
+    }
+    next();
+  });
+
+  // JSON body parser (mac dinh) cho cac route con lai
+  app.use(json({ limit: '10mb' }));
 
   // CORS — cho phep frontend truy cap
   // Ho tro nhieu domain tu CORS_ORIGINS env (comma-separated)
@@ -37,7 +63,10 @@ async function bootstrap() {
     : [appUrl, 'http://localhost:6000', 'http://localhost:3000'];
 
   app.enableCors({
-    origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
       // Cho phep requests khong co origin (mobile apps, curl, server-to-server)
       if (!origin) return callback(null, true);
       if (allowedOrigins.includes(origin)) return callback(null, true);
@@ -54,7 +83,12 @@ async function bootstrap() {
     },
     credentials: true,
     methods: ['GET', 'POST', 'PUT', 'PATCH', 'DELETE', 'OPTIONS'],
-    allowedHeaders: ['Content-Type', 'Authorization', 'X-Tenant-Id', 'X-API-Key'],
+    allowedHeaders: [
+      'Content-Type',
+      'Authorization',
+      'X-Tenant-Id',
+      'X-API-Key',
+    ],
     exposedHeaders: ['X-Total-Count', 'X-Request-Id'],
     maxAge: 86400, // Preflight cache 24h
   });
@@ -98,7 +132,9 @@ function setupSwagger(app: any, appName: string): void {
   let version = '0.0.1';
   try {
     const pkgPath = join(__dirname, '..', 'package.json');
-    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as { version?: string };
+    const pkg = JSON.parse(readFileSync(pkgPath, 'utf-8')) as {
+      version?: string;
+    };
     if (pkg.version) version = pkg.version;
   } catch {
     // fallback version neu doc khong duoc

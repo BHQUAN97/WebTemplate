@@ -28,10 +28,7 @@ export function generateReportPdf(payload: ReportPayload): Promise<Buffer> {
       doc.on('error', (err) => reject(err));
 
       // Header / logo placeholder
-      doc
-        .fillColor('#2563EB')
-        .rect(40, 40, 515, 48)
-        .fill();
+      doc.fillColor('#2563EB').rect(40, 40, 515, 48).fill();
 
       doc
         .fillColor('#FFFFFF')
@@ -68,12 +65,10 @@ export function generateReportPdf(payload: ReportPayload): Promise<Buffer> {
       doc
         .fontSize(8)
         .fillColor('#6B7280')
-        .text(
-          `Generated at ${payload.generatedAt}`,
-          40,
-          doc.page.height - 40,
-          { align: 'right', width: 515 },
-        );
+        .text(`Generated at ${payload.generatedAt}`, 40, doc.page.height - 40, {
+          align: 'right',
+          width: 515,
+        });
 
       doc.end();
     } catch (err) {
@@ -102,10 +97,7 @@ function renderSummaryCards(
     const y = startY + row * (cardHeight + gap);
 
     // Card BG
-    doc
-      .roundedRect(x, y, cardWidth, cardHeight, 4)
-      .fillColor('#F3F4F6')
-      .fill();
+    doc.roundedRect(x, y, cardWidth, cardHeight, 4).fillColor('#F3F4F6').fill();
 
     // Label
     doc

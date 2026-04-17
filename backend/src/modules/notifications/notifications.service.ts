@@ -56,17 +56,25 @@ export class NotificationsService extends BaseService<Notification> {
   }
 
   /**
-   * Danh dau da doc 1 thong bao.
+   * Danh dau da doc 1 thong bao — atomic UPDATE WHERE id+user_id.
+   * Khong lam find truoc (chong race khi 2 PATCH cung luc).
+   * Throw ForbiddenException neu khong tim thay row khop owner+id.
    */
   async markAsRead(id: string, userId: string): Promise<Notification> {
-    const notification = await this.findById(id);
-    if (notification.user_id !== userId) {
-      throw new (await import('@nestjs/common')).ForbiddenException('Not your notification');
+    const result = await this.notificationsRepository
+      .createQueryBuilder()
+      .update(Notification)
+      .set({ is_read: true, read_at: new Date() })
+      .where('id = :id', { id })
+      .andWhere('user_id = :userId', { userId })
+      .execute();
+
+    if (!result.affected) {
+      throw new (await import('@nestjs/common')).ForbiddenException(
+        'Notification not found or not your notification',
+      );
     }
-    return this.update(id, {
-      is_read: true,
-      read_at: new Date(),
-    } as any);
+    return this.findById(id);
   }
 
   /**
@@ -75,7 +83,9 @@ export class NotificationsService extends BaseService<Notification> {
   async removeOwned(id: string, userId: string): Promise<void> {
     const notification = await this.findById(id);
     if (notification.user_id !== userId) {
-      throw new (await import('@nestjs/common')).ForbiddenException('Not your notification');
+      throw new (await import('@nestjs/common')).ForbiddenException(
+        'Not your notification',
+      );
     }
     await this.softDelete(id);
   }

@@ -35,7 +35,8 @@ export class NotificationsController {
   ) {
     // Gan user_id vao query de BaseService.findAll co the filter qua applyFilters
     const queryWithUser = { ...query, user_id: user.id } as any;
-    const { items, meta } = await this.notificationsService.findAll(queryWithUser);
+    const { items, meta } =
+      await this.notificationsService.findAll(queryWithUser);
     return paginatedResponse(items, meta);
   }
 
@@ -52,11 +53,11 @@ export class NotificationsController {
    * Danh dau 1 thong bao da doc (chi owner moi duoc doi).
    */
   @Patch(':id/read')
-  async markAsRead(
-    @CurrentUser() user: ICurrentUser,
-    @Param('id') id: string,
-  ) {
-    const notification = await this.notificationsService.markAsRead(id, user.id);
+  async markAsRead(@CurrentUser() user: ICurrentUser, @Param('id') id: string) {
+    const notification = await this.notificationsService.markAsRead(
+      id,
+      user.id,
+    );
     return successResponse(notification, 'Marked as read');
   }
 
@@ -106,10 +107,7 @@ export class NotificationsController {
    * Xoa thong bao — chi owner moi duoc xoa.
    */
   @Delete(':id')
-  async remove(
-    @CurrentUser() user: ICurrentUser,
-    @Param('id') id: string,
-  ) {
+  async remove(@CurrentUser() user: ICurrentUser, @Param('id') id: string) {
     await this.notificationsService.removeOwned(id, user.id);
     return successResponse(null, 'Notification deleted');
   }

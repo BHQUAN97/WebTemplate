@@ -49,8 +49,7 @@ export class GeminiProvider implements IAiProvider {
     this.apiKey = this.config.get<string>('ai.geminiApiKey') ?? '';
     this.modelName =
       this.config.get<string>('ai.geminiModel') ?? 'gemini-1.5-flash';
-    this.timeoutMs =
-      this.config.get<number>('ai.requestTimeoutMs') ?? 10000;
+    this.timeoutMs = this.config.get<number>('ai.requestTimeoutMs') ?? 10000;
 
     if (this.apiKey) {
       this.client = new GoogleGenerativeAI(this.apiKey);
@@ -119,7 +118,8 @@ export class GeminiProvider implements IAiProvider {
         const candidate = response.candidates?.[0];
         const parts: Part[] = candidate?.content?.parts ?? [];
 
-        const toolCalls: Array<{ name: string; args: Record<string, any> }> = [];
+        const toolCalls: Array<{ name: string; args: Record<string, any> }> =
+          [];
         let text = '';
         // Gemini 2.5+ tra `thoughtSignature` kem functionCall part. SDK 0.24.1
         // chua co type nhung field ton tai o runtime — capture qua any cast.

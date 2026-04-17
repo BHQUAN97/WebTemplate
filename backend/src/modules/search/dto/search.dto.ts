@@ -1,9 +1,20 @@
-import { IsString, IsOptional, IsInt, IsEnum, MinLength, Min, Max } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsInt,
+  IsEnum,
+  MaxLength,
+  Min,
+  Max,
+} from 'class-validator';
 import { Type } from 'class-transformer';
 
 export class SearchDto {
+  // Khong dung @MinLength tai DTO — service tu return empty cho query qua ngan
+  // (thay vi throw 400 Bad Request, FE handle nhe nhang hon).
+  // @MaxLength chan attacker gui chuoi qua dai gay regex/parse cost.
   @IsString()
-  @MinLength(2)
+  @MaxLength(200)
   query: string;
 
   @IsOptional()

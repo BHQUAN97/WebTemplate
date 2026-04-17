@@ -90,7 +90,9 @@ export class MediaProcessor extends WorkerHost {
   /**
    * Dispatch theo job name.
    */
-  async process(job: Job<ThumbnailJobData>): Promise<{ thumbnailUrl?: string }> {
+  async process(
+    job: Job<ThumbnailJobData>,
+  ): Promise<{ thumbnailUrl?: string }> {
     switch (job.name) {
       case 'thumbnail':
         return this.handleThumbnail(job.data);
@@ -107,9 +109,8 @@ export class MediaProcessor extends WorkerHost {
   private async handleThumbnail(
     data: ThumbnailJobData,
   ): Promise<{ thumbnailUrl?: string }> {
-    const sizes = data.sizes && data.sizes.length > 0
-      ? data.sizes
-      : [200, 600, 1200];
+    const sizes =
+      data.sizes && data.sizes.length > 0 ? data.sizes : [200, 600, 1200];
 
     const media = await this.mediaRepo.findOne({ where: { id: data.mediaId } });
     if (!media) {

@@ -1,13 +1,15 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Inject, Injectable, Logger } from '@nestjs/common';
 import { Cron } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { InjectQueue } from '@nestjs/bullmq';
 import { Queue } from 'bullmq';
+import type Redis from 'ioredis';
 import { WebhookDelivery } from '../../modules/webhooks/entities/webhook-delivery.entity.js';
 import { QUEUE_NAMES } from '../queue/queue.module.js';
 import { WebhookJobData } from '../queue/webhook.processor.js';
 import { DeadLetterService } from '../queue/dead-letter.service.js';
+import { REDIS_CLIENT } from '../redis/redis.module.js';
 
 /**
  * Max attempts truoc khi move vao DLQ.
@@ -31,10 +33,20 @@ export class WebhookRetryCron {
     @InjectQueue(QUEUE_NAMES.WEBHOOK)
     private readonly webhookQueue: Queue<WebhookJobData>,
     private readonly dlqService: DeadLetterService,
+    @Inject(REDIS_CLIENT) private readonly redis: Redis,
   ) {}
 
   @Cron('*/10 * * * *', { name: 'webhook-retry' })
   async retry(): Promise<void> {
+    // Distributed lock — chong 2 instance cung chay cron retry duplicate webhook.
+    // SET NX EX cho atomic acquire + auto-release sau 9 phut (cron interval 10').
+    const lockKey = 'cron:webhook-retry:lock';
+    const acquired = await this.redis.set(lockKey, '1', 'EX', 540, 'NX');
+    if (acquired !== 'OK') {
+      this.logger.debug('Webhook retry skipped — another instance holds lock');
+      return;
+    }
+
     try {
       const now = new Date();
 
@@ -43,10 +55,9 @@ export class WebhookRetryCron {
         .createQueryBuilder('d')
         .where('d.success = :s', { s: false })
         .andWhere('d.attempt < :max', { max: MAX_WEBHOOK_ATTEMPTS })
-        .andWhere(
-          '(d.next_retry_at IS NULL OR d.next_retry_at <= :now)',
-          { now },
-        )
+        .andWhere('(d.next_retry_at IS NULL OR d.next_retry_at <= :now)', {
+          now,
+        })
         .orderBy('d.created_at', 'ASC')
         .limit(200)
         .getMany();

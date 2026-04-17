@@ -83,9 +83,9 @@ export type ToolName = keyof typeof PERMISSION_MATRIX;
  * Kiem tra actor co duoc goi tool hay khong. Deny-by-default: tool la khong biet → false.
  */
 export function isAllowed(toolName: string, actor: ChatActorType): boolean {
-  const allowed = (PERMISSION_MATRIX as Record<string, readonly ChatActorType[]>)[
-    toolName
-  ];
+  const allowed = (
+    PERMISSION_MATRIX as Record<string, readonly ChatActorType[]>
+  )[toolName];
   return Array.isArray(allowed) && allowed.includes(actor);
 }
 
@@ -117,14 +117,9 @@ export class ToolRateLimitError extends Error {
 /**
  * Helper — throw neu khong duoc phep. Goi o dau moi tool method.
  */
-export function assertPermission(
-  toolName: string,
-  ctx: ChatToolContext,
-): void {
+export function assertPermission(toolName: string, ctx: ChatToolContext): void {
   if (!ctx || !ctx.actor) {
-    throw new ToolPermissionDeniedError(
-      'Missing actor context for tool call.',
-    );
+    throw new ToolPermissionDeniedError('Missing actor context for tool call.');
   }
   if (!isAllowed(toolName, ctx.actor)) {
     throw new ToolPermissionDeniedError(

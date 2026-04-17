@@ -90,10 +90,16 @@ export class ApiKeysService extends BaseService<ApiKey> {
   }
 
   /**
-   * Thu hoi (vo hieu hoa) API key.
+   * Thu hoi (vo hieu hoa) API key — verify ownership tu tenantId truoc khi revoke.
+   * Truoc day revoke chi can id → IDOR cho phep tenant khac vo hieu hoa key.
    */
-  async revoke(id: string): Promise<ApiKey> {
+  async revoke(id: string, tenantId?: string): Promise<ApiKey> {
     const apiKey = await this.findById(id);
+    if (tenantId && apiKey.tenant_id !== tenantId) {
+      throw new (await import('@nestjs/common')).ForbiddenException(
+        'Cannot revoke API key from another tenant',
+      );
+    }
     apiKey.is_active = false;
     return this.apiKeyRepo.save(apiKey);
   }

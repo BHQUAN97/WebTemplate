@@ -1,12 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Put,
-  Param,
-  Body,
-  Query,
-} from '@nestjs/common';
+import { Controller, Get, Post, Put, Param, Body, Query } from '@nestjs/common';
 import { I18nService } from './i18n.service.js';
 import { CreateTranslationDto } from './dto/create-translation.dto.js';
 import { BulkTranslationsDto } from './dto/bulk-translations.dto.js';
@@ -52,8 +44,8 @@ export class I18nController {
   @Post('bulk')
   @Roles(UserRole.ADMIN)
   async bulkSet(@Body() dto: BulkTranslationsDto) {
-    const results = await this.i18nService.bulkSet(dto);
-    return successResponse(results, `${results.length} translations saved`);
+    const result = await this.i18nService.bulkSet(dto);
+    return successResponse(result, `${result.count} translations saved`);
   }
 
   /**

@@ -1,7 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, LessThan } from 'typeorm';
+import { Repository } from 'typeorm';
 import { AuditLog } from '../../modules/audit-logs/entities/audit-log.entity.js';
 import { SettingsService } from '../../modules/settings/settings.service.js';
 
@@ -21,6 +21,8 @@ export class AuditLogsCleanupCron {
 
   /**
    * Thuc thi cleanup: xoa audit_logs co created_at cu hon retentionDays.
+   * BATCH DELETE 10K rows/lan + sleep 100ms — tranh lock DB hang phut khi
+   * audit_logs co million+ rows.
    */
   @Cron(CronExpression.EVERY_DAY_AT_3AM, { name: 'audit-logs-cleanup' })
   async cleanup(): Promise<void> {
@@ -33,20 +35,30 @@ export class AuditLogsCleanupCron {
       );
       const cutoff = new Date(Date.now() - days * 24 * 60 * 60 * 1000);
 
-      const result = await this.auditRepo
-        .createQueryBuilder()
-        .delete()
-        .from(AuditLog)
-        .where('created_at < :cutoff', { cutoff })
-        .execute();
+      const BATCH = 10_000;
+      const MAX_ITERATIONS = 1000; // safety cap = 10M rows max per cron run
+      let totalDeleted = 0;
+      let iter = 0;
+
+      while (iter++ < MAX_ITERATIONS) {
+        // Sub-query trick cho MySQL — DELETE ... LIMIT khong support voi
+        // createQueryBuilder, dung raw query.
+        const result = await this.auditRepo.query(
+          `DELETE FROM audit_logs WHERE created_at < ? LIMIT ?`,
+          [cutoff, BATCH],
+        );
+        const affected = (result as any).affectedRows ?? 0;
+        totalDeleted += affected;
+        if (affected < BATCH) break;
+        // Sleep 100ms cho DB tho — khong block other queries
+        await new Promise((r) => setTimeout(r, 100));
+      }
 
       this.logger.log(
-        `Audit logs cleanup: deleted ${result.affected ?? 0} rows older than ${days} days`,
+        `Audit logs cleanup: deleted ${totalDeleted} rows older than ${days} days (${iter} batches)`,
       );
     } catch (err) {
-      this.logger.error(
-        `Audit logs cleanup failed: ${(err as Error).message}`,
-      );
+      this.logger.error(`Audit logs cleanup failed: ${(err as Error).message}`);
     }
   }
 }

@@ -19,9 +19,21 @@ import { generateReportPdf } from './generators/pdf.generator.js';
 import { generateReportXlsx } from './generators/xlsx.generator.js';
 
 /**
- * Max range cho phep query 1 lan: 365 ngay.
+ * Max range cho phep query 1 lan: 365 ngay (default backward-compat).
  */
 const MAX_RANGE_DAYS = 365;
+
+/**
+ * Cap cung cho so order load tu DB trong 1 lan goi getSalesReport.
+ * Bao ve khoi OOM khi tenant co ~1M orders trong khoang.
+ */
+const MAX_ORDERS_PER_REPORT = 100000;
+
+/**
+ * Cap range ngay cho 1 report: 1 nam + 1 ngay leap-safe.
+ * Date range cao hon nay -> tu choi som de tranh full table scan.
+ */
+const MAX_DATE_RANGE_DAYS = 366;
 
 /**
  * ReportsService — aggregate du lieu tu Orders/Products/Users/Inventory
@@ -53,10 +65,12 @@ export class ReportsService {
 
   /**
    * Build + render 1 report. Tra ve { buffer, mimeType, filename }.
+   * tenantId neu truyen vao se filter du lieu trong tenant do (multi-tenant).
    */
   async generate(
     type: ReportType,
     query: ReportQueryDto,
+    tenantId?: string | null,
   ): Promise<{ buffer: Buffer; mimeType: string; filename: string }> {
     const { dateFrom, dateTo } = this.validateRange(query);
     const format = query.format ?? 'xlsx';
@@ -64,16 +78,16 @@ export class ReportsService {
     let payload: ReportPayload;
     switch (type) {
       case 'sales':
-        payload = await this.getSalesReport({ dateFrom, dateTo });
+        payload = await this.getSalesReport({ dateFrom, dateTo, tenantId });
         break;
       case 'products':
-        payload = await this.getProductsReport({ dateFrom, dateTo });
+        payload = await this.getProductsReport({ dateFrom, dateTo, tenantId });
         break;
       case 'customers':
-        payload = await this.getCustomersReport({ dateFrom, dateTo });
+        payload = await this.getCustomersReport({ dateFrom, dateTo, tenantId });
         break;
       case 'inventory':
-        payload = await this.getInventoryReport({ dateFrom, dateTo });
+        payload = await this.getInventoryReport({ dateFrom, dateTo, tenantId });
         break;
       default:
         throw new BadRequestException(`Unknown report type: ${type}`);
@@ -110,39 +124,47 @@ export class ReportsService {
   /**
    * Shortcut: gen sales report PDF ra Buffer — cron/background dung de
    * dinh kem email. Tra ve Buffer truc tiep, khong kem filename.
+   * tenantId neu truyen vao -> filter rieng cho tenant do.
    */
   async generateSalesPdf(query: {
     dateFrom: Date | string;
     dateTo: Date | string;
+    tenantId?: string | null;
   }): Promise<Buffer> {
     const dateFrom =
       query.dateFrom instanceof Date
         ? query.dateFrom.toISOString()
         : query.dateFrom;
     const dateTo =
-      query.dateTo instanceof Date
-        ? query.dateTo.toISOString()
-        : query.dateTo;
-    const payload = await this.getSalesReport({ dateFrom, dateTo });
+      query.dateTo instanceof Date ? query.dateTo.toISOString() : query.dateTo;
+    const payload = await this.getSalesReport({
+      dateFrom,
+      dateTo,
+      tenantId: query.tenantId ?? null,
+    });
     return generateReportPdf(payload);
   }
 
   /**
    * Shortcut: gen sales report XLSX ra Buffer — tien dung cho cron gui attachment.
+   * tenantId neu truyen vao -> filter rieng cho tenant do.
    */
   async generateSalesXlsx(query: {
     dateFrom: Date | string;
     dateTo: Date | string;
+    tenantId?: string | null;
   }): Promise<Buffer> {
     const dateFrom =
       query.dateFrom instanceof Date
         ? query.dateFrom.toISOString()
         : query.dateFrom;
     const dateTo =
-      query.dateTo instanceof Date
-        ? query.dateTo.toISOString()
-        : query.dateTo;
-    const payload = await this.getSalesReport({ dateFrom, dateTo });
+      query.dateTo instanceof Date ? query.dateTo.toISOString() : query.dateTo;
+    const payload = await this.getSalesReport({
+      dateFrom,
+      dateTo,
+      tenantId: query.tenantId ?? null,
+    });
     return generateReportXlsx(payload);
   }
 
@@ -154,12 +176,36 @@ export class ReportsService {
    * Sales report — aggregate tu Orders.
    * Summary: total orders, revenue, AOV.
    * Tables: daily breakdown, top 10 products.
+   *
+   * Cap an toan:
+   *  - dateRange max MAX_DATE_RANGE_DAYS (1 nam + 1) -> tu choi neu vuot.
+   *  - getMany() bi cap MAX_ORDERS_PER_REPORT -> tranh OOM neu tenant
+   *    co ~1M orders. Hit cap se log warning.
+   *
+   * tenantId (optional): neu truyen vao -> filter o.tenant_id = :tenantId,
+   * dam bao multi-tenant data isolation. Pass null/undefined de aggregate toan he thong.
    */
   async getSalesReport(args: {
     dateFrom: string | null;
     dateTo: string | null;
+    tenantId?: string | null;
   }): Promise<ReportPayload> {
-    const { dateFrom, dateTo } = args;
+    const { dateFrom, dateTo, tenantId } = args;
+
+    // Validate range cung cho method nay (caller co the bypass validateRange)
+    if (dateFrom && dateTo) {
+      const fromMs = new Date(dateFrom).getTime();
+      const toMs = new Date(dateTo).getTime();
+      if (
+        !isNaN(fromMs) &&
+        !isNaN(toMs) &&
+        toMs - fromMs > MAX_DATE_RANGE_DAYS * 86400000
+      ) {
+        throw new BadRequestException(
+          `Date range exceeds max ${MAX_DATE_RANGE_DAYS} days for sales report`,
+        );
+      }
+    }
 
     const orderQb = this.orderRepo
       .createQueryBuilder('o')
@@ -168,8 +214,20 @@ export class ReportsService {
 
     if (dateFrom) orderQb.andWhere('o.created_at >= :dateFrom', { dateFrom });
     if (dateTo) orderQb.andWhere('o.created_at <= :dateTo', { dateTo });
+    if (tenantId) orderQb.andWhere('o.tenant_id = :tenantId', { tenantId });
+
+    // Cap so order load mot lan -> tranh OOM
+    orderQb.take(MAX_ORDERS_PER_REPORT);
 
     const orders = await orderQb.getMany();
+
+    if (orders.length >= MAX_ORDERS_PER_REPORT) {
+      this.logger.warn(
+        `getSalesReport hit cap MAX_ORDERS_PER_REPORT=${MAX_ORDERS_PER_REPORT} ` +
+          `(tenantId=${tenantId ?? 'all'}, range=${dateFrom ?? '-'}..${dateTo ?? '-'}). ` +
+          `Report sai lech — hay thu hep date range hoac chia nho theo tenant.`,
+      );
+    }
 
     const totalOrders = orders.length;
     const totalRevenue = orders.reduce(
@@ -197,7 +255,12 @@ export class ReportsService {
       }));
 
     // Top products from OrderItem
-    const topProducts = await this.getTopProducts(dateFrom, dateTo, 10);
+    const topProducts = await this.getTopProducts(
+      dateFrom,
+      dateTo,
+      10,
+      tenantId,
+    );
 
     const summary: ReportSummaryCard[] = [
       { label: 'Total orders', value: totalOrders },
@@ -238,12 +301,14 @@ export class ReportsService {
 
   /**
    * Products report — top sellers + low stock + total SKUs.
+   * tenantId neu truyen vao -> filter theo tenant cho top sellers (tinh qua orders).
    */
   async getProductsReport(args: {
     dateFrom: string | null;
     dateTo: string | null;
+    tenantId?: string | null;
   }): Promise<ReportPayload> {
-    const { dateFrom, dateTo } = args;
+    const { dateFrom, dateTo, tenantId } = args;
 
     const totalSkus = await this.productRepo.count({
       where: { deleted_at: null as any },
@@ -256,16 +321,18 @@ export class ReportsService {
       .andWhere('inv.quantity <= inv.low_stock_threshold')
       .getMany();
 
-    const topSellers = await this.getTopProducts(dateFrom, dateTo, 20);
+    const topSellers = await this.getTopProducts(
+      dateFrom,
+      dateTo,
+      20,
+      tenantId,
+    );
 
     // Lay product detail cho low stock items
     const productIds = lowStock
       .map((i) => i.product_id)
       .filter((id): id is string => !!id);
-    const productMap = new Map<
-      string,
-      { name: string; sku: string | null }
-    >();
+    const productMap = new Map<string, { name: string; sku: string | null }>();
     if (productIds.length > 0) {
       const products = await this.productRepo
         .createQueryBuilder('p')
@@ -332,23 +399,30 @@ export class ReportsService {
 
   /**
    * Customers report — new signups, active, top spenders.
+   * tenantId neu truyen vao -> filter Users + Orders theo tenant.
    */
   async getCustomersReport(args: {
     dateFrom: string | null;
     dateTo: string | null;
+    tenantId?: string | null;
   }): Promise<ReportPayload> {
-    const { dateFrom, dateTo } = args;
+    const { dateFrom, dateTo, tenantId } = args;
 
     const newUsersQb = this.userRepo
       .createQueryBuilder('u')
       .where('u.deleted_at IS NULL');
-    if (dateFrom) newUsersQb.andWhere('u.created_at >= :dateFrom', { dateFrom });
+    if (dateFrom)
+      newUsersQb.andWhere('u.created_at >= :dateFrom', { dateFrom });
     if (dateTo) newUsersQb.andWhere('u.created_at <= :dateTo', { dateTo });
+    if (tenantId) newUsersQb.andWhere('u.tenant_id = :tenantId', { tenantId });
     const newUsers = await newUsersQb.getCount();
 
-    const totalUsers = await this.userRepo.count({
-      where: { deleted_at: null as any },
-    });
+    const totalUsersQb = this.userRepo
+      .createQueryBuilder('u')
+      .where('u.deleted_at IS NULL');
+    if (tenantId)
+      totalUsersQb.andWhere('u.tenant_id = :tenantId', { tenantId });
+    const totalUsers = await totalUsersQb.getCount();
 
     // Active users — co order trong khoang
     const activeQb = this.orderRepo
@@ -357,6 +431,7 @@ export class ReportsService {
       .where('o.deleted_at IS NULL');
     if (dateFrom) activeQb.andWhere('o.created_at >= :dateFrom', { dateFrom });
     if (dateTo) activeQb.andWhere('o.created_at <= :dateTo', { dateTo });
+    if (tenantId) activeQb.andWhere('o.tenant_id = :tenantId', { tenantId });
     activeQb.groupBy('o.user_id');
 
     const activeRaw = await activeQb.getRawMany<{ user_id: string }>();
@@ -373,10 +448,9 @@ export class ReportsService {
     if (dateFrom)
       topSpendersQb.andWhere('o.created_at >= :dateFrom', { dateFrom });
     if (dateTo) topSpendersQb.andWhere('o.created_at <= :dateTo', { dateTo });
-    topSpendersQb
-      .groupBy('o.user_id')
-      .orderBy('total_spent', 'DESC')
-      .limit(20);
+    if (tenantId)
+      topSpendersQb.andWhere('o.tenant_id = :tenantId', { tenantId });
+    topSpendersQb.groupBy('o.user_id').orderBy('total_spent', 'DESC').limit(20);
 
     const topSpendersRaw = await topSpendersQb.getRawMany<{
       user_id: string;
@@ -392,7 +466,8 @@ export class ReportsService {
         .createQueryBuilder('u')
         .where('u.id IN (:...ids)', { ids })
         .getMany();
-      for (const u of users) userMap.set(u.id, { email: u.email, name: u.name });
+      for (const u of users)
+        userMap.set(u.id, { email: u.email, name: u.name });
     }
 
     const topSpenders = topSpendersRaw.map((r) => ({
@@ -433,12 +508,18 @@ export class ReportsService {
   /**
    * Inventory report — current stock, low-stock warnings, value on-hand.
    * Bo qua dateRange — inventory la snapshot hien tai.
+   * tenantId hien tai accept de ket qua API consistent — Inventory entity
+   * chua co tenant_id column nen filter chi ap dung khi entity bo sung sau.
    */
   async getInventoryReport(args: {
     dateFrom: string | null;
     dateTo: string | null;
+    tenantId?: string | null;
   }): Promise<ReportPayload> {
     const { dateFrom, dateTo } = args;
+    // tenantId chua duoc dung — Inventory chua co tenant_id column.
+    // Khi entity bo sung, them filter o day.
+    void args.tenantId;
 
     const items = await this.inventoryRepo
       .createQueryBuilder('inv')
@@ -535,11 +616,13 @@ export class ReportsService {
 
   /**
    * Tinh top N san pham ban chay — join OrderItem + Order theo ngay.
+   * tenantId neu truyen vao -> filter o.tenant_id (multi-tenant isolation).
    */
   private async getTopProducts(
     dateFrom: string | null,
     dateTo: string | null,
     limit: number,
+    tenantId?: string | null,
   ): Promise<
     Array<{ name: string; sku: string; units: number; revenue: string }>
   > {
@@ -556,10 +639,9 @@ export class ReportsService {
 
     if (dateFrom) qb.andWhere('o.created_at >= :dateFrom', { dateFrom });
     if (dateTo) qb.andWhere('o.created_at <= :dateTo', { dateTo });
+    if (tenantId) qb.andWhere('o.tenant_id = :tenantId', { tenantId });
 
-    qb.groupBy('oi.product_id')
-      .orderBy('revenue', 'DESC')
-      .limit(limit);
+    qb.groupBy('oi.product_id').orderBy('revenue', 'DESC').limit(limit);
 
     const raw = await qb.getRawMany<{
       product_id: string;
@@ -579,11 +661,12 @@ export class ReportsService {
 
   /**
    * Validate date range + tra ve `{ dateFrom, dateTo }` da normalize.
-   * Throw neu dateFrom > dateTo hoac range > 365 ngay.
+   * Throw neu dateFrom > dateTo hoac range > MAX_RANGE_DAYS ngay.
    */
-  private validateRange(
-    query: ReportQueryDto,
-  ): { dateFrom: string | null; dateTo: string | null } {
+  private validateRange(query: ReportQueryDto): {
+    dateFrom: string | null;
+    dateTo: string | null;
+  } {
     const dateFrom = query.dateFrom ?? null;
     const dateTo = query.dateTo ?? null;
 
@@ -606,6 +689,13 @@ export class ReportsService {
 
     return { dateFrom, dateTo };
   }
+
+  /**
+   * Public helper de check date range theo cap MAX_DATE_RANGE_DAYS — caller
+   * (cron / API ngoai) co the dung de fail-fast truoc khi goi getSalesReport.
+   */
+  static readonly MAX_DATE_RANGE_DAYS = MAX_DATE_RANGE_DAYS;
+  static readonly MAX_ORDERS_PER_REPORT = MAX_ORDERS_PER_REPORT;
 
   /**
    * Format tien VND — khong dung Intl de tranh locale khac nhau giua OS.

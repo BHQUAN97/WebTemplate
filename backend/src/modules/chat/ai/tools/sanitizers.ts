@@ -24,7 +24,9 @@ export function sanitizeProduct(
     slug: p.slug,
     name: p.name,
     description:
-      typeof p.description === 'string' ? p.description.slice(0, 500) : undefined,
+      typeof p.description === 'string'
+        ? p.description.slice(0, 500)
+        : undefined,
     shortDescription:
       typeof p.short_description === 'string'
         ? p.short_description.slice(0, 200)
@@ -36,7 +38,10 @@ export function sanitizeProduct(
     image:
       Array.isArray(p.images) && p.images.length > 0 ? p.images[0]?.url : null,
     images: Array.isArray(p.images)
-      ? p.images.slice(0, 3).map((i: any) => i?.url).filter(Boolean)
+      ? p.images
+          .slice(0, 3)
+          .map((i: any) => i?.url)
+          .filter(Boolean)
       : [],
     inStock: Boolean(p.inStock),
     stock: typeof p.stock === 'number' ? p.stock : null,
@@ -90,8 +95,7 @@ export function sanitizeOrder(
     statusLabel: mapStatusLabel(o.status),
     total: o.total != null ? Number(o.total) : null,
     subtotal: o.subtotal != null ? Number(o.subtotal) : undefined,
-    shippingFee:
-      o.shipping_fee != null ? Number(o.shipping_fee) : undefined,
+    shippingFee: o.shipping_fee != null ? Number(o.shipping_fee) : undefined,
     discountAmount:
       o.discount_amount != null ? Number(o.discount_amount) : undefined,
     currency: o.currency ?? 'VND',

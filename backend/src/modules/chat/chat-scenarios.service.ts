@@ -132,10 +132,7 @@ export class ChatScenariosService extends BaseService<ChatScenario> {
         // Vi du: keyword "hong" (tu "hỏng") KHONG duoc match "khong" (tu "không").
         // Neu keyword chua nhieu tu (co space) → dung \b hai dau van OK vi space cung la boundary.
         return keywords.some((kw) => {
-          const pattern = new RegExp(
-            `\\b${this.escapeRegExp(kw)}\\b`,
-            'i',
-          );
+          const pattern = new RegExp(`\\b${this.escapeRegExp(kw)}\\b`, 'i');
           return pattern.test(message);
         });
       }

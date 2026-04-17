@@ -64,14 +64,39 @@ export class CategoriesService extends BaseService<Category> {
       (data as any).slug = slug;
     }
 
-    return super.create(data);
+    const created = await super.create(data);
+    this.invalidateTreeCache();
+    return created;
+  }
+
+  async update(id: string, data: DeepPartial<Category>): Promise<Category> {
+    const updated = await super.update(id, data);
+    this.invalidateTreeCache();
+    return updated;
+  }
+
+  async softDelete(id: string): Promise<void> {
+    await super.softDelete(id);
+    this.invalidateTreeCache();
   }
 
   /**
    * Tra ve cay phan cap danh muc theo type.
-   * Chi lay cac root categories (parent_id = null), kem children.
+   * Cache in-memory 5 phut — categories tree thay doi cham, doc nhieu lan.
+   * Bound query 500 root + 2000 grandchildren de tranh OOM neu DB co 100k+ rows.
    */
+  private treeCache = new Map<string, { data: Category[]; at: number }>();
+  private readonly TREE_CACHE_TTL_MS = 5 * 60 * 1000;
+  private readonly TREE_MAX_ROOTS = 500;
+  private readonly TREE_MAX_GRANDCHILDREN = 2000;
+
   async findTree(type?: string): Promise<Category[]> {
+    const cacheKey = type || '__all__';
+    const cached = this.treeCache.get(cacheKey);
+    if (cached && Date.now() - cached.at < this.TREE_CACHE_TTL_MS) {
+      return cached.data;
+    }
+
     const where: any = {
       parent_id: IsNull(),
       deleted_at: IsNull(),
@@ -84,6 +109,7 @@ export class CategoriesService extends BaseService<Category> {
       where,
       relations: ['children'],
       order: { sort_order: 'ASC' },
+      take: this.TREE_MAX_ROOTS,
     });
 
     // Gom tat ca child IDs de load grandchildren trong 1 query (tranh N+1).
@@ -101,6 +127,7 @@ export class CategoriesService extends BaseService<Category> {
       const grandchildren = await this.categoryRepo.find({
         where: { parent_id: In(childIds), deleted_at: IsNull() },
         order: { sort_order: 'ASC' },
+        take: this.TREE_MAX_GRANDCHILDREN,
       });
 
       // Index grandchildren theo parent_id de gan nhanh
@@ -118,7 +145,15 @@ export class CategoriesService extends BaseService<Category> {
       }
     }
 
+    this.treeCache.set(cacheKey, { data: roots, at: Date.now() });
     return roots;
+  }
+
+  /**
+   * Invalidate tree cache — goi sau khi create/update/delete category.
+   */
+  private invalidateTreeCache(): void {
+    this.treeCache.clear();
   }
 
   /**
@@ -143,15 +178,29 @@ export class CategoriesService extends BaseService<Category> {
 
   /**
    * Cap nhat thu tu sap xep cho nhieu categories.
+   * Batch UPDATE ... CASE WHEN ... — 1 query thay vi N queries.
    */
-  async reorder(
-    items: { id: string; sort_order: number }[],
-  ): Promise<void> {
-    for (const item of items) {
-      await this.categoryRepo.update(item.id, {
-        sort_order: item.sort_order,
-      });
+  async reorder(items: { id: string; sort_order: number }[]): Promise<void> {
+    if (!items.length) return;
+
+    const ids = items.map((i) => i.id);
+    const cases = items
+      .map((i) => `WHEN ? THEN ?`)
+      .join(' ');
+    const params: any[] = [];
+    for (const i of items) {
+      params.push(i.id, i.sort_order);
     }
+    params.push(...ids);
+
+    await this.categoryRepo.query(
+      `UPDATE categories SET sort_order = CASE id ${cases} END WHERE id IN (${ids
+        .map(() => '?')
+        .join(',')})`,
+      params,
+    );
+
+    this.invalidateTreeCache();
     this.logger.log(`Reordered ${items.length} categories`);
   }
 }

@@ -65,10 +65,7 @@ export class TenantsController {
    * Lay chi tiet 1 tenant — chi owner hoac admin duoc xem.
    */
   @Get(':id')
-  async findOne(
-    @Param('id') id: string,
-    @CurrentUser() user: ICurrentUser,
-  ) {
+  async findOne(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     const tenant = await this.tenantsService.findById(id);
     // Admin xem duoc tat ca; user thuong chi xem tenant cua minh (owner)
     if (user.role !== UserRole.ADMIN && tenant.owner_id !== user.id) {

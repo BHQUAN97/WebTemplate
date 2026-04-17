@@ -123,7 +123,9 @@ export class EmailProcessor extends WorkerHost {
    * Xu ly job "send" — render Handlebars tu template trong DB va gui qua Resend.
    * Neu co attachments, decode base64 -> Buffer va kem vao Resend payload.
    */
-  async process(job: Job<EmailJobData>): Promise<{ id?: string; skipped?: boolean }> {
+  async process(
+    job: Job<EmailJobData>,
+  ): Promise<{ id?: string; skipped?: boolean }> {
     const {
       to,
       templateName,
@@ -205,9 +207,7 @@ export class EmailProcessor extends WorkerHost {
       this.logger.error(
         `Resend error for ${to} (${templateName}): ${JSON.stringify(err)}`,
       );
-      throw new Error(
-        typeof err === 'string' ? err : JSON.stringify(err),
-      );
+      throw new Error(typeof err === 'string' ? err : JSON.stringify(err));
     }
 
     // Success path — cleanup S3 temp attachments (best effort, khong fail job).

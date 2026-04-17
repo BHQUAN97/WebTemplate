@@ -22,7 +22,13 @@
  */
 import { Injectable, Logger, Optional } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Brackets, IsNull, LessThanOrEqual, MoreThanOrEqual } from 'typeorm';
+import {
+  Repository,
+  Brackets,
+  IsNull,
+  LessThanOrEqual,
+  MoreThanOrEqual,
+} from 'typeorm';
 import { Product } from '../../../products/entities/product.entity.js';
 import { Order } from '../../../orders/entities/order.entity.js';
 import { OrderItem } from '../../../orders/entities/order-item.entity.js';
@@ -81,6 +87,8 @@ export class ChatToolsService {
   /** In-memory rate limit buckets per conversation. */
   private readonly buckets = new Map<string, RateLimitBucket>();
   private static readonly WINDOW_MS = 60 * 60 * 1000; // 1h
+  private lastBucketCleanup = 0;
+  private static readonly BUCKET_CLEANUP_INTERVAL_MS = 5 * 60 * 1000; // 5 phut
 
   constructor(
     @InjectRepository(Product) productRepo: Repository<Product>,
@@ -106,14 +114,33 @@ export class ChatToolsService {
   // Rate limiting + audit wrappers
   // =========================================================================
 
-  /** Kiem tra rate limit — throw neu vuot. */
+  /**
+   * Kiem tra rate limit — throw neu vuot.
+   * Bucket key: uu tien customerId (per-user global), fallback conversationId.
+   * Truoc day chi key by conversationId — attacker spawn nhieu conversation de bypass.
+   */
   private checkRateLimit(ctx: ChatToolContext, toolName: string): void {
-    if (!ctx.conversationId) return; // skip (test context)
+    const bucketKey =
+      ctx.customerId || ctx.conversationId;
+    if (!bucketKey) return; // skip (test context khong co user/conv)
     const now = Date.now();
-    let bucket = this.buckets.get(ctx.conversationId);
+
+    // Periodic cleanup — remove buckets cu hon 2x window de tranh memory leak
+    if (
+      now - this.lastBucketCleanup >
+      ChatToolsService.BUCKET_CLEANUP_INTERVAL_MS
+    ) {
+      this.lastBucketCleanup = now;
+      const cutoff = now - 2 * ChatToolsService.WINDOW_MS;
+      for (const [key, b] of this.buckets) {
+        if (b.windowStart < cutoff) this.buckets.delete(key);
+      }
+    }
+
+    let bucket = this.buckets.get(bucketKey);
     if (!bucket || now - bucket.windowStart > ChatToolsService.WINDOW_MS) {
       bucket = { count: 0, orderLookups: 0, windowStart: now };
-      this.buckets.set(ctx.conversationId, bucket);
+      this.buckets.set(bucketKey, bucket);
     }
     bucket.count += 1;
     if (bucket.count > TOOL_CALL_LIMITS.MAX_PER_CONVERSATION_PER_HOUR) {
@@ -177,9 +204,7 @@ export class ChatToolsService {
       });
 
       // Convert thanh { error } de AI tiep tuc respond, khong crash pipeline
-      this.logger.warn(
-        `tool ${toolName} ${resultKind}: ${e.message}`,
-      );
+      this.logger.warn(`tool ${toolName} ${resultKind}: ${e.message}`);
       return { error: e.message };
     }
   }
@@ -391,11 +416,7 @@ export class ChatToolsService {
       if (input.kind === 'ulid') {
         qb.andWhere('o.id = :oid', { oid: input.keyword });
       } else if (input.kind === 'email' || input.kind === 'phone') {
-        qb.innerJoin(
-          User,
-          'u',
-          'u.id = o.user_id AND u.deleted_at IS NULL',
-        );
+        qb.innerJoin(User, 'u', 'u.id = o.user_id AND u.deleted_at IS NULL');
         if (input.kind === 'email') {
           qb.andWhere('u.email = :em', { em: input.keyword.toLowerCase() });
         } else {
@@ -416,11 +437,11 @@ export class ChatToolsService {
         .orderBy('o.created_at', 'DESC')
         .take(input.limit)
         .getMany();
-      const itemCounts = await this.countItemsForOrders(
-        rows.map((r) => r.id),
-      );
+      const itemCounts = await this.countItemsForOrders(rows.map((r) => r.id));
       return rows
-        .map((r) => sanitizeOrder({ ...r, itemCount: itemCounts.get(r.id) ?? 0 }, ctx))
+        .map((r) =>
+          sanitizeOrder({ ...r, itemCount: itemCounts.get(r.id) ?? 0 }, ctx),
+        )
         .filter((x): x is Record<string, any> => x !== null);
     }) as Promise<ToolResult<Array<Record<string, any>>>>;
   }

@@ -38,5 +38,4 @@ export class ChatToolCall extends BaseEntity {
   @Index()
   @Column({ type: 'char', length: 26, nullable: true })
   customerId: string | null;
-
 }

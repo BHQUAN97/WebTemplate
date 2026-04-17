@@ -61,10 +61,7 @@ export class SettingsController {
    */
   @Put(':key')
   @Roles(UserRole.ADMIN)
-  async updateByKey(
-    @Param('key') key: string,
-    @Body() dto: UpdateSettingDto,
-  ) {
+  async updateByKey(@Param('key') key: string, @Body() dto: UpdateSettingDto) {
     const setting = await this.settingsService.get(key);
     const updated = await this.settingsService.update(setting.id, {
       value: dto.value,

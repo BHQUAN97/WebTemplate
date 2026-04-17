@@ -1,4 +1,11 @@
-import { IsOptional, IsInt, Min, Max, IsString, MaxLength } from 'class-validator';
+import {
+  IsOptional,
+  IsInt,
+  Min,
+  Max,
+  IsString,
+  MaxLength,
+} from 'class-validator';
 import { IsSafeText } from '../../../common/validators/index.js';
 
 /**

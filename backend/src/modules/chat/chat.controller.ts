@@ -88,9 +88,7 @@ export class ChatController {
       return;
     }
     if (!sessionHeader || sessionHeader !== storedSession) {
-      throw new ForbiddenException(
-        'Customer session invalid or missing',
-      );
+      throw new ForbiddenException('Customer session invalid or missing');
     }
   }
 
@@ -224,10 +222,7 @@ export class ChatController {
    */
   @Roles(UserRole.ADMIN, UserRole.MANAGER)
   @Patch('admin/chat/conversations/:id/close')
-  async close(
-    @Param('id') id: string,
-    @Body() dto: CloseConversationDto,
-  ) {
+  async close(@Param('id') id: string, @Body() dto: CloseConversationDto) {
     const conv = await this.chatService.closeConversation(id, dto);
     return successResponse(conv, 'Conversation closed');
   }

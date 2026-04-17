@@ -14,10 +14,7 @@ import {
 import { ChatActorType, ChatToolContext } from './tools/tool-context.js';
 import { GeminiProvider } from './providers/gemini.provider.js';
 import { MockProvider } from './providers/mock.provider.js';
-import {
-  IAiProvider,
-  ProviderMessage,
-} from './providers/provider.types.js';
+import { IAiProvider, ProviderMessage } from './providers/provider.types.js';
 import {
   DEFAULT_SYSTEM_PROMPT,
   buildSystemPrompt,
@@ -42,7 +39,11 @@ export interface AiReplyResult {
   metadata: {
     model?: string;
     tokens?: { prompt?: number; completion?: number; total?: number };
-    toolCalls?: Array<{ name: string; args: Record<string, any>; result?: any }>;
+    toolCalls?: Array<{
+      name: string;
+      args: Record<string, any>;
+      result?: any;
+    }>;
     scenarioId?: string;
     fallback?: boolean;
     provider?: string;
@@ -84,7 +85,9 @@ export class AiService {
       where: { id: conversationId },
     });
     if (!conversation) {
-      this.logger.warn(`generateReply: conversation ${conversationId} not found`);
+      this.logger.warn(
+        `generateReply: conversation ${conversationId} not found`,
+      );
       return this.canned('Không tìm thấy hội thoại.', true);
     }
 
@@ -145,8 +148,7 @@ export class AiService {
       content: m.content,
     }));
 
-    const maxIterations =
-      this.config.get<number>('ai.maxToolIterations') ?? 3;
+    const maxIterations = this.config.get<number>('ai.maxToolIterations') ?? 3;
     const temperature = this.config.get<number>('ai.temperature') ?? 0.7;
     const maxTokens = this.config.get<number>('ai.maxTokens') ?? 1024;
 
@@ -170,7 +172,9 @@ export class AiService {
       args: Record<string, any>;
       result?: any;
     }> = [];
-    let finalUsage: { input?: number; output?: number; total?: number } | undefined;
+    let finalUsage:
+      | { input?: number; output?: number; total?: number }
+      | undefined;
     let finalModel: string | undefined;
 
     try {

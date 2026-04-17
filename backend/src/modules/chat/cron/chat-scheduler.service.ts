@@ -1,14 +1,7 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { InjectRepository } from '@nestjs/typeorm';
-import {
-  Brackets,
-  IsNull,
-  LessThan,
-  MoreThan,
-  Not,
-  Repository,
-} from 'typeorm';
+import { Brackets, IsNull, LessThan, MoreThan, Not, Repository } from 'typeorm';
 import { CronExpressionParser } from 'cron-parser';
 import {
   ConversationStatus,
@@ -106,10 +99,7 @@ export class ChatSchedulerService {
         .getMany();
 
       const targets = candidates
-        .filter(
-          (c) =>
-            !!c.metadata?.cartId && !c.metadata?.abandonedReminded,
-        )
+        .filter((c) => !!c.metadata?.cartId && !c.metadata?.abandonedReminded)
         .slice(0, 50);
 
       for (const conv of targets) {
@@ -141,7 +131,9 @@ export class ChatSchedulerService {
       }
 
       if (targets.length > 0) {
-        this.logger.log(`abandonedCartReminder sent ${targets.length} reminders`);
+        this.logger.log(
+          `abandonedCartReminder sent ${targets.length} reminders`,
+        );
       }
     } catch (err) {
       this.logger.error(
@@ -203,9 +195,7 @@ export class ChatSchedulerService {
         this.logger.log(`followUpAfterClose sent ${targets.length} follow-ups`);
       }
     } catch (err) {
-      this.logger.error(
-        `followUpAfterClose error: ${(err as Error).message}`,
-      );
+      this.logger.error(`followUpAfterClose error: ${(err as Error).message}`);
     }
   }
 
@@ -307,17 +297,14 @@ export class ChatSchedulerService {
       for (const conv of conversations) {
         try {
           // Interpolate template voi conversation context
-          const content = this.scenariosService.interpolate(
-            scenario.response,
-            {
-              customer: {
-                name: conv.customerName,
-                email: conv.customerEmail,
-                phone: conv.customerPhone,
-              },
-              conversationId: conv.id,
+          const content = this.scenariosService.interpolate(scenario.response, {
+            customer: {
+              name: conv.customerName,
+              email: conv.customerEmail,
+              phone: conv.customerPhone,
             },
-          );
+            conversationId: conv.id,
+          });
           if (!content) continue;
 
           await this.chatService.sendMessage(

@@ -91,7 +91,9 @@ export class ChatService {
       });
     }
 
-    this.logger.log(`Started conversation ${saved.id} channel=${saved.channel}`);
+    this.logger.log(
+      `Started conversation ${saved.id} channel=${saved.channel}`,
+    );
     return this.conversationRepo.findOneByOrFail({ id: saved.id });
   }
 
@@ -273,7 +275,9 @@ export class ChatService {
     conv.mode = ScheduleMode.HUMAN;
     conv.status = ConversationStatus.WITH_AGENT;
     const saved = await this.conversationRepo.save(conv);
-    this.logger.log(`Assigned agent ${agentId} to conversation ${conversationId}`);
+    this.logger.log(
+      `Assigned agent ${agentId} to conversation ${conversationId}`,
+    );
     return saved;
   }
 
@@ -351,7 +355,13 @@ export class ChatService {
 
     // Map weekday string -> 0..6 (0=Sunday)
     const weekdayMap: Record<string, number> = {
-      Sun: 0, Mon: 1, Tue: 2, Wed: 3, Thu: 4, Fri: 5, Sat: 6,
+      Sun: 0,
+      Mon: 1,
+      Tue: 2,
+      Wed: 3,
+      Thu: 4,
+      Fri: 5,
+      Sat: 6,
     };
     const currentDay = weekdayMap[weekdayStr] ?? 1;
 
@@ -400,9 +410,7 @@ export class ChatService {
       // AiService hien tai return string (stub), wave-2 se return {content, metadata}
       // Defensive: support ca 2 hinh thuc
       const content =
-        typeof reply === 'string'
-          ? reply
-          : ((reply as any)?.content ?? '');
+        typeof reply === 'string' ? reply : ((reply as any)?.content ?? '');
       const metadata =
         typeof reply === 'string' ? null : ((reply as any)?.metadata ?? null);
 
@@ -474,9 +482,7 @@ export class ChatService {
         gw.emitToConversation(conversationId, CHAT_EVENTS.MESSAGE_NEW, msg);
       }
     } catch (err) {
-      this.logger.warn(
-        `emitMessage failed: ${(err as Error).message}`,
-      );
+      this.logger.warn(`emitMessage failed: ${(err as Error).message}`);
     }
   }
 

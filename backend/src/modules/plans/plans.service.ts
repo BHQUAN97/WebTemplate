@@ -1,9 +1,16 @@
-import { Injectable, BadRequestException } from '@nestjs/common';
-import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, IsNull } from 'typeorm';
+import {
+  Injectable,
+  BadRequestException,
+  ForbiddenException,
+} from '@nestjs/common';
+import { InjectRepository, InjectDataSource } from '@nestjs/typeorm';
+import { Repository, IsNull, DataSource } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { Plan, PlanFeatures } from './entities/plan.entity.js';
-import { Subscription, SubscriptionStatus } from './entities/subscription.entity.js';
+import {
+  Subscription,
+  SubscriptionStatus,
+} from './entities/subscription.entity.js';
 import { Usage } from './entities/usage.entity.js';
 
 /**
@@ -21,6 +28,8 @@ export class PlansService extends BaseService<Plan> {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(Usage)
     private readonly usageRepo: Repository<Usage>,
+    @InjectDataSource()
+    private readonly dataSource: DataSource,
   ) {
     super(planRepo, 'Plan');
   }
@@ -77,7 +86,9 @@ export class PlansService extends BaseService<Plan> {
     const subscription = this.subscriptionRepo.create({
       tenant_id: tenantId,
       plan_id: planId,
-      status: isTrialing ? SubscriptionStatus.TRIALING : SubscriptionStatus.ACTIVE,
+      status: isTrialing
+        ? SubscriptionStatus.TRIALING
+        : SubscriptionStatus.ACTIVE,
       current_period_start: now,
       current_period_end: periodEnd,
     });
@@ -170,7 +181,7 @@ export class PlansService extends BaseService<Plan> {
     }
 
     const plan = await this.findById(subscription.plan_id);
-    const features = plan.features as PlanFeatures;
+    const features = plan.features;
 
     // Mapping metric -> plan limit
     const limitMap: Record<string, number> = {
@@ -188,12 +199,114 @@ export class PlansService extends BaseService<Plan> {
       .select('COALESCE(SUM(u.value), 0)', 'total')
       .where('u.tenant_id = :tenantId', { tenantId })
       .andWhere('u.metric = :metric', { metric })
-      .andWhere('u.period_start >= :start', { start: subscription.current_period_start })
-      .andWhere('u.period_end <= :end', { end: subscription.current_period_end })
+      .andWhere('u.period_start >= :start', {
+        start: subscription.current_period_start,
+      })
+      .andWhere('u.period_end <= :end', {
+        end: subscription.current_period_end,
+      })
       .getRawOne();
 
     const used = Number(usage?.total || 0);
     return { used, limit, allowed: used < limit };
+  }
+
+  /**
+   * Atomic pre-check + reserve quota cho 1 resource.
+   *
+   * Cach hoat dong:
+   * 1. Mo transaction.
+   * 2. Lock subscription cua tenant (pessimistic_write) -> chan request khac doc/ghi
+   *    cung subscription cho den khi tx nay xong.
+   * 3. Tinh tong usage hien tai trong period (cung trong tx).
+   * 4. So sanh `currentUsed + increment <= limit`. Neu vuot -> ForbiddenException.
+   * 5. Insert ngay 1 row Usage (= reserve quota) trong cung tx -> commit.
+   *
+   * Cac service khac (orders, products, ...) GOI METHOD NAY TRUOC khi tao resource.
+   * Neu khong throw thi quota da duoc giu cho, cu the tao tiep.
+   *
+   * Note: schema khong co cot `usage_count`/`quota` tren subscriptions, nen dung
+   * pattern "lock subscription + count usage trong tx" de dat tinh atomic tuong duong.
+   */
+  async assertQuotaAvailable(
+    tenantId: string,
+    resourceType: string,
+    increment = 1,
+  ): Promise<void> {
+    if (increment <= 0) return;
+
+    await this.dataSource.transaction(async (manager) => {
+      // 1. Lock subscription active/trialing cua tenant
+      const subscription = await manager
+        .createQueryBuilder(Subscription, 's')
+        .setLock('pessimistic_write')
+        .where('s.tenant_id = :tenantId', { tenantId })
+        .andWhere('s.status IN (:...statuses)', {
+          statuses: [SubscriptionStatus.ACTIVE, SubscriptionStatus.TRIALING],
+        })
+        .orderBy('s.created_at', 'DESC')
+        .getOne();
+
+      if (!subscription) {
+        throw new ForbiddenException(
+          'Tenant chua co goi dich vu hop le, khong the tao resource',
+        );
+      }
+
+      // 2. Lay limit tu plan
+      const plan = await manager.findOne(Plan, {
+        where: { id: subscription.plan_id },
+      });
+      if (!plan) {
+        throw new ForbiddenException('Plan khong ton tai');
+      }
+      const features = plan.features;
+      const limitMap: Record<string, number> = {
+        products: features.max_products,
+        storage_bytes: features.max_storage_gb * 1024 * 1024 * 1024,
+        users: features.max_users,
+        api_calls: 100000,
+      };
+      const limit = limitMap[resourceType] ?? 0;
+      if (limit <= 0) {
+        throw new ForbiddenException(
+          `Goi dich vu khong cho phep tao "${resourceType}"`,
+        );
+      }
+
+      // 3. Tinh tong usage trong period hien tai (trong cung tx, sau khi da lock subscription)
+      const usageRow = await manager
+        .createQueryBuilder(Usage, 'u')
+        .select('COALESCE(SUM(u.value), 0)', 'total')
+        .where('u.tenant_id = :tenantId', { tenantId })
+        .andWhere('u.metric = :metric', { metric: resourceType })
+        .andWhere('u.period_start >= :start', {
+          start: subscription.current_period_start,
+        })
+        .andWhere('u.period_end <= :end', {
+          end: subscription.current_period_end,
+        })
+        .getRawOne<{ total: string | number }>();
+
+      const used = Number(usageRow?.total || 0);
+
+      // 4. Check quota
+      if (used + increment > limit) {
+        throw new ForbiddenException(
+          `Quota exceeded: ${resourceType} (used=${used}, limit=${limit}, requested=${increment})`,
+        );
+      }
+
+      // 5. Reserve ngay bang cach insert 1 row Usage trong cung tx
+      const reserved = manager.create(Usage, {
+        tenant_id: tenantId,
+        metric: resourceType,
+        value: increment,
+        period_start: subscription.current_period_start,
+        period_end: subscription.current_period_end,
+      });
+      await manager.save(Usage, reserved);
+    });
   }
 
   /**
@@ -231,7 +344,7 @@ export class PlansService extends BaseService<Plan> {
     }
 
     const plan = await this.findById(subscription.plan_id);
-    const features = plan.features as PlanFeatures;
+    const features = plan.features;
     return !!features[feature];
   }
 }

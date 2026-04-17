@@ -11,10 +11,7 @@ import { AnalyticsService } from './analytics.service.js';
 import { TrackPageviewDto } from './dto/track-pageview.dto.js';
 import { TrackEventDto } from './dto/track-event.dto.js';
 import { QueryAnalyticsDto } from './dto/query-analytics.dto.js';
-import {
-  RangeQueryDto,
-  TopProductsQueryDto,
-} from './dto/range-query.dto.js';
+import { RangeQueryDto, TopProductsQueryDto } from './dto/range-query.dto.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { UserRole } from '../../common/constants/index.js';
@@ -25,7 +22,9 @@ export class AnalyticsController {
   constructor(private readonly analyticsService: AnalyticsService) {}
 
   /**
-   * Public — ghi nhan page view.
+   * Public — ghi nhan page view (async qua BullMQ).
+   * Tra ve {enqueued:true} ngay sau khi push job vao queue (fire-and-forget)
+   * de tranh exhaust DB connection pool khi traffic cao.
    */
   @Public()
   @Post('pageview')
@@ -35,23 +34,24 @@ export class AnalyticsController {
     @Headers('user-agent') userAgent: string,
   ) {
     const ip = req.ip || req.connection?.remoteAddress || '0.0.0.0';
-    const pageView = await this.analyticsService.trackPageView(
+    const result = await this.analyticsService.trackPageView(
       dto,
       ip,
       userAgent || '',
       req.user?.id,
     );
-    return successResponse(pageView, 'Page view tracked');
+    return successResponse(result, 'Page view queued');
   }
 
   /**
-   * Public — ghi nhan event.
+   * Public — ghi nhan event (async qua BullMQ).
+   * Worker se sanitize PII truoc khi persist (GDPR compliance).
    */
   @Public()
   @Post('event')
   async trackEvent(@Body() dto: TrackEventDto, @Req() req: any) {
-    const event = await this.analyticsService.trackEvent(dto, req.user?.id);
-    return successResponse(event, 'Event tracked');
+    const result = await this.analyticsService.trackEvent(dto, req.user?.id);
+    return successResponse(result, 'Event queued');
   }
 
   /**

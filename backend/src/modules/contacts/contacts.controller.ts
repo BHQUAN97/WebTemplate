@@ -7,6 +7,7 @@ import {
   Param,
   Query,
 } from '@nestjs/common';
+import { Throttle } from '@nestjs/throttler';
 import { ContactsService } from './contacts.service.js';
 import { CreateContactDto } from './dto/create-contact.dto.js';
 import { UpdateContactDto } from './dto/update-contact.dto.js';
@@ -25,7 +26,9 @@ export class ContactsController {
 
   /**
    * Public — gui form lien he.
+   * Rate limit 5 lan/phut/IP de chong spam DoS.
    */
+  @Throttle({ default: { ttl: 60_000, limit: 5 } })
   @Public()
   @Post()
   async create(@Body() dto: CreateContactDto) {

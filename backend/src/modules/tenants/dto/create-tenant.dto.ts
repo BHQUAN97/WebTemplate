@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsObject, MaxLength, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsObject,
+  MaxLength,
+  IsUrl,
+} from 'class-validator';
 
 export class CreateTenantDto {
   @IsString()

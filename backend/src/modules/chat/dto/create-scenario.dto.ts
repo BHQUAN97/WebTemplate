@@ -13,10 +13,7 @@ import {
   IsNotEmptyTrimmed,
   IsULID,
 } from '../../../common/validators/index.js';
-import {
-  MessageType,
-  ScenarioTrigger,
-} from '../chat.constants.js';
+import { MessageType, ScenarioTrigger } from '../chat.constants.js';
 import type { ScenarioConditions } from '../entities/chat-scenario.entity.js';
 
 /**

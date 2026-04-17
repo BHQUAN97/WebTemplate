@@ -76,15 +76,11 @@ export class I18nService extends BaseService<Translation> {
   }
 
   /**
-   * Set nhieu translations cung luc (upsert).
+   * Set nhieu translations cung luc — batch upsert thay vi N+1 find+save.
+   * Dung INSERT ... ON DUPLICATE KEY UPDATE de ghi nhieu rows trong 1 query.
    */
-  async bulkSet(dto: BulkTranslationsDto): Promise<Translation[]> {
-    const results: Translation[] = [];
-    for (const item of dto.translations) {
-      const result = await this.setTranslation(item);
-      results.push(result);
-    }
-    return results;
+  async bulkSet(dto: BulkTranslationsDto): Promise<{ count: number }> {
+    return this.batchUpsertTranslations(dto.translations);
   }
 
   /**
@@ -130,22 +126,58 @@ export class I18nService extends BaseService<Translation> {
   }
 
   /**
-   * Import translations tu JSON — bulk upsert.
-   * Data format: { namespace: { key: value } }
+   * Import translations tu JSON — bulk upsert (1 query thay vi N).
    */
   async importLocale(
     locale: string,
     data: Record<string, Record<string, string>>,
   ): Promise<{ imported: number }> {
-    let imported = 0;
-
+    const items: CreateTranslationDto[] = [];
     for (const [namespace, keys] of Object.entries(data)) {
       for (const [key, value] of Object.entries(keys)) {
-        await this.setTranslation({ locale, namespace, key, value });
-        imported++;
+        items.push({ locale, namespace, key, value } as CreateTranslationDto);
       }
     }
+    if (items.length === 0) return { imported: 0 };
+    const result = await this.batchUpsertTranslations(items);
+    return { imported: result.count };
+  }
 
-    return { imported };
+  /**
+   * INSERT ... ON DUPLICATE KEY UPDATE batch — chia thanh chunks 500 rows
+   * de tranh max_allowed_packet limit.
+   */
+  private async batchUpsertTranslations(
+    items: CreateTranslationDto[],
+  ): Promise<{ count: number }> {
+    if (!items.length) return { count: 0 };
+    const CHUNK = 500;
+    let total = 0;
+    const { generateUlid } = await import('../../common/utils/ulid.js');
+    for (let i = 0; i < items.length; i += CHUNK) {
+      const chunk = items.slice(i, i + CHUNK);
+      const placeholders = chunk
+        .map(() => '(?, ?, ?, ?, ?, ?)')
+        .join(', ');
+      const params: any[] = [];
+      for (const item of chunk) {
+        params.push(
+          generateUlid(),
+          item.locale,
+          item.namespace,
+          item.key,
+          item.value,
+          (item as any).tenant_id ?? null,
+        );
+      }
+      const sql = `
+        INSERT INTO translations (id, locale, namespace, \`key\`, value, tenant_id)
+        VALUES ${placeholders}
+        ON DUPLICATE KEY UPDATE value = VALUES(value), updated_at = CURRENT_TIMESTAMP
+      `;
+      await this.translationRepo.query(sql, params);
+      total += chunk.length;
+    }
+    return { count: total };
   }
 }

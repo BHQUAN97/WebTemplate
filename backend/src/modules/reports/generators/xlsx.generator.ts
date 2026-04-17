@@ -102,7 +102,12 @@ export async function generateReportXlsx(
     payload.range.from || payload.range.to
       ? `Tu ${payload.range.from || '-'} den ${payload.range.to || '-'}`
       : 'Tat ca thoi gian';
-  const metaRow = ws.addRow([rangeText, '', '', `Tao luc: ${payload.generatedAt}`]);
+  const metaRow = ws.addRow([
+    rangeText,
+    '',
+    '',
+    `Tao luc: ${payload.generatedAt}`,
+  ]);
   metaRow.font = { italic: true, color: { argb: 'FF6B7280' } };
   ws.mergeCells(metaRow.number, 1, metaRow.number, 3);
   ws.mergeCells(metaRow.number, 4, metaRow.number, 6);

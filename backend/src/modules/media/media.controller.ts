@@ -180,10 +180,7 @@ export class MediaController {
    * Xoa 1 media. Chi uploader hoac admin moi duoc xoa.
    */
   @Delete(':id')
-  async remove(
-    @Param('id') id: string,
-    @CurrentUser() user: ICurrentUser,
-  ) {
+  async remove(@Param('id') id: string, @CurrentUser() user: ICurrentUser) {
     const media = await this.mediaService.findById(id);
     const isAdmin =
       user.role === UserRole.ADMIN || user.role === UserRole.MANAGER;

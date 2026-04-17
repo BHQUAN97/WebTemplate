@@ -1,9 +1,4 @@
-import {
-  Controller,
-  Get,
-  Param,
-  Header,
-} from '@nestjs/common';
+import { Controller, Get, Param, Header } from '@nestjs/common';
 import { SeoService } from './seo.service.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { successResponse } from '../../common/utils/response.js';
@@ -37,10 +32,7 @@ export class SeoController {
    */
   @Public()
   @Get('meta/:type/:slug')
-  async getMetaTags(
-    @Param('type') type: string,
-    @Param('slug') slug: string,
-  ) {
+  async getMetaTags(@Param('type') type: string, @Param('slug') slug: string) {
     const meta = await this.seoService.getMetaTags(type, slug);
     return successResponse(meta);
   }

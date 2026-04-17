@@ -83,7 +83,7 @@ export class PlansController {
     const subscription = await this.plansService.cancel(
       body.subscription_id,
       body.reason,
-      isAdmin ? undefined : user.tenantId ?? undefined,
+      isAdmin ? undefined : (user.tenantId ?? undefined),
     );
     return successResponse(subscription, 'Subscription cancelled');
   }

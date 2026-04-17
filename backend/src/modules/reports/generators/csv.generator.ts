@@ -1,11 +1,17 @@
 import { ReportPayload } from '../report.types.js';
 
 /**
- * Escape 1 gia tri cell cho CSV — boc quote neu co dau phay/quote/newline.
+ * Escape 1 gia tri cell cho CSV — boc quote khi co dau phay/quote/newline,
+ * VA prefix `'` neu cell bat dau bang ky tu formula (=+-@\t\r) — chong CSV
+ * formula injection (Excel/LibreOffice se thuc thi formula trong cell).
  */
 function escapeCell(value: unknown): string {
   if (value === null || value === undefined) return '';
-  const str = String(value);
+  let str = String(value);
+  // Formula injection guard — phai check truoc khi quote
+  if (/^[=+\-@\t\r]/.test(str)) {
+    str = `'${str}`;
+  }
   if (/[",\r\n]/.test(str)) {
     return `"${str.replace(/"/g, '""')}"`;
   }

@@ -22,11 +22,27 @@ export class SettingsService
 {
   protected searchableFields = ['key', 'description'];
 
+  // In-memory cache cho settings — settings doc rat nhieu (auth.service goi
+  // 3-4 lan/login), thay doi rat it. TTL 60s cho admin update co hieu luc nhanh.
+  private valueCache = new Map<string, { value: any; at: number }>();
+  private static readonly CACHE_TTL_MS = 60 * 1000;
+
   constructor(
     @InjectRepository(Setting)
     private readonly settingRepo: Repository<Setting>,
   ) {
     super(settingRepo, 'Setting');
+  }
+
+  /**
+   * Invalidate cache cho 1 key — goi sau set/bulkSet.
+   */
+  private invalidateCache(key?: string): void {
+    if (key) {
+      this.valueCache.delete(key);
+    } else {
+      this.valueCache.clear();
+    }
   }
 
   // Seed cac key mac dinh khi backend khoi dong (chi tao key chua ton tai)
@@ -62,15 +78,25 @@ export class SettingsService
   /**
    * Helper lay gia tri voi default — tra ve default neu key khong ton tai
    * (khong throw). Dung cho flags/toggles trong code thong thuong.
+   * Cache TTL 60s — invalidate khi set/bulkSet.
    */
   async getOrDefault<T extends string | number | boolean | object>(
     key: string,
     defaultValue: T,
   ): Promise<T> {
+    const cached = this.valueCache.get(key);
+    if (cached && Date.now() - cached.at < SettingsService.CACHE_TTL_MS) {
+      return cached.value as T;
+    }
     const setting = await this.settingRepo.findOne({ where: { key } });
-    if (!setting) return defaultValue;
+    if (!setting) {
+      this.valueCache.set(key, { value: defaultValue, at: Date.now() });
+      return defaultValue;
+    }
     try {
-      return this.parseValue(setting.value, setting.type) as T;
+      const parsed = this.parseValue(setting.value, setting.type) as T;
+      this.valueCache.set(key, { value: parsed, at: Date.now() });
+      return parsed;
     } catch {
       return defaultValue;
     }
@@ -85,15 +111,15 @@ export class SettingsService
   }
 
   /**
-   * Set gia tri cho 1 key. Tao moi neu chua ton tai.
+   * Set gia tri cho 1 key. Tao moi neu chua ton tai. Invalidate cache.
    */
   async set(key: string, value: string): Promise<Setting> {
-    let setting = await this.settingRepo.findOne({ where: { key } });
+    this.invalidateCache(key);
+    const setting = await this.settingRepo.findOne({ where: { key } });
     if (setting) {
       setting.value = value;
       return this.settingRepo.save(setting);
     }
-    // Tao moi neu chua co
     return this.create({ key, value } as any);
   }
 
@@ -118,7 +144,7 @@ export class SettingsService
   }
 
   /**
-   * Cap nhat nhieu settings cung luc.
+   * Cap nhat nhieu settings cung luc. Invalidate cache toan bo.
    */
   async bulkSet(
     settings: { key: string; value: string }[],
@@ -128,6 +154,7 @@ export class SettingsService
       const result = await this.set(item.key, item.value);
       results.push(result);
     }
+    this.invalidateCache(); // clear all to be safe
     return results;
   }
 
@@ -191,7 +218,8 @@ export class SettingsService
         value: 'false',
         type: SettingType.BOOLEAN,
         group: 'email',
-        description: 'Master switch — neu false, moi email se bi skip (log warning)',
+        description:
+          'Master switch — neu false, moi email se bi skip (log warning)',
         is_public: false,
       },
       {
@@ -314,7 +342,8 @@ export class SettingsService
         value: 'true',
         type: SettingType.BOOLEAN,
         group: 'cta',
-        description: 'Hien thi bottom tab bar tren mobile (Home/Search/Cart/Account)',
+        description:
+          'Hien thi bottom tab bar tren mobile (Home/Search/Cart/Account)',
         is_public: true,
       },
     ];

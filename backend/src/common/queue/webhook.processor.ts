@@ -53,8 +53,13 @@ export function isPrivateIp(ip: string): boolean {
   if (lower.includes(':')) {
     if (lower === '::1' || lower === '::') return true;
     if (lower.startsWith('fc') || lower.startsWith('fd')) return true; // fc00::/7
-    if (lower.startsWith('fe8') || lower.startsWith('fe9') ||
-        lower.startsWith('fea') || lower.startsWith('feb')) return true; // fe80::/10
+    if (
+      lower.startsWith('fe8') ||
+      lower.startsWith('fe9') ||
+      lower.startsWith('fea') ||
+      lower.startsWith('feb')
+    )
+      return true; // fe80::/10
     // IPv4-mapped IPv6: ::ffff:a.b.c.d
     const mapped = lower.match(/::ffff:(\d+\.\d+\.\d+\.\d+)$/);
     if (mapped) return isPrivateIp(mapped[1]);
@@ -84,7 +89,9 @@ export function isPrivateIp(ip: string): boolean {
 async function assertSafeUrl(url: string): Promise<void> {
   const parsed = new URL(url);
   if (parsed.protocol !== 'http:' && parsed.protocol !== 'https:') {
-    throw new Error(`Webhook URL blocked: unsupported protocol ${parsed.protocol}`);
+    throw new Error(
+      `Webhook URL blocked: unsupported protocol ${parsed.protocol}`,
+    );
   }
   const { hostname } = parsed;
 
@@ -220,9 +227,7 @@ export class WebhookProcessor extends WorkerHost {
       success = response.ok;
 
       if (!success) {
-        fetchError = new Error(
-          `Webhook returned HTTP ${response.status}`,
-        );
+        fetchError = new Error(`Webhook returned HTTP ${response.status}`);
       }
     } catch (error: any) {
       responseBody = error.message || String(error);

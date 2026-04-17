@@ -76,9 +76,29 @@ const MESSAGE_RATE_MAX = 5;
 @WebSocketGateway({
   namespace: '/chat',
   cors: {
-    origin: true,
+    // origin: true accept ANY origin → cross-origin WebSocket hijacking nguy hiem.
+    // Lay tu CORS_ORIGINS env (comma-separated), fallback localhost dev.
+    origin: (
+      origin: string | undefined,
+      callback: (err: Error | null, allow?: boolean) => void,
+    ) => {
+      if (!origin) return callback(null, true); // server-to-server
+      const allowed = (process.env.CORS_ORIGINS || '')
+        .split(',')
+        .map((s) => s.trim())
+        .filter(Boolean);
+      const defaults = [
+        process.env.APP_URL || 'http://localhost:6000',
+        'http://localhost:3000',
+      ];
+      const list = allowed.length ? allowed : defaults;
+      if (list.includes(origin)) return callback(null, true);
+      callback(new Error(`Origin ${origin} not allowed by WebSocket CORS`));
+    },
     credentials: true,
   },
+  // Han che message size de tranh DoS qua large payload
+  maxHttpBufferSize: 64 * 1024, // 64KB
 })
 export class ChatGateway
   implements OnGatewayInit, OnGatewayConnection, OnGatewayDisconnect
@@ -126,7 +146,10 @@ export class ChatGateway
       };
 
       // Customer (guest + user) auto-join conversation cua minh
-      if (identity.mode === 'customer-guest' || identity.mode === 'customer-user') {
+      if (
+        identity.mode === 'customer-guest' ||
+        identity.mode === 'customer-user'
+      ) {
         if (!identity.conversationId) {
           throw new WsException('Missing conversationId');
         }
@@ -258,7 +281,10 @@ export class ChatGateway
       const conv = await this.conversationRepo.findOne({
         where: { id: data.conversationId, deleted_at: IsNull() },
       });
-      if (conv?.mode === ScheduleMode.AI || conv?.mode === ScheduleMode.HYBRID) {
+      if (
+        conv?.mode === ScheduleMode.AI ||
+        conv?.mode === ScheduleMode.HYBRID
+      ) {
         this.chatService.triggerAiReply(data.conversationId).catch((err) => {
           this.logger.warn(
             `triggerAiReply failed for ${data.conversationId}: ${(err as Error).message}`,
@@ -277,14 +303,13 @@ export class ChatGateway
     @MessageBody() data: { conversationId: string; isTyping: boolean },
   ): void {
     if (!data?.conversationId) return;
-    client.to(this.roomForConversation(data.conversationId)).emit(
-      CHAT_EVENTS.TYPING,
-      {
+    client
+      .to(this.roomForConversation(data.conversationId))
+      .emit(CHAT_EVENTS.TYPING, {
         from: client.data.role ?? client.data.mode,
         userId: client.data.userId,
         isTyping: !!data.isTyping,
-      },
-    );
+      });
   }
 
   /**

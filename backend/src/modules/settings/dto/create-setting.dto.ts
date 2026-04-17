@@ -1,4 +1,10 @@
-import { IsString, IsOptional, IsEnum, IsBoolean, MaxLength } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  IsEnum,
+  IsBoolean,
+  MaxLength,
+} from 'class-validator';
 import { SettingType } from '../entities/setting.entity.js';
 
 export class CreateSettingDto {

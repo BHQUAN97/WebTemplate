@@ -228,10 +228,7 @@ export class MediaService extends BaseService<Media> {
    * Tao presigned GET URL (default het han 1h).
    * Nhan vao mediaId HOAC storage key truc tiep.
    */
-  async getPresignedUrl(
-    idOrKey: string,
-    expiresIn = 3600,
-  ): Promise<string> {
+  async getPresignedUrl(idOrKey: string, expiresIn = 3600): Promise<string> {
     let key = idOrKey;
     // Neu la ULID (26 ky tu) coi la mediaId va tra key tu DB
     if (/^[0-9A-HJKMNP-TV-Z]{26}$/.test(idOrKey)) {
@@ -347,11 +344,12 @@ export class MediaService extends BaseService<Media> {
     filename: string,
     contentType: string,
   ): Promise<{ key: string }> {
-    const sanitized = filename
-      .toLowerCase()
-      .replace(/[^a-z0-9.]+/g, '-')
-      .replace(/^-+|-+$/g, '')
-      .slice(0, 80) || 'attachment';
+    const sanitized =
+      filename
+        .toLowerCase()
+        .replace(/[^a-z0-9.]+/g, '-')
+        .replace(/^-+|-+$/g, '')
+        .slice(0, 80) || 'attachment';
     const key = `tmp/mail-attach/${Date.now()}-${ulid()}/${sanitized}`;
     await this.s3.send(
       new PutObjectCommand({
@@ -392,10 +390,21 @@ export class MediaService extends BaseService<Media> {
 
   /**
    * Build storage key: folder/{ulid}-{sanitized-filename}.
-   * Sanitize: chi giu chu, so, dau cham, gach duoi + gach ngang.
+   * Folder STRICT whitelist: chi cho phep [a-z0-9_-/], khong dot/leading-slash.
+   * Filename sanitize: chi giu chu, so, dau cham, gach duoi + gach ngang.
+   * Chong path traversal (../) va injection key.
    */
   private buildKey(folder: string, originalName: string): string {
-    const cleanFolder = folder.replace(/^\/+|\/+$/g, '');
+    // Sanitize folder: bo leading/trailing slash, reject path traversal
+    let cleanFolder = (folder || '').replace(/^\/+|\/+$/g, '');
+    // Reject neu chua '..' hoac ky tu khong an toan
+    if (cleanFolder.includes('..') || !/^[a-z0-9/_-]*$/i.test(cleanFolder)) {
+      cleanFolder = 'misc';
+    }
+    // Limit do dai folder de tranh key qua dai
+    if (cleanFolder.length > 100) {
+      cleanFolder = cleanFolder.slice(0, 100);
+    }
     const prefix = cleanFolder ? `${cleanFolder}/` : '';
     const ext = extname(originalName).toLowerCase();
     const base = originalName

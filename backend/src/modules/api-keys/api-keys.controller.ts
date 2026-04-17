@@ -1,11 +1,4 @@
-import {
-  Controller,
-  Get,
-  Post,
-  Delete,
-  Param,
-  Body,
-} from '@nestjs/common';
+import { Controller, Get, Post, Delete, Param, Body } from '@nestjs/common';
 import { ApiKeysService, AVAILABLE_SCOPES } from './api-keys.service.js';
 import { CreateApiKeyDto } from './dto/create-api-key.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
@@ -51,11 +44,14 @@ export class ApiKeysController {
   }
 
   /**
-   * Thu hoi API key.
+   * Thu hoi API key — service verify tenant ownership de chong IDOR.
    */
   @Delete(':id')
-  async revoke(@Param('id') id: string) {
-    await this.apiKeysService.revoke(id);
+  async revoke(
+    @Param('id') id: string,
+    @CurrentUser() user: ICurrentUser,
+  ) {
+    await this.apiKeysService.revoke(id, user.tenantId);
     return successResponse(null, 'API key revoked');
   }
 }
