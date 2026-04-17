@@ -15,6 +15,7 @@ import { User } from '../users/entities/user.entity.js';
 import { comparePassword } from '../../common/utils/hash.js';
 import { sha256 } from '../../common/utils/hash.js';
 import { decrypt, encrypt } from '../../common/utils/crypto.util.js';
+import { AuditLogsService } from '../audit-logs/audit-logs.service.js';
 
 /**
  * Ket qua setup 2FA — tra ve cho client de hien QR code.
@@ -38,9 +39,9 @@ export class TwoFactorService {
   constructor(
     @InjectRepository(User) private readonly userRepo: Repository<User>,
     private readonly configService: ConfigService,
+    private readonly auditLogsService: AuditLogsService,
   ) {
-    this.issuer =
-      this.configService.get<string>('app.name') || 'WebTemplate';
+    this.issuer = this.configService.get<string>('app.name') || 'WebTemplate';
   }
 
   /**
@@ -75,10 +76,28 @@ export class TwoFactorService {
   /**
    * Buoc 1: sinh secret moi + QR code. Luu encrypted secret nhung
    * CHUA set two_factor_enabled = true (se enable sau khi verify).
+   *
+   * Yeu cau xac nhan password (step-up auth) — chong attacker chiem
+   * session ngan han khoi tao 2FA cua minh tren account nan nhan
+   * (pre-empt 2FA hijack). OAuth-only user (khong co password) bi block.
    */
-  async generateSecret(userId: string): Promise<TwoFactorSetupResult> {
+  async generateSecret(
+    userId: string,
+    currentPassword: string,
+  ): Promise<TwoFactorSetupResult> {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
+
+    // OAuth-only user: khong co password local -> khong the verify -> block
+    if (!user.password_hash) {
+      throw new BadRequestException(
+        'Tai khoan OAuth khong the bat 2FA bang password — vui long set password truoc',
+      );
+    }
+    const ok = await comparePassword(currentPassword, user.password_hash);
+    if (!ok) {
+      throw new BadRequestException('Password incorrect');
+    }
 
     const secret = new OTPAuth.Secret({ size: 20 });
     const totp = new OTPAuth.TOTP({
@@ -107,7 +126,12 @@ export class TwoFactorService {
    * Buoc 2: user nhap code de xac nhan authenticator da setup dung.
    * Neu code dung -> bat two_factor_enabled = true.
    */
-  async enable(userId: string, code: string): Promise<void> {
+  async enable(
+    userId: string,
+    code: string,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<void> {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
     if (!user.two_factor_secret) {
@@ -125,6 +149,12 @@ export class TwoFactorService {
       two_factor_enabled: true,
     } as any);
     this.logger.log(`2FA enabled for user: ${userId}`);
+    await this.auditLogsService.log({
+      user_id: userId,
+      action: 'auth.2fa_enable',
+      ip_address: ip ?? null,
+      user_agent: userAgent ?? null,
+    });
   }
 
   /**
@@ -166,18 +196,35 @@ export class TwoFactorService {
       if (!user.backup_codes_hash || user.backup_codes_hash.length === 0) {
         return false;
       }
-      // Hash voi upper-case de khop voi format khi sinh (crypto -> uppercase hex)
       const candidateHash = sha256(trimmed.toUpperCase());
-      const idx = user.backup_codes_hash.indexOf(candidateHash);
-      if (idx === -1) return false;
+      if (!user.backup_codes_hash.includes(candidateHash)) return false;
 
-      // Remove code da dung — single-use
-      const remaining = [...user.backup_codes_hash];
-      remaining.splice(idx, 1);
-      await this.userRepo.update(user.id, {
-        backup_codes_hash: remaining,
-      } as any);
+      // ATOMIC consume: dung MySQL JSON_REMOVE + JSON_SEARCH trong 1 UPDATE.
+      // Chi succeed neu code VAN CON trong array (chong race khi 2 request cung dung).
+      const result = await this.userRepo
+        .createQueryBuilder()
+        .update(User)
+        .set({
+          backup_codes_hash: () =>
+            `JSON_REMOVE(backup_codes_hash, JSON_UNQUOTE(JSON_SEARCH(backup_codes_hash, 'one', :hash)))`,
+        })
+        .where('id = :id', { id: user.id })
+        .andWhere(
+          `JSON_SEARCH(backup_codes_hash, 'one', :hash) IS NOT NULL`,
+        )
+        .setParameter('hash', candidateHash)
+        .execute();
+
+      if (!result.affected) {
+        // Code da bi consume boi request khac
+        return false;
+      }
       this.logger.warn(`Backup code used for user ${user.id}`);
+      // Audit: backup code consumption la su kien bao mat quan trong (1-time)
+      await this.auditLogsService.log({
+        user_id: user.id,
+        action: 'auth.2fa_backup_used',
+      });
       return true;
     }
 
@@ -185,10 +232,18 @@ export class TwoFactorService {
   }
 
   /**
-   * Disable 2FA — yeu cau xac nhan password de bao mat.
+   * Disable 2FA — yeu cau xac nhan password VA TOTP/backup code (step-up auth)
+   * de bao mat. Tranh truong hop attacker chi co password (vd phising) ma tat
+   * duoc 2FA — phai chung minh van con quyen truy cap toi authenticator.
    * Xoa ca secret lan backup codes.
    */
-  async disable(userId: string, currentPassword: string): Promise<void> {
+  async disable(
+    userId: string,
+    currentPassword: string,
+    totpCode: string,
+    ip?: string,
+    userAgent?: string,
+  ): Promise<void> {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
     if (!user.password_hash) {
@@ -200,12 +255,27 @@ export class TwoFactorService {
     const ok = await comparePassword(currentPassword, user.password_hash);
     if (!ok) throw new UnauthorizedException('Mat khau khong dung');
 
+    // Step-up: phai verify TOTP/backup code TRUOC khi cho phep tat
+    if (!user.two_factor_secret || !user.two_factor_enabled) {
+      throw new BadRequestException('2FA chua duoc bat tren tai khoan nay');
+    }
+    const totpOk = await this.verifyCode(user, totpCode);
+    if (!totpOk) {
+      throw new UnauthorizedException('Ma 2FA khong hop le');
+    }
+
     await this.userRepo.update(userId, {
       two_factor_secret: null,
       two_factor_enabled: false,
       backup_codes_hash: null,
     } as any);
     this.logger.log(`2FA disabled for user: ${userId}`);
+    await this.auditLogsService.log({
+      user_id: userId,
+      action: 'auth.2fa_disable',
+      ip_address: ip ?? null,
+      user_agent: userAgent ?? null,
+    });
   }
 
   /**

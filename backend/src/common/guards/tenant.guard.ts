@@ -6,26 +6,23 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators/public.decorator.js';
+import { ALLOW_CROSS_TENANT_KEY } from '../decorators/allow-cross-tenant.decorator.js';
 import { ICurrentUser } from '../interfaces/index.js';
 import { UserRole } from '../constants/index.js';
 
 /**
  * Guard that ensures tenant isolation in multi-tenant setups.
- * - Admin users bypass tenant check (can access all tenants).
- * - Other users must have a tenant_id and can only access their own tenant's data.
- *
- * Reads tenant from:
- * 1. Request header 'x-tenant-id' (admin only)
- * 2. User's JWT tenant_id
- *
- * Sets `request.tenantId` for downstream use (BaseService auto-filter, etc.).
+ * - User thuong bat buoc phai co tenant_id trong JWT va chi truy cap tenant cua minh.
+ * - Admin mac dinh CUNG dung tenant tu JWT — khong cho override header (chong rui ro
+ *   compromised admin account truy cap all tenants).
+ * - Endpoint co @AllowCrossTenant(): admin moi co the override bang header x-tenant-id
+ *   (audit log export, tenant switcher admin dashboard, ...).
  */
 @Injectable()
 export class TenantGuard implements CanActivate {
   constructor(private reflector: Reflector) {}
 
   canActivate(context: ExecutionContext): boolean {
-    // Bo qua route cong khai — khong can kiem tra tenant
     const isPublic = this.reflector.getAllAndOverride<boolean>(IS_PUBLIC_KEY, [
       context.getHandler(),
       context.getClass(),
@@ -37,33 +34,35 @@ export class TenantGuard implements CanActivate {
     const request = context.switchToHttp().getRequest();
     const user = request.user as ICurrentUser | undefined;
 
-    // Khong co user (route khong yeu cau auth) → bo qua tenant check
     if (!user) {
       return true;
     }
 
-    // Lay tenant_id tu JWT (ho tro ca tenantId camelCase va tenant_id snake_case)
     const userTenantId =
       (user as any).tenant_id ?? (user as any).tenantId ?? null;
 
-    // Admin co the truy cap moi tenant (uu tien header, fallback JWT)
-    if (user.role === UserRole.ADMIN) {
+    const allowCrossTenant = this.reflector.getAllAndOverride<boolean>(
+      ALLOW_CROSS_TENANT_KEY,
+      [context.getHandler(), context.getClass()],
+    );
+
+    // Admin chi duoc override tenant qua header O ENDPOINT opt-in
+    if (user.role === UserRole.ADMIN && allowCrossTenant) {
       request.tenantId = request.headers['x-tenant-id'] || userTenantId;
       return true;
     }
 
-    // User thuong bat buoc phai co tenant_id trong JWT
-    if (!userTenantId) {
+    // Tat ca endpoint con lai: user (ke ca admin) chi dung tenant tu JWT
+    if (!userTenantId && user.role !== UserRole.ADMIN) {
       throw new ForbiddenException('Tenant context required');
     }
 
-    // Chan tan cong cross-tenant: user khong duoc override tenant qua header
+    // Chan tan cong cross-tenant qua header
     const headerTenantId = request.headers['x-tenant-id'];
     if (headerTenantId && headerTenantId !== userTenantId) {
       throw new ForbiddenException('Cannot access other tenant data');
     }
 
-    // Gan tenantId vao request cho BaseService auto-filter
     request.tenantId = userTenantId;
     return true;
   }

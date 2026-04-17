@@ -26,6 +26,7 @@ import { SettingsService } from '../settings/settings.service.js';
 import { MailService } from '../mail/mail.service.js';
 import { UserRole } from '../../common/constants/index.js';
 import { REDIS_CLIENT } from '../../common/redis/redis.module.js';
+import { AuditLogsService } from '../audit-logs/audit-logs.service.js';
 
 interface TokenPair {
   accessToken: string;
@@ -71,6 +72,7 @@ export class AuthService {
     private readonly settingsService: SettingsService,
     private readonly mailService: MailService,
     @Inject(REDIS_CLIENT) private readonly redis: Redis,
+    private readonly auditLogsService: AuditLogsService,
   ) {}
 
   /**
@@ -93,6 +95,9 @@ export class AuthService {
   async register(
     dto: RegisterDto,
   ): Promise<TokenPair | { message: string; requiresVerification: true }> {
+    // Normalize email truoc moi tac vu — chong account takeover qua email casing
+    dto.email = UsersService.normalizeEmail(dto.email);
+
     // Kiem tra email da ton tai
     const existing = await this.usersService.findByEmail(dto.email);
     if (existing) {
@@ -263,6 +268,7 @@ export class AuthService {
     ip?: string,
     userAgent?: string,
   ): Promise<TokenPair> {
+    dto.email = UsersService.normalizeEmail(dto.email);
     const user = await this.validateUser(dto.email, dto.password);
 
     // 2FA check — user da bat 2FA phai cung cap totp_code
@@ -287,7 +293,15 @@ export class AuthService {
       last_login_at: new Date(),
     } as any);
 
-    return this.generateTokens(user, ip, userAgent);
+    const tokens = await this.generateTokens(user, ip, userAgent);
+    // Audit: login thanh cong — luu IP/UA cho dieu tra forensics
+    await this.auditLogsService.log({
+      user_id: user.id,
+      action: 'auth.login',
+      ip_address: ip ?? null,
+      user_agent: userAgent ?? null,
+    });
+    return tokens;
   }
 
   /**
@@ -391,20 +405,55 @@ export class AuthService {
    * - Khong tao password_hash cho OAuth user.
    */
   async validateOAuthUser(profile: OAuthProfile): Promise<User> {
+    // Normalize email — chong account takeover qua case manipulation
+    profile.email = UsersService.normalizeEmail(profile.email);
+
     let user = await this.usersService.findByEmail(profile.email);
 
     if (user) {
-      // User da ton tai — link OAuth provider (neu chua) va bat is_email_verified
-      const updates: Partial<User> = {};
-      if (!user.provider) updates.provider = profile.provider;
-      if (!user.provider_id) updates.provider_id = profile.providerId;
-      if (!user.is_email_verified) updates.is_email_verified = true;
-      if (!user.avatar_url && profile.avatar) {
-        updates.avatar_url = profile.avatar;
-      }
-      if (Object.keys(updates).length > 0) {
-        await this.userRepo.update(user.id, updates as any);
+      // SECURITY: Chi auto-link neu user da co same OAuth provider+id, hoac
+      // user chua co password (OAuth-only) → an toan link.
+      // Neu user da co password va chua bat ky OAuth nao, BLOCK auto-link
+      // (tranh attacker khong vao duoc tai khoan password kha thi link OAuth
+      // de cuop tai khoan).
+      const sameProvider =
+        user.provider === profile.provider &&
+        user.provider_id === profile.providerId;
+      const isPasswordOnlyAccount =
+        !!user.password_hash && !user.provider && !user.provider_id;
+
+      if (sameProvider) {
+        // OK — user nay da link voi OAuth nay
+        const updates: Partial<User> = {};
+        if (!user.is_email_verified) updates.is_email_verified = true;
+        if (!user.avatar_url && profile.avatar) {
+          updates.avatar_url = profile.avatar;
+        }
+        if (Object.keys(updates).length > 0) {
+          await this.userRepo.update(user.id, updates as any);
+          user = (await this.userRepo.findOneBy({ id: user.id })) as User;
+        }
+      } else if (isPasswordOnlyAccount) {
+        // BLOCK: user co password local + chua link OAuth → khong cho auto-link
+        // de tranh account takeover
+        throw new UnauthorizedException(
+          'Tai khoan email nay da ton tai voi mat khau. Vui long dang nhap voi mat khau, sau do link OAuth tu trang Settings.',
+        );
+      } else if (!user.provider && !user.password_hash) {
+        // User OAuth-only chua co provider (legacy/empty) — link
+        await this.userRepo.update(user.id, {
+          provider: profile.provider,
+          provider_id: profile.providerId,
+          is_email_verified: true,
+          avatar_url: user.avatar_url || profile.avatar,
+        } as any);
         user = (await this.userRepo.findOneBy({ id: user.id })) as User;
+      } else {
+        // User da link OAuth provider khac — block (chong link 2 provider khac
+        // cho cung email khong qua confirmation flow)
+        throw new UnauthorizedException(
+          'Email da link voi mot dang nhap OAuth khac. Lien he support de doi.',
+        );
       }
     } else {
       // Tao user moi — password_hash = null (OAuth-only)
@@ -465,18 +514,28 @@ export class AuthService {
     }
 
     const tokenHash = this.hashToken(token);
+    // Tim token KHONG filter is_revoked — phan biet duoc 3 truong hop:
+    // 1. Khong ton tai → forged hoac da pruned
+    // 2. Revoked → reuse attack → revoke all user tokens
+    // 3. Expired → message ro rang cho user re-login
     const storedToken = await this.refreshTokenRepo.findOne({
-      where: { token_hash: tokenHash, is_revoked: false },
+      where: { token_hash: tokenHash },
       relations: ['user'],
     });
 
     if (!storedToken) {
-      await this.revokeAllUserTokens(payload.sub);
-      throw new UnauthorizedException('Refresh token reuse detected');
+      throw new UnauthorizedException('Invalid refresh token');
     }
 
+    // Check expiry TRUOC revoke — neu chi het han, khong can revoke all tokens
     if (storedToken.expires_at < new Date()) {
       throw new UnauthorizedException('Refresh token expired');
+    }
+
+    if (storedToken.is_revoked) {
+      // Token da revoke ma con duoc dung lai → nguy co attack, revoke all
+      await this.revokeAllUserTokens(payload.sub);
+      throw new UnauthorizedException('Refresh token reuse detected');
     }
 
     storedToken.is_revoked = true;
@@ -488,7 +547,7 @@ export class AuthService {
   /**
    * Logout — revoke refresh token hien tai.
    */
-  async logout(token: string): Promise<void> {
+  async logout(token: string, ip?: string, userAgent?: string): Promise<void> {
     const tokenHash = this.hashToken(token);
     const storedToken = await this.refreshTokenRepo.findOne({
       where: { token_hash: tokenHash },
@@ -497,6 +556,13 @@ export class AuthService {
     if (storedToken) {
       storedToken.is_revoked = true;
       await this.refreshTokenRepo.save(storedToken);
+      // Audit: chi log khi co token hop le bi revoke (tranh log spam tu request rac)
+      await this.auditLogsService.log({
+        user_id: storedToken.user_id,
+        action: 'auth.logout',
+        ip_address: ip ?? null,
+        user_agent: userAgent ?? null,
+      });
     }
   }
 
@@ -506,6 +572,8 @@ export class AuthService {
   async changePassword(
     userId: string,
     dto: ChangePasswordDto,
+    ip?: string,
+    userAgent?: string,
   ): Promise<void> {
     const user = await this.usersService.findById(userId);
     if (!user.password_hash) {
@@ -521,21 +589,37 @@ export class AuthService {
       throw new BadRequestException('Current password is incorrect');
     }
 
+    // Revoke TRUOC khi update password de tranh window race: neu refresh token
+    // xay ra giua 2 buoc, attacker voi refresh token cu khong duoc cap moi.
+    await this.revokeAllUserTokens(userId);
+
     const newHash = await hashPassword(dto.newPassword);
     await this.usersService.update(userId, {
       password_hash: newHash,
     } as any);
 
-    await this.revokeAllUserTokens(userId);
+    // Audit: doi password la su kien bao mat quan trong
+    await this.auditLogsService.log({
+      user_id: userId,
+      action: 'auth.password_change',
+      ip_address: ip ?? null,
+      user_agent: userAgent ?? null,
+    });
   }
 
   /**
    * Quen mat khau — tao reset token, luu JTI vao user, queue email.
    */
   async forgotPassword(dto: ForgotPasswordDto): Promise<void> {
+    dto.email = UsersService.normalizeEmail(dto.email);
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      // Khong leak — tra ve thanh cong
+      // Khong leak — tra ve thanh cong (KHONG dung early return de tranh
+      // timing attack — fake delay tuong duong voi happy path tai controller).
+      return;
+    }
+    // Block reset cho deleted/inactive user
+    if (user.deleted_at || !user.is_active) {
       return;
     }
     if (!user.password_hash) {
@@ -621,7 +705,11 @@ export class AuthService {
     }
 
     const user = await this.usersService.findById(payload.sub);
-    if (!user || !user.reset_token_jti || user.reset_token_jti !== payload.jti) {
+    if (
+      !user ||
+      !user.reset_token_jti ||
+      user.reset_token_jti !== payload.jti
+    ) {
       throw new BadRequestException('Reset token already used or invalidated');
     }
 

@@ -76,7 +76,11 @@ export class AuditInterceptor implements NestInterceptor {
    * Chay async, khong await de khong lam cham response.
    * Bao gom user_id (neu auth), IP, user-agent va body request.
    */
-  private writeLog(request: Request, responseData: any, context: ExecutionContext): void {
+  private writeLog(
+    request: Request,
+    responseData: any,
+    context: ExecutionContext,
+  ): void {
     try {
       const user = (request as any).user;
       const userId: string | null = user?.id || null;
@@ -87,7 +91,10 @@ export class AuditInterceptor implements NestInterceptor {
 
       // Resource ID: uu tien tu response, fallback params.id
       const resourceId =
-        responseData?.data?.id || responseData?.id || request.params?.id || null;
+        responseData?.data?.id ||
+        responseData?.id ||
+        request.params?.id ||
+        null;
 
       // Tao action name theo format: METHOD /path
       const action = `${request.method} ${request.originalUrl.replace(/^\/api/, '')}`;
@@ -99,7 +106,10 @@ export class AuditInterceptor implements NestInterceptor {
         user_id: userId,
         action,
         resource_type: resourceType,
-        resource_id: typeof resourceId === 'string' ? resourceId : String(resourceId ?? ''),
+        resource_id:
+          typeof resourceId === 'string'
+            ? resourceId
+            : String(resourceId ?? ''),
         changes: safeBody,
         ip_address: request.ip || request.socket?.remoteAddress || null,
         user_agent: request.get('user-agent') || null,
@@ -111,14 +121,48 @@ export class AuditInterceptor implements NestInterceptor {
 
   /**
    * Xoa cac field nhay cam khoi body truoc khi ghi audit log.
+   * Recursive — xu ly nested objects (vd metadata.token, profile.password).
+   * Cap do depth = 5 de tranh stack overflow voi circular structure.
    */
-  private sanitize(body: any): Record<string, any> | null {
-    if (!body || typeof body !== 'object') return null;
-    const sensitive = ['password', 'old_password', 'new_password', 'token', 'refresh_token', 'secret', 'otp'];
-    const copy: Record<string, any> = { ...body };
-    for (const k of Object.keys(copy)) {
-      if (sensitive.some((s) => k.toLowerCase().includes(s))) {
+  private sanitize(body: any, depth = 0): any {
+    if (depth > 5) return '[TRUNCATED]';
+    if (body === null || body === undefined) return null;
+    if (typeof body !== 'object') return body;
+
+    const sensitive = [
+      'password',
+      'old_password',
+      'new_password',
+      'currentpassword',
+      'newpassword',
+      'confirmpassword',
+      'token',
+      'refresh_token',
+      'access_token',
+      'refreshtoken',
+      'accesstoken',
+      'secret',
+      'apikey',
+      'api_key',
+      'otp',
+      'totp',
+      'backup_code',
+      'private_key',
+    ];
+
+    if (Array.isArray(body)) {
+      return body.map((v) => this.sanitize(v, depth + 1));
+    }
+
+    const copy: Record<string, any> = {};
+    for (const k of Object.keys(body)) {
+      const lk = k.toLowerCase();
+      if (sensitive.some((s) => lk.includes(s))) {
         copy[k] = '[REDACTED]';
+      } else if (body[k] && typeof body[k] === 'object') {
+        copy[k] = this.sanitize(body[k], depth + 1);
+      } else {
+        copy[k] = body[k];
       }
     }
     return copy;

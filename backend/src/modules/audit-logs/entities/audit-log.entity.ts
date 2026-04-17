@@ -6,8 +6,14 @@ import { BaseEntity } from '../../../common/entities/base.entity.js';
  * Dung cho compliance, debugging va forensic analysis.
  *
  * Tao boi AuditInterceptor hoac goi truc tiep qua AuditLogsService.log().
+ *
+ * Composite indexes:
+ *  - (user_id, created_at) — query "user X activity in last 7 days"
+ *  - (resource_type, resource_id, created_at) — query history of 1 resource
  */
 @Entity('audit_logs')
+@Index(['user_id', 'created_at'])
+@Index(['resource_type', 'resource_id', 'created_at'])
 export class AuditLog extends BaseEntity {
   /** User thuc hien hanh dong — nullable cho anonymous/system actions */
   @Index()

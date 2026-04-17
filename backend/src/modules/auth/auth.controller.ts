@@ -108,13 +108,12 @@ export class AuthController {
   @Public()
   @Post('logout')
   @HttpCode(HttpStatus.OK)
-  async logout(
-    @Req() req: any,
-    @Res({ passthrough: true }) res: any,
-  ) {
+  async logout(@Req() req: any, @Res({ passthrough: true }) res: any) {
     const token = req.cookies?.refreshToken;
     if (token) {
-      await this.authService.logout(token);
+      const ip = req.ip || req.socket?.remoteAddress;
+      const userAgent = req.headers['user-agent'];
+      await this.authService.logout(token, ip, userAgent);
     }
     res.clearCookie('refreshToken');
     return { message: 'Logged out successfully' };
@@ -130,8 +129,11 @@ export class AuthController {
   async changePassword(
     @CurrentUser() user: ICurrentUser,
     @Body() dto: ChangePasswordDto,
+    @Req() req: any,
   ) {
-    await this.authService.changePassword(user.id, dto);
+    const ip = req.ip || req.socket?.remoteAddress;
+    const userAgent = req.headers['user-agent'];
+    await this.authService.changePassword(user.id, dto, ip, userAgent);
     return { message: 'Password changed successfully' };
   }
 
@@ -243,41 +245,56 @@ export class AuthController {
 
   /**
    * Shared logic cho callback — goi oauthLogin + redirect.
+   * Token gui qua URL FRAGMENT (#token=...) thay vi query string:
+   * - Fragment KHONG duoc gui ve server (khong xuat hien trong access log)
+   * - KHONG xuat hien trong Referrer header (khong leak sang trang khac)
+   * - Chi client-side JS doc duoc qua window.location.hash
    */
   private async handleOAuthCallback(req: any, res: any): Promise<void> {
     try {
       const ip = req.ip || req.socket?.remoteAddress;
       const userAgent = req.headers['user-agent'];
-      const tokens = await this.authService.oauthLogin(
-        req.user,
-        ip,
-        userAgent,
-      );
+      const tokens = await this.authService.oauthLogin(req.user, ip, userAgent);
       this.setRefreshCookie(res, tokens.refreshToken);
       const successUrl =
         this.configService.get<string>('oauth.successRedirect') ||
         'http://localhost:6000/auth/callback';
-      res.redirect(`${successUrl}?token=${tokens.accessToken}`);
+      // Encode token de an toan trong URL fragment
+      const tokenParam = encodeURIComponent(tokens.accessToken);
+      res.redirect(`${successUrl}#token=${tokenParam}`);
     } catch (err) {
       const failureUrl =
         this.configService.get<string>('oauth.failureRedirect') ||
         'http://localhost:6000/login?error=oauth';
       const msg = encodeURIComponent((err as Error).message || 'oauth_failed');
-      res.redirect(`${failureUrl}&message=${msg}`);
+      const sep = failureUrl.includes('?') ? '&' : '?';
+      res.redirect(`${failureUrl}${sep}message=${msg}`);
     }
   }
 
   /**
    * Set refresh token vao httpOnly cookie (7 ngay).
-   * secure: bat khi NODE_ENV != development (staging + prod deu HTTPS).
-   * Chi tat flag nay trong local dev de tranh browser tu choi cookie tren http://localhost.
+   * - prod/staging: secure=true + sameSite='none' khi BE+FE khac origin (yeu cau HTTPS).
+   * - dev: secure=false + sameSite='lax' (FE+BE same-site qua localhost).
+   *
+   * COOKIE_SAMESITE env override (none|lax|strict) cho deployment tuy chinh.
    */
   private setRefreshCookie(res: any, token: string): void {
     const env = process.env.NODE_ENV;
+    const isProd = env !== 'development' && env !== 'test';
+    const sameSiteEnv = (process.env.COOKIE_SAMESITE || '').toLowerCase();
+    const sameSite: 'none' | 'lax' | 'strict' =
+      sameSiteEnv === 'none' || sameSiteEnv === 'lax' || sameSiteEnv === 'strict'
+        ? (sameSiteEnv as 'none' | 'lax' | 'strict')
+        : isProd
+          ? 'none'
+          : 'lax';
+    // SameSite=none BAT BUOC secure=true (browser reject neu khong)
+    const secure = isProd || sameSite === 'none';
     res.cookie('refreshToken', token, {
       httpOnly: true,
-      secure: env !== 'development' && env !== 'test',
-      sameSite: 'lax',
+      secure,
+      sameSite,
       maxAge: 7 * 24 * 60 * 60 * 1000,
       path: '/',
     });

@@ -1,4 +1,10 @@
-import { IsString, IsOptional, MinLength, MaxLength, IsUrl } from 'class-validator';
+import {
+  IsString,
+  IsOptional,
+  MinLength,
+  MaxLength,
+  IsUrl,
+} from 'class-validator';
 
 /**
  * DTO cho user tu cap nhat profile cua minh.

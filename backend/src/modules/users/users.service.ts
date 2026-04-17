@@ -28,21 +28,29 @@ export class UsersService extends BaseService<User> {
   }
 
   /**
-   * Tim user theo email — dung cho auth login/register.
+   * Normalize email — chuan hoa de tranh case-sensitivity gay account takeover.
+   * "User@Example.COM" → "user@example.com". Goi truoc moi find/save voi email.
+   */
+  static normalizeEmail(email: string): string {
+    return (email || '').trim().toLowerCase();
+  }
+
+  /**
+   * Tim user theo email — case-insensitive (normalize truoc khi query).
    */
   async findByEmail(email: string): Promise<User | null> {
     return this.usersRepository.findOne({
-      where: { email },
+      where: { email: UsersService.normalizeEmail(email) },
     });
   }
 
   /**
-   * Tao user moi — hash password truoc khi luu.
+   * Tao user moi — hash password + normalize email truoc khi luu.
    */
   async createUser(dto: CreateUserDto): Promise<User> {
     const passwordHash = await hashPassword(dto.password);
     return this.create({
-      email: dto.email,
+      email: UsersService.normalizeEmail(dto.email),
       password_hash: passwordHash,
       name: dto.name,
       role: dto.role || UserRole.USER,

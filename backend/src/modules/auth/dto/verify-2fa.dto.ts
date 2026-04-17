@@ -11,9 +11,24 @@ export class Verify2FADto {
 }
 
 /**
- * DTO de disable 2FA — yeu cau verify password hien tai truoc khi tat.
+ * DTO de disable 2FA — yeu cau verify password + TOTP/backup code hien tai
+ * (step-up auth) truoc khi tat. Bao dam attacker chi co password khong the
+ * disable 2FA neu khong con quyen truy cap authenticator/backup codes.
  */
 export class Disable2FADto {
+  @IsString()
+  currentPassword: string;
+
+  @IsString()
+  @Length(6, 8, { message: 'Ma 2FA phai co 6-8 ky tu' })
+  totpCode: string;
+}
+
+/**
+ * DTO de regenerate backup codes — yeu cau password (khong yeu cau TOTP vi flow
+ * nay khong xoa 2FA, chi rotate codes; user da co session active).
+ */
+export class RegenerateBackupCodesDto {
   @IsString()
   currentPassword: string;
 }

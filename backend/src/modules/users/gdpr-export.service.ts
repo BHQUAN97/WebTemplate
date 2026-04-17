@@ -24,6 +24,12 @@ import { REDIS_CLIENT } from '../../common/redis/redis.module.js';
  */
 const GDPR_EXPORT_TTL_SECONDS = 24 * 60 * 60;
 
+/** Caps de tranh OOM khi user co data lon. */
+const GDPR_MAX_ORDERS = 5000;
+const GDPR_MAX_ORDER_ITEMS = 20000;
+const GDPR_MAX_MEDIA = 5000;
+const GDPR_MAX_AUDIT_LOGS = 1000;
+
 /**
  * GdprExportService — gather tat ca du lieu cua 1 user thanh ZIP bundle.
  *
@@ -83,29 +89,32 @@ export class GdprExportService {
     const user = await this.userRepo.findOne({ where: { id: userId } });
     if (!user) throw new NotFoundException('User not found');
 
-    // Gather
+    // Gather voi caps de tranh OOM cho user co data cuc lon
     const orders = await this.orderRepo.find({
       where: { user_id: userId },
       order: { created_at: 'DESC' },
+      take: GDPR_MAX_ORDERS,
     });
     const orderIds = orders.map((o) => o.id);
     const orderItems = orderIds.length
       ? await this.orderItemRepo
           .createQueryBuilder('oi')
           .where('oi.order_id IN (:...ids)', { ids: orderIds })
+          .take(GDPR_MAX_ORDER_ITEMS)
           .getMany()
       : [];
 
     const media = await this.mediaRepo.find({
       where: { uploaded_by: userId },
       order: { created_at: 'DESC' },
+      take: GDPR_MAX_MEDIA,
     });
 
     const auditLogs = await this.auditLogRepo
       .createQueryBuilder('al')
       .where('al.user_id = :userId', { userId })
       .orderBy('al.created_at', 'DESC')
-      .take(5000)
+      .take(GDPR_MAX_AUDIT_LOGS)
       .getMany();
 
     // Build profile object without sensitive fields
@@ -192,7 +201,10 @@ export class GdprExportService {
       '  profile.json     — Personal profile (no passwords, secrets or OAuth tokens).',
       '  orders.json      — Orders and line items placed by this user.',
       '  media-list.json  — Media (files) uploaded by this user; URLs only.',
-      '  audit-logs.json  — Up to 5000 most recent audit log entries involving this user.',
+      '  audit-logs.json  — Up to 1000 most recent audit log entries involving this user.',
+      '',
+      'Note: orders capped at 5000, order items 20000, media 5000 — most recent first.',
+      'Lien he support neu can full export voi data cu hon hoac vuot caps.',
       '',
       'Your rights under GDPR:',
       '  - Right to access  : You have received a copy of your data in this archive.',

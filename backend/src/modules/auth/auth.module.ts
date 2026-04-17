@@ -14,6 +14,7 @@ import { TwoFactorController } from './two-factor.controller.js';
 import { SettingsModule } from '../settings/settings.module.js';
 import { GoogleStrategy } from './strategies/google.strategy.js';
 import { FacebookStrategy } from './strategies/facebook.strategy.js';
+import { AuditLogsModule } from '../audit-logs/audit-logs.module.js';
 
 /**
  * Tao list providers — chi register Google/Facebook strategy neu enabled.
@@ -43,7 +44,8 @@ function getOAuthProviders(): Provider[] {
         return {
           secret,
           signOptions: {
-            expiresIn: (config.get<string>('jwt.accessExpires') || '15m') as any,
+            expiresIn: (config.get<string>('jwt.accessExpires') ||
+              '15m') as any,
           },
         };
       },
@@ -54,6 +56,8 @@ function getOAuthProviders(): Provider[] {
     forwardRef(() => UsersModule),
     // SettingsModule needed for email flags in auth.service
     SettingsModule,
+    // AuditLogsModule needed for auth event logging (login, logout, password change, 2FA)
+    AuditLogsModule,
   ],
   controllers: [AuthController, TwoFactorController],
   providers: [

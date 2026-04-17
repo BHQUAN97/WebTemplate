@@ -122,7 +122,10 @@ export class UsersController {
    */
   @Delete(':id')
   @Roles(UserRole.ADMIN)
-  async remove(@Param('id') id: string, @CurrentUser() currentUser: ICurrentUser) {
+  async remove(
+    @Param('id') id: string,
+    @CurrentUser() currentUser: ICurrentUser,
+  ) {
     if (id === currentUser.id) {
       throw new BadRequestException('Cannot delete yourself');
     }

@@ -1,6 +1,12 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, MoreThanOrEqual, LessThanOrEqual, FindOptionsWhere } from 'typeorm';
+import {
+  Repository,
+  Between,
+  MoreThanOrEqual,
+  LessThanOrEqual,
+  FindOptionsWhere,
+} from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { AuditLog } from './entities/audit-log.entity.js';
 import { CreateAuditLogDto } from './dto/create-audit-log.dto.js';
@@ -55,8 +61,16 @@ export class AuditLogsService extends BaseService<AuditLog> {
   async findAllFiltered(
     query: QueryAuditLogsDto,
   ): Promise<{ items: AuditLog[]; meta: PaginationMeta }> {
-    const { page = 1, limit = 20, user_id, action, resource_type, resource_id, from_date, to_date } =
-      query;
+    const {
+      page = 1,
+      limit = 20,
+      user_id,
+      action,
+      resource_type,
+      resource_id,
+      from_date,
+      to_date,
+    } = query;
 
     const where: FindOptionsWhere<AuditLog> = {};
     if (user_id) where.user_id = user_id;
@@ -93,7 +107,9 @@ export class AuditLogsService extends BaseService<AuditLog> {
   /**
    * Serialize changes thanh string JSON neu dang object, giu nguyen neu da la string.
    */
-  private serializeChanges(changes: CreateAuditLogDto['changes']): string | null {
+  private serializeChanges(
+    changes: CreateAuditLogDto['changes'],
+  ): string | null {
     if (changes === null || changes === undefined) return null;
     if (typeof changes === 'string') return changes;
     try {

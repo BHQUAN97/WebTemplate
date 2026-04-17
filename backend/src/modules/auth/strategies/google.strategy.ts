@@ -1,8 +1,12 @@
 import { Injectable, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { PassportStrategy } from '@nestjs/passport';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-import { Strategy, StrategyOptions, VerifyCallback } from 'passport-google-oauth20';
+
+import {
+  Strategy,
+  StrategyOptions,
+  VerifyCallback,
+} from 'passport-google-oauth20';
 import { AuthService } from '../auth.service.js';
 
 /**
