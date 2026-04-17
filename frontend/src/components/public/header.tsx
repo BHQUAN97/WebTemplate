@@ -4,6 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ShoppingCart, User, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
+import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
@@ -25,7 +26,7 @@ export function PublicHeader() {
   ];
 
   return (
-    <header className="sticky top-0 z-50 bg-white border-b border-gray-200 print:hidden">
+    <header className="sticky top-0 z-50 bg-background border-b border-border print:hidden">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16">
           {/* Logo */}
@@ -53,6 +54,8 @@ export function PublicHeader() {
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
+
+            <ThemeToggle />
 
             <Link href="/cart" className="relative">
               <Button variant="ghost" size="icon" aria-label="Gio hang">

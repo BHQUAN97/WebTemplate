@@ -1,0 +1,9 @@
+node_modules
+.next
+build
+dist
+public
+coverage
+*.log
+.env*
+next-env.d.ts

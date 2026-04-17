@@ -4,6 +4,8 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
+import { ThemeProvider } from '@/components/providers/theme-provider';
+import { brand } from '@/lib/config/brand';
 
 const geistSans = Geist({
   variable: '--font-geist-sans',
@@ -15,15 +17,14 @@ const geistMono = Geist_Mono({
   subsets: ['latin'],
 });
 
-const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || 'WebTemplate';
+const APP_NAME = process.env.NEXT_PUBLIC_APP_NAME || brand.name;
 
 export const metadata: Metadata = {
   title: {
     default: APP_NAME,
     template: `%s | ${APP_NAME}`,
   },
-  description:
-    'Nen tang web day du tinh nang — thuong mai dien tu, blog, quan tri va hon the nua.',
+  description: brand.description,
 };
 
 export default async function RootLayout({
@@ -38,13 +39,16 @@ export default async function RootLayout({
   return (
     <html
       lang={locale}
+      suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
     >
-      <body className="min-h-full flex flex-col">
-        <NextIntlClientProvider locale={locale} messages={messages}>
-          {children}
-          <Toaster />
-        </NextIntlClientProvider>
+      <body className="min-h-full flex flex-col bg-background text-foreground">
+        <ThemeProvider>
+          <NextIntlClientProvider locale={locale} messages={messages}>
+            {children}
+            <Toaster />
+          </NextIntlClientProvider>
+        </ThemeProvider>
       </body>
     </html>
   );
