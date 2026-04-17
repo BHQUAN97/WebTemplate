@@ -44,9 +44,7 @@ export class AddAuthHardeningColumns1713312000000 implements MigrationInterface 
     await queryRunner.query(
       `ALTER TABLE \`users\` DROP COLUMN \`provider_id\``,
     );
-    await queryRunner.query(
-      `ALTER TABLE \`users\` DROP COLUMN \`provider\``,
-    );
+    await queryRunner.query(`ALTER TABLE \`users\` DROP COLUMN \`provider\``);
     await queryRunner.query(
       `ALTER TABLE \`users\` DROP COLUMN \`email_verification_jti\``,
     );
