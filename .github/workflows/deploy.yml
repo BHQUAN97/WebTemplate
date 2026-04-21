@@ -1,13 +1,11 @@
-# Deploy workflow — SSH into VPS, git pull, run ./deploy.sh <env>
+# Deploy workflow — SSH into VPS using password auth, git pull, run ./deploy.sh <env>
 #
 # Required GitHub repository secrets:
-#   DEPLOY_SSH_KEY   — private SSH key (PEM) with access to the deploy user
-#   DEPLOY_HOST      — hostname or IP of the target server
-#   DEPLOY_USER      — SSH user on the server (e.g. deploy, root)
-#   DEPLOY_PATH      — absolute path on server where repo is checked out
-#                      (e.g. /opt/webtemplate)
-#   DEPLOY_SSH_PORT  — (optional) custom SSH port, defaults to 22
-#   DEPLOY_KNOWN_HOSTS — (optional) output of `ssh-keyscan <host>` to pin host key
+#   VPS_HOST     — hostname or IP of the target server
+#   VPS_PORT     — SSH port (e.g. 22)
+#   VPS_USER     — SSH user on the server (e.g. root)
+#   VPS_PASSWORD — SSH password
+#   DEPLOY_PATH  — absolute path on server where repo is checked out
 #
 # Trigger:
 #   - Manual: Actions -> Deploy -> Run workflow -> pick environment
@@ -55,30 +53,19 @@ jobs:
 
       - name: Setup SSH
         run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass > /dev/null
           mkdir -p ~/.ssh
-          echo "${{ secrets.DEPLOY_SSH_KEY }}" > ~/.ssh/deploy_key
-          chmod 600 ~/.ssh/deploy_key
-          if [ -n "${{ secrets.DEPLOY_KNOWN_HOSTS }}" ]; then
-            echo "${{ secrets.DEPLOY_KNOWN_HOSTS }}" >> ~/.ssh/known_hosts
-          else
-            ssh-keyscan -p "${{ secrets.DEPLOY_SSH_PORT || '22' }}" -H "${{ secrets.DEPLOY_HOST }}" >> ~/.ssh/known_hosts 2>/dev/null
-          fi
-          chmod 644 ~/.ssh/known_hosts
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Deploy over SSH
         env:
           TARGET_ENV: ${{ steps.env.outputs.target }}
-          SSH_PORT: ${{ secrets.DEPLOY_SSH_PORT || '22' }}
         run: |
-          ssh -i ~/.ssh/deploy_key -p "$SSH_PORT" \
-              -o StrictHostKeyChecking=yes \
-              "${{ secrets.DEPLOY_USER }}@${{ secrets.DEPLOY_HOST }}" \
-              "set -euo pipefail; \
-               cd '${{ secrets.DEPLOY_PATH }}' && \
-               git fetch --all --prune && \
-               git reset --hard '${{ github.sha }}' && \
-               ./deploy.sh '$TARGET_ENV'"
-
-      - name: Cleanup SSH key
-        if: always()
-        run: rm -f ~/.ssh/deploy_key
+          sshpass -e ssh -p "${{ secrets.VPS_PORT }}" \
+            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
+            "set -euo pipefail; \
+             cd '${{ secrets.DEPLOY_PATH }}' && \
+             git fetch --all --prune && \
+             git reset --hard '${{ github.sha }}' && \
+             ./deploy.sh '$TARGET_ENV'"
