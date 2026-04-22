@@ -31,6 +31,16 @@ gh secret list --repo BHQUAN97/WebTemplate
 
 ---
 
+## Checklist trước khi deploy
+
+- [ ] `gh secret list --repo BHQUAN97/WebTemplate` hiện đủ 5 secrets
+- [ ] Push code lên `main` → Actions chạy tự động
+- [ ] Xem progress: `gh run watch --repo BHQUAN97/WebTemplate`
+
+> Đổi VPS password: `bash /e/DEVELOP/.claude-shared/secrets-infra/scripts/set-all-secrets.sh --shared`
+
+---
+
 ## Deploy
 
 ### Tự động
