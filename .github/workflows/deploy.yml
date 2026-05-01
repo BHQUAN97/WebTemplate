@@ -196,9 +196,8 @@ jobs:
             frontend/tsconfig.json frontend/postcss.config.mjs 2>/dev/null | \
             sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
 
-          echo "  Uploading nginx + infra + db..."
+          echo "  Uploading nginx conf.d + db..."
           sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
-          sshpass -e scp -P $PORT infra/nginx/nginx.conf $VPS:${INFRA_DIR}/nginx/nginx.conf
           sshpass -e scp -P $PORT -r db/ $VPS:${APP_DIR}/db/ 2>/dev/null || true
 
           echo "[OK] Full project uploaded"
@@ -495,7 +494,6 @@ jobs:
           PORT="${{ secrets.VPS_PORT }}"
           sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
           sshpass -e scp -P $PORT infra/docker-compose.yml $VPS:${INFRA_DIR}/
-          sshpass -e scp -P $PORT infra/nginx/nginx.conf $VPS:${INFRA_DIR}/nginx/nginx.conf
           printf "MYSQL_ROOT_PASSWORD='%s'\n" "$MYSQL_ROOT_PASSWORD" > /tmp/infra_update.env
           sshpass -e scp -P $PORT /tmp/infra_update.env $VPS:${INFRA_DIR}/.env
           sshpass -e ssh -p $PORT $VPS "chmod 600 ${INFRA_DIR}/.env"
