@@ -211,7 +211,6 @@ jobs:
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
-          sshpass -e scp -P $PORT infra/docker-compose.yml $VPS:${INFRA_DIR}/docker-compose.yml
           printf '%s' "$MYSQL_ROOT_PASSWORD" > /tmp/mysql_root_pass.txt
           sshpass -e scp -P $PORT /tmp/mysql_root_pass.txt $VPS:/tmp/mysql_root_pass.txt
           rm -f /tmp/mysql_root_pass.txt
@@ -493,7 +492,6 @@ jobs:
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
-          sshpass -e scp -P $PORT infra/docker-compose.yml $VPS:${INFRA_DIR}/
           printf "MYSQL_ROOT_PASSWORD='%s'\n" "$MYSQL_ROOT_PASSWORD" > /tmp/infra_update.env
           sshpass -e scp -P $PORT /tmp/infra_update.env $VPS:${INFRA_DIR}/.env
           sshpass -e ssh -p $PORT $VPS "chmod 600 ${INFRA_DIR}/.env"
