@@ -1,55 +1,68 @@
-# Deploy workflow — SSH into VPS using password auth, git pull, run ./deploy.sh <env>
-#
-# Required GitHub repository secrets:
-#   VPS_HOST     — hostname or IP of the target server
-#   VPS_PORT     — SSH port (e.g. 22)
-#   VPS_USER     — SSH user on the server (e.g. root)
-#   VPS_PASSWORD — SSH password
-#   DEPLOY_PATH  — absolute path on server where repo is checked out
-#
-# Trigger:
-#   - Manual: Actions -> Deploy -> Run workflow -> pick environment
-#   - Automatic: push a tag matching v* (e.g. v1.2.3) -> deploys to prod
-
-name: Deploy
+name: Auto Deploy
 
 on:
   workflow_dispatch:
-    inputs:
-      environment:
-        description: Target environment
-        required: true
-        default: staging
-        type: choice
-        options:
-          - staging
-          - prod
   push:
-    tags:
-      - 'v*'
+    branches: [main, master]
+    paths-ignore:
+      - '*.md'
+      - 'docs/**'
+      - '.sdd/**'
+      - '.github/workflows/ci.yml'
 
 concurrency:
-  group: deploy-${{ github.ref }}
-  cancel-in-progress: false
+  group: deploy
+  cancel-in-progress: true
+
+env:
+  APP_DIR: /opt/webtemplate
+  INFRA_DIR: /opt/infra
+
+# ══════════════════════════════════════════════════════
+# Pipeline: typecheck → build → deploy → verify
+# ══════════════════════════════════════════════════════
 
 jobs:
-  deploy:
-    name: SSH Deploy
+  # ─── STAGE 1: TYPE CHECK (parallel) ──────────────
+  typecheck-fe:
+    name: "1. Typecheck FE"
     runs-on: ubuntu-latest
-    timeout-minutes: 20
-    environment: ${{ github.event_name == 'workflow_dispatch' && inputs.environment || 'prod' }}
     steps:
-      - name: Checkout
-        uses: actions/checkout@v4
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: frontend/package-lock.json
+      - run: cd frontend && npm ci && npx tsc --noEmit
 
-      - name: Resolve environment
-        id: env
-        run: |
-          if [ "${{ github.event_name }}" = "workflow_dispatch" ]; then
-            echo "target=${{ inputs.environment }}" >> "$GITHUB_OUTPUT"
-          else
-            echo "target=prod" >> "$GITHUB_OUTPUT"
-          fi
+  typecheck-be:
+    name: "1. Typecheck BE"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+          cache-dependency-path: backend/package-lock.json
+      - run: cd backend && npm ci && npx tsc --noEmit
+
+  # ─── STAGE 2: DETECT CHANGES ─────────────────────
+  build:
+    name: "2. Detect Changes"
+    runs-on: ubuntu-latest
+    needs: [typecheck-fe, typecheck-be]
+    outputs:
+      mode: ${{ steps.detect.outputs.mode }}
+      fe: ${{ steps.changes.outputs.fe }}
+      be: ${{ steps.changes.outputs.be }}
+      infra: ${{ steps.changes.outputs.infra }}
+      db: ${{ steps.changes.outputs.db }}
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 2
 
       - name: Setup SSH
         run: |
@@ -58,14 +71,612 @@ jobs:
           ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
           echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
 
-      - name: Deploy over SSH
-        env:
-          TARGET_ENV: ${{ steps.env.outputs.target }}
+      - name: Detect deploy mode
+        id: detect
         run: |
-          sshpass -e ssh -p "${{ secrets.VPS_PORT }}" \
-            "${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}" \
-            "set -euo pipefail; \
-             cd '${{ secrets.DEPLOY_PATH }}' && \
-             git fetch --all --prune && \
-             git reset --hard '${{ github.sha }}' && \
-             ./deploy.sh '$TARGET_ENV'"
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          if sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health > /dev/null 2>&1"; then
+            echo "mode=update" >> $GITHUB_OUTPUT
+            echo "Deploy mode: UPDATE (API healthy)"
+          else
+            echo "mode=init" >> $GITHUB_OUTPUT
+            echo "Deploy mode: INIT (API not responding)"
+          fi
+
+      - name: Detect changes
+        id: changes
+        run: |
+          BEFORE="${{ github.event.before }}"
+          if [ "$BEFORE" = "0000000000000000000000000000000000000000" ] || [ -z "$BEFORE" ]; then
+            DIFF="FULL"
+          else
+            DIFF=$(git diff --name-only "$BEFORE" "${{ github.sha }}" 2>/dev/null || echo "FULL")
+          fi
+
+          echo "Changed files:"
+          echo "$DIFF" | head -20
+
+          fe=false; be=false; infra=false; db=false
+
+          if [ "$DIFF" = "FULL" ]; then
+            fe=true; be=true; infra=true; db=true
+          else
+            echo "$DIFF" | grep -qE '^frontend/' && fe=true
+            echo "$DIFF" | grep -qE '^backend/' && be=true
+            echo "$DIFF" | grep -qE '^(docker-compose|infra/|nginx/|.*/Dockerfile)' && infra=true
+            echo "$DIFF" | grep -qE '^(db/|backend/src/.*entity)' && db=true
+          fi
+
+          if [ "${{ steps.detect.outputs.mode }}" = "init" ]; then
+            fe=true; be=true; infra=true; db=true
+          fi
+
+          echo "fe=$fe" >> $GITHUB_OUTPUT
+          echo "be=$be" >> $GITHUB_OUTPUT
+          echo "infra=$infra" >> $GITHUB_OUTPUT
+          echo "db=$db" >> $GITHUB_OUTPUT
+          echo "Changes: fe=$fe be=$be infra=$infra db=$db"
+
+  # ─── STAGE 3: DEPLOY TO VPS ─────────────────────
+  deploy:
+    name: "3. Deploy"
+    runs-on: ubuntu-latest
+    needs: [build]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass > /dev/null
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Sync .env
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          {
+            echo "NODE_ENV=production"
+            echo "APP_PORT=6001"
+            echo "DB_HOST=shared-mysql"
+            echo "DB_PORT=3306"
+            echo "DB_NAME=webtemplate"
+            echo "DB_USER=webtemplate"
+            echo "DB_PASSWORD=${{ secrets.WT_DB_PASSWORD }}"
+            echo "REDIS_HOST=shared-redis"
+            echo "REDIS_PORT=6379"
+            echo "REDIS_PREFIX=wt:"
+            echo "APP_URL=https://template.bhquan.store"
+            echo "API_URL=https://template.bhquan.store/api"
+            echo "CORS_ORIGINS=https://template.bhquan.store"
+            echo "JWT_ACCESS_SECRET=${{ secrets.JWT_ACCESS_SECRET }}"
+            echo "JWT_REFRESH_SECRET=${{ secrets.JWT_REFRESH_SECRET }}"
+            echo "JWT_RESET_SECRET=${{ secrets.JWT_RESET_SECRET }}"
+            echo "JWT_ACCESS_EXPIRES=15m"
+            echo "JWT_REFRESH_EXPIRES=7d"
+            echo "RESEND_API_KEY=${{ secrets.RESEND_API_KEY }}"
+            echo "EMAIL_FROM=noreply@template.bhquan.store"
+            echo "S3_ENDPOINT=${{ secrets.S3_ENDPOINT }}"
+            echo "S3_BUCKET=${{ secrets.WT_S3_BUCKET }}"
+            echo "S3_ACCESS_KEY=${{ secrets.S3_ACCESS_KEY }}"
+            echo "S3_SECRET_KEY=${{ secrets.S3_SECRET_KEY }}"
+            echo "S3_REGION=auto"
+            echo "S3_PUBLIC_URL=${{ secrets.WT_S3_PUBLIC_URL }}"
+          } > /tmp/prod.env
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${APP_DIR}"
+          sshpass -e scp -P $PORT /tmp/prod.env $VPS:${APP_DIR}/.env
+          sshpass -e ssh -p $PORT $VPS "chmod 600 ${APP_DIR}/.env"
+
+      # ── INIT: Full upload ────────────────────────
+      - name: "[INIT] Upload full project"
+        if: needs.build.outputs.mode == 'init'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "
+            export PATH=\$PATH:/usr/local/bin
+            docker stop wt-backend wt-frontend 2>/dev/null || true
+            docker rm wt-backend wt-frontend 2>/dev/null || true
+          "
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${APP_DIR}/{backend,frontend,db,scripts} ${INFRA_DIR}/nginx/conf.d"
+
+          sshpass -e scp -P $PORT docker-compose.prod.yml $VPS:${APP_DIR}/
+
+          echo "  Uploading backend..."
+          tar czf - backend/src backend/package.json backend/package-lock.json \
+            backend/Dockerfile backend/tsconfig.json \
+            backend/tsconfig.build.json backend/nest-cli.json 2>/dev/null | \
+            sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
+
+          echo "  Uploading frontend..."
+          tar czf - frontend/src frontend/public frontend/package.json frontend/package-lock.json \
+            frontend/Dockerfile frontend/next.config.mjs frontend/tailwind.config.ts \
+            frontend/tsconfig.json frontend/postcss.config.mjs 2>/dev/null | \
+            sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
+
+          echo "  Uploading nginx + infra + db..."
+          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
+          sshpass -e scp -P $PORT infra/nginx/nginx.conf $VPS:${INFRA_DIR}/nginx/nginx.conf
+          sshpass -e scp -P $PORT -r db/ $VPS:${APP_DIR}/db/ 2>/dev/null || true
+
+          echo "[OK] Full project uploaded"
+
+      # ── INIT: Infra + DB + SSL ───────────────────
+      - name: "[INIT] Start shared infra"
+        if: needs.build.outputs.mode == 'init'
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
+          sshpass -e scp -P $PORT infra/docker-compose.yml $VPS:${INFRA_DIR}/docker-compose.yml
+          printf '%s' "$MYSQL_ROOT_PASSWORD" > /tmp/mysql_root_pass.txt
+          sshpass -e scp -P $PORT /tmp/mysql_root_pass.txt $VPS:/tmp/mysql_root_pass.txt
+          rm -f /tmp/mysql_root_pass.txt
+
+          sshpass -e ssh -p $PORT $VPS "
+            export PATH=\$PATH:/usr/local/bin
+            docker network create webphoto_backend 2>/dev/null || true
+            docker network create webtemplate_frontend 2>/dev/null || true
+            mkdir -p /opt/webphoto/photo-storage/dist
+
+            MYSQL_OK=\$(docker ps --filter name=shared-mysql --filter status=running --format '{{.Names}}' | grep -c shared-mysql || echo 0)
+            NGINX_OK=\$(docker ps --filter name=shared-nginx --filter status=running --format '{{.Names}}' | grep -c shared-nginx || echo 0)
+
+            if [ \"\$MYSQL_OK\" -gt 0 ] && [ \"\$NGINX_OK\" -gt 0 ]; then
+              echo 'Infra already running — skip'
+              rm -f /tmp/mysql_root_pass.txt
+            else
+              echo 'Starting shared infra...'
+              docker pull nginx:1.27-alpine 2>&1 | tail -1
+              echo '--- Pre-start: placeholder cert for template.bhquan.store (nginx needs cert to start) ---'
+              docker run --rm \
+                -v shared_certbot_data:/etc/letsencrypt \
+                certbot/certbot sh -c '
+                  CERT=/etc/letsencrypt/live/template.bhquan.store/fullchain.pem
+                  if openssl x509 -in \$CERT -noout -checkend 3600 2>/dev/null; then
+                    echo Cert already valid for template.bhquan.store
+                  else
+                    mkdir -p /etc/letsencrypt/live/template.bhquan.store
+                    openssl req -x509 -nodes -days 90 -newkey rsa:2048 \
+                      -keyout /etc/letsencrypt/live/template.bhquan.store/privkey.pem \
+                      -out \$CERT -subj /CN=template.bhquan.store 2>/dev/null && echo Placeholder OK
+                  fi
+                ' 2>&1 || echo '::warning::Placeholder cert failed — nginx may not start'
+              MYSQL_ROOT_PASSWORD=\$(cat /tmp/mysql_root_pass.txt) docker compose -f ${INFRA_DIR}/docker-compose.yml up -d 2>&1
+              rm -f /tmp/mysql_root_pass.txt
+              echo 'Waiting for MySQL...'
+              for i in \$(seq 1 60); do
+                docker exec shared-mysql mysqladmin ping -h localhost --silent 2>/dev/null && { echo 'MySQL ready!'; break; }
+                [ \$i -eq 60 ] && { echo 'ERROR: MySQL not ready'; docker logs shared-mysql --tail 20; exit 1; }
+                sleep 1
+              done
+              for i in \$(seq 1 20); do
+                docker exec shared-nginx nginx -t 2>/dev/null && { echo 'Nginx ready!'; break; }
+                [ \$i -eq 20 ] && { echo '::warning::Nginx not ready yet — continuing'; break; }
+                sleep 2
+              done
+            fi
+          "
+
+      - name: "[INIT] Create DB + user"
+        if: needs.build.outputs.mode == 'init'
+        env:
+          WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" > /tmp/create_wt.sql
+          sshpass -e scp -P $PORT /tmp/create_wt.sql $VPS:/tmp/create_wt.sql
+          rm -f /tmp/create_wt.sql
+          sshpass -e ssh -p $PORT $VPS "
+            export PATH=\$PATH:/usr/local/bin
+            docker cp /tmp/create_wt.sql shared-mysql:/tmp/create_wt.sql
+            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root < /tmp/create_wt.sql' 2>&1
+            docker exec shared-mysql rm -f /tmp/create_wt.sql
+            rm -f /tmp/create_wt.sql
+          "
+
+      - name: "[INIT] SSL placeholder cert"
+        if: needs.build.outputs.mode == 'init'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "
+            DC='docker compose -f ${INFRA_DIR}/docker-compose.yml'
+            CERT_VALID=\$(\$DC run --rm --entrypoint '' certbot sh -c \
+              'openssl x509 -in /etc/letsencrypt/live/template.bhquan.store/fullchain.pem -noout -checkend 3600 2>/dev/null && echo yes || echo no' \
+              2>/dev/null || echo no)
+            if [ \"\$CERT_VALID\" = 'no' ]; then
+              echo 'Creating placeholder cert for template.bhquan.store...'
+              \$DC run --rm --entrypoint '' certbot sh -c '
+                mkdir -p /etc/letsencrypt/live/template.bhquan.store
+                openssl req -x509 -nodes -days 90 -newkey rsa:2048 \
+                  -keyout /etc/letsencrypt/live/template.bhquan.store/privkey.pem \
+                  -out /etc/letsencrypt/live/template.bhquan.store/fullchain.pem \
+                  -subj /CN=template.bhquan.store 2>/dev/null && echo Placeholder OK
+              ' || echo '::error::Failed to create placeholder cert'
+            else
+              echo 'Cert still valid for template.bhquan.store'
+            fi
+            docker exec shared-nginx nginx -s reload 2>/dev/null || true
+          "
+
+      - name: "[INIT] Build & Start services"
+        if: needs.build.outputs.mode == 'init'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          echo "=== VPS diagnostics ==="
+          sshpass -e ssh -p $PORT $VPS "
+            echo '--- Memory ---'; free -h
+            echo '--- Disk ---'; df -h /
+            echo '--- Docker disk ---'; docker system df
+            echo '--- Running containers ---'; docker ps --format 'table {{.Names}}\t{{.Status}}\t{{.Size}}'
+          "
+
+          echo ""
+          echo "=== Building backend ==="
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml build backend 2>&1"
+          if [ $? -ne 0 ]; then
+            echo "::error::Backend build failed"
+            sshpass -e ssh -p $PORT $VPS "free -h; dmesg | grep -i 'oom\|killed' | tail -5" 2>&1 || true
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Building frontend ==="
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml build frontend 2>&1"
+          if [ $? -ne 0 ]; then
+            echo "::error::Frontend build failed"
+            sshpass -e ssh -p $PORT $VPS "free -h; dmesg | grep -i 'oom\|killed' | tail -5" 2>&1 || true
+            exit 1
+          fi
+
+          echo ""
+          echo "=== Starting services ==="
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d 2>&1"
+          if [ $? -ne 0 ]; then
+            echo "::error::Docker start failed"
+            sshpass -e ssh -p $PORT $VPS "
+              docker ps -a --format 'table {{.Names}}\t{{.Status}}' | grep -E 'wt-|shared'
+              echo '--- Backend logs ---'; docker logs wt-backend --tail 30 2>&1
+              echo '--- Frontend logs ---'; docker logs wt-frontend --tail 30 2>&1
+            "
+            exit 1
+          fi
+
+          sshpass -e ssh -p $PORT $VPS "
+            docker network connect webtemplate_frontend shared-nginx 2>/dev/null || true
+            docker exec shared-nginx nginx -s reload 2>/dev/null || true
+          "
+
+      - name: "[INIT] Get real SSL cert"
+        if: needs.build.outputs.mode == 'init'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sleep 5
+          sshpass -e ssh -p $PORT $VPS "
+            DC='docker compose -f ${INFRA_DIR}/docker-compose.yml'
+            IS_REAL=\$(\$DC run --rm --entrypoint '' certbot sh -c '
+              CERT=/etc/letsencrypt/live/template.bhquan.store/fullchain.pem
+              [ ! -f \"\$CERT\" ] && echo no && exit 0
+              openssl x509 -in \"\$CERT\" -noout -checkend 2592000 2>/dev/null || { echo no; exit 0; }
+              openssl x509 -in \"\$CERT\" -noout -issuer 2>/dev/null | grep -qiE \"let.s encrypt|R3|R10|R11|E5|E6\" && echo yes || echo no
+            ' 2>/dev/null || echo no)
+            if [ \"\$IS_REAL\" = 'yes' ]; then
+              echo 'LE cert valid for template.bhquan.store — skip'
+            else
+              echo 'Requesting LE cert for template.bhquan.store...'
+              \$DC run --rm --entrypoint '' certbot sh -c '
+                rm -rf /etc/letsencrypt/live/template.bhquan.store  /etc/letsencrypt/live/template.bhquan.store-*
+                rm -rf /etc/letsencrypt/archive/template.bhquan.store /etc/letsencrypt/archive/template.bhquan.store-*
+                rm -f  /etc/letsencrypt/renewal/template.bhquan.store.conf /etc/letsencrypt/renewal/template.bhquan.store-*.conf
+              '
+              if timeout 120 \$DC run --rm --entrypoint '' certbot \
+                certbot certonly --webroot -w /var/www/certbot \
+                --non-interactive --cert-name template.bhquan.store \
+                --email admin@bhquan.site --agree-tos --no-eff-email \
+                -d template.bhquan.store 2>&1; then
+                echo 'LE cert OK for template.bhquan.store'
+              else
+                echo '::warning::LE failed for template.bhquan.store — keeping placeholder cert'
+              fi
+              if docker inspect shared-nginx --format '{{.State.Running}}' 2>/dev/null | grep -q true; then
+                docker exec shared-nginx nginx -s reload 2>/dev/null && echo 'Nginx reloaded OK' || true
+              fi
+            fi
+          " || true
+
+      # ── INIT: Run DB migrations ──────────────────
+      - name: "[INIT] Run DB migrations"
+        if: needs.build.outputs.mode == 'init'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          echo "Waiting for backend..."
+          for i in $(seq 1 30); do
+            if sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health" > /dev/null 2>&1; then
+              echo "Backend ready!"; break
+            fi
+            [ $i -eq 30 ] && { echo "::warning::Backend not ready — skip migrations"; exit 0; }
+            sleep 3
+          done
+          sshpass -e ssh -p $PORT $VPS "
+            cd ${APP_DIR}
+            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run 2>&1 || echo '::warning::Migrations skipped (may already be applied)'
+          "
+
+      # ── UPDATE: Upload changed files ─────────────
+      - name: "[UPDATE] Upload frontend"
+        if: needs.build.outputs.mode == 'update' && needs.build.outputs.fe == 'true'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "rm -rf ${APP_DIR}/frontend/src"
+          tar czf - frontend/src frontend/public frontend/package.json frontend/package-lock.json \
+            frontend/Dockerfile frontend/next.config.mjs frontend/tailwind.config.ts \
+            frontend/tsconfig.json frontend/postcss.config.mjs 2>/dev/null | \
+            sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
+
+      - name: "[UPDATE] Upload backend"
+        if: needs.build.outputs.mode == 'update' && needs.build.outputs.be == 'true'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "rm -rf ${APP_DIR}/backend/src"
+          tar czf - backend/src backend/package.json backend/package-lock.json \
+            backend/Dockerfile backend/tsconfig.json \
+            backend/tsconfig.build.json backend/nest-cli.json 2>/dev/null | \
+            sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
+
+      - name: "[UPDATE] Sync config"
+        if: needs.build.outputs.mode == 'update'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e scp -P $PORT docker-compose.prod.yml $VPS:${APP_DIR}/
+
+      - name: "[UPDATE] Sync nginx"
+        if: needs.build.outputs.mode == 'update'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
+          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
+          sshpass -e ssh -p $PORT $VPS "
+            DC='docker compose -f ${INFRA_DIR}/docker-compose.yml'
+            CERT_VALID=\$(\$DC run --rm --entrypoint '' certbot sh -c \
+              'openssl x509 -in /etc/letsencrypt/live/template.bhquan.store/fullchain.pem -noout -checkend 3600 2>/dev/null && echo yes || echo no' \
+              2>/dev/null || echo no)
+            if [ \"\$CERT_VALID\" = 'no' ]; then
+              echo 'No valid cert — creating placeholder'
+              \$DC run --rm --entrypoint '' certbot sh -c '
+                mkdir -p /etc/letsencrypt/live/template.bhquan.store
+                openssl req -x509 -nodes -days 90 -newkey rsa:2048 \
+                  -keyout /etc/letsencrypt/live/template.bhquan.store/privkey.pem \
+                  -out /etc/letsencrypt/live/template.bhquan.store/fullchain.pem \
+                  -subj /CN=template.bhquan.store 2>/dev/null
+              ' || true
+            fi
+            echo '--- nginx config test ---'
+            docker exec shared-nginx nginx -t 2>&1 || true
+            if docker inspect shared-nginx --format '{{.State.Running}}' 2>/dev/null | grep -q true; then
+              docker exec shared-nginx nginx -s reload 2>/dev/null && echo 'Nginx reloaded OK' || echo '::warning::nginx reload failed'
+              sleep 3
+              NGINX_STATUS=\$(docker inspect shared-nginx --format '{{.State.Status}}' 2>/dev/null || echo missing)
+              if [ \"\$NGINX_STATUS\" != 'running' ]; then
+                echo '::error::shared-nginx not running after config update (status='\$NGINX_STATUS')'
+                docker logs shared-nginx --tail 20 2>&1 || true
+                docker run --rm \
+                  -v ${INFRA_DIR}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+                  -v ${INFRA_DIR}/nginx/conf.d:/etc/nginx/conf.d:ro \
+                  -v shared_certbot_data:/etc/letsencrypt:ro \
+                  nginx:1.27-alpine nginx -t 2>&1 || true
+                exit 1
+              fi
+              echo 'nginx: OK'
+            else
+              echo '::warning::shared-nginx not running — skip reload'
+            fi
+          "
+
+      - name: "[UPDATE] Sync infra"
+        if: needs.build.outputs.mode == 'update' && needs.build.outputs.infra == 'true'
+        env:
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
+          sshpass -e scp -P $PORT infra/docker-compose.yml $VPS:${INFRA_DIR}/
+          sshpass -e scp -P $PORT infra/nginx/nginx.conf $VPS:${INFRA_DIR}/nginx/nginx.conf
+          printf "MYSQL_ROOT_PASSWORD='%s'\n" "$MYSQL_ROOT_PASSWORD" > /tmp/infra_update.env
+          sshpass -e scp -P $PORT /tmp/infra_update.env $VPS:${INFRA_DIR}/.env
+          sshpass -e ssh -p $PORT $VPS "chmod 600 ${INFRA_DIR}/.env"
+          rm -f /tmp/infra_update.env
+          sshpass -e ssh -p $PORT $VPS "
+            export PATH=\$PATH:/usr/local/bin
+            docker network create webphoto_backend 2>/dev/null || true
+            docker network create webtemplate_frontend 2>/dev/null || true
+            docker pull nginx:1.27-alpine 2>&1 | tail -1
+            cd ${INFRA_DIR} && docker compose up -d --force-recreate 2>&1 | tail -5
+            for i in \$(seq 1 30); do
+              docker exec shared-mysql mysqladmin ping -h localhost --silent 2>/dev/null && break
+              [ \$i -eq 30 ] && { docker logs shared-mysql --tail 20; exit 1; }
+              sleep 1
+            done
+          "
+
+      - name: "[UPDATE] Rebuild backend"
+        if: needs.build.outputs.mode == 'update' && (needs.build.outputs.be == 'true' || needs.build.outputs.infra == 'true')
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          echo "=== VPS resources before backend build ==="
+          sshpass -e ssh -p $PORT $VPS "free -h; df -h /" 2>&1
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml build backend 2>&1"
+          if [ $? -ne 0 ]; then
+            echo "::error::Backend build failed"
+            sshpass -e ssh -p $PORT $VPS "free -h; dmesg | grep -i 'oom\|killed' | tail -5" 2>&1 || true
+            exit 1
+          fi
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d backend 2>&1"
+
+      - name: "[UPDATE] Rebuild frontend"
+        if: needs.build.outputs.mode == 'update' && (needs.build.outputs.fe == 'true' || needs.build.outputs.infra == 'true')
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          echo "=== VPS resources before frontend build ==="
+          sshpass -e ssh -p $PORT $VPS "free -h; df -h /" 2>&1
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml build frontend 2>&1"
+          if [ $? -ne 0 ]; then
+            echo "::error::Frontend build failed"
+            sshpass -e ssh -p $PORT $VPS "free -h; dmesg | grep -i 'oom\|killed' | tail -5" 2>&1 || true
+            exit 1
+          fi
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d frontend 2>&1"
+
+      - name: "[UPDATE] Ensure nginx connected"
+        if: needs.build.outputs.mode == 'update'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "
+            docker network connect webtemplate_frontend shared-nginx 2>/dev/null || true
+            docker exec shared-nginx nginx -s reload 2>/dev/null || true
+          "
+
+      # ── SHARED: DB migrations ────────────────────
+      - name: Ensure DB + user
+        env:
+          WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          MYSQL_STATUS=$(sshpass -e ssh -p $PORT $VPS "docker ps --filter name=shared-mysql --format '{{.Names}}'" 2>&1)
+          [ -z "$MYSQL_STATUS" ] && { echo "::warning::shared-mysql not running — skip"; exit 0; }
+          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" > /tmp/ensure_wt.sql
+          sshpass -e scp -P $PORT /tmp/ensure_wt.sql $VPS:/tmp/ensure_wt.sql
+          rm -f /tmp/ensure_wt.sql
+          sshpass -e ssh -p $PORT $VPS "
+            export PATH=\$PATH:/usr/local/bin
+            docker cp /tmp/ensure_wt.sql shared-mysql:/tmp/ensure_wt.sql
+            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root < /tmp/ensure_wt.sql' 2>&1
+            docker exec shared-mysql rm -f /tmp/ensure_wt.sql
+            rm -f /tmp/ensure_wt.sql
+          "
+
+      - name: Run DB migrations
+        if: needs.build.outputs.db == 'true'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          echo "Waiting for backend..."
+          for i in $(seq 1 20); do
+            sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health" > /dev/null 2>&1 && { echo "Backend ready!"; break; }
+            [ $i -eq 20 ] && { echo "::warning::Backend not ready — skip migrations"; exit 0; }
+            sleep 3
+          done
+          sshpass -e ssh -p $PORT $VPS "
+            cd ${APP_DIR}
+            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run 2>&1 || echo '::warning::Migrations skipped'
+          "
+
+      - name: Restart after DB changes
+        if: needs.build.outputs.db == 'true'
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml restart backend frontend" 2>&1 || true
+          echo "Waiting for backend..."
+          for i in $(seq 1 30); do
+            sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health" > /dev/null 2>&1 && { echo "Backend ready!"; break; }
+            if [ $i -eq 30 ]; then
+              echo "::error::Backend not ready after 90s post-migration"
+              sshpass -e ssh -p $PORT $VPS "docker logs wt-backend --tail 30" 2>&1
+              exit 1
+            fi
+            sleep 3
+          done
+
+  # ─── STAGE 4: VERIFY ────────────────────────────
+  verify:
+    name: "4. Health Check"
+    runs-on: ubuntu-latest
+    needs: [build, deploy]
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass > /dev/null
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Wait for services
+        run: sleep 10
+
+      - name: Backend health
+        run: |
+          set +e
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          echo "=== Container status ==="
+          sshpass -e ssh -p $PORT $VPS "docker ps -a --format 'table {{.Names}}\t{{.Status}}' | grep -E 'wt-|shared'" 2>&1
+
+          for i in $(seq 1 15); do
+            RESULT=$(sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health" 2>&1)
+            RC=$?
+            if [ $RC -eq 0 ] && [ -n "$RESULT" ]; then
+              echo "Backend: OK — $RESULT"
+              exit 0
+            fi
+            echo "  Attempt $i/15 — curl exit $RC"
+            sleep 2
+          done
+
+          echo "::error::Backend health check failed after 30s"
+          sshpass -e ssh -p $PORT $VPS "docker logs wt-backend --tail 50" 2>&1
+          exit 1
+
+      - name: Frontend health
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          for i in $(seq 1 10); do
+            sshpass -e ssh -p $PORT $VPS "curl -sf -o /dev/null http://localhost:6000" 2>/dev/null && { echo "Frontend: OK"; exit 0; }
+            [ $i -eq 10 ] && { echo "::error::Frontend health check failed"; sshpass -e ssh -p $PORT $VPS "docker logs wt-frontend --tail 20" 2>&1; exit 1; }
+            sleep 2
+          done
+
+      - name: SSL cert status
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          CERT_INFO=$(sshpass -e ssh -p $PORT $VPS "
+            docker compose -f ${INFRA_DIR}/docker-compose.yml run --rm --entrypoint '' certbot sh -c '
+              CERT=/etc/letsencrypt/live/template.bhquan.store/fullchain.pem
+              [ ! -f \$CERT ] && echo MISSING && exit 0
+              ISSUER=\$(openssl x509 -in \$CERT -noout -issuer 2>/dev/null)
+              echo \$ISSUER | grep -qiE \"let.s encrypt|R3|R10|R11|E5|E6\" && echo REAL || echo PLACEHOLDER
+            '
+          " 2>&1)
+          echo "SSL cert template.bhquan.store: $CERT_INFO"
+
+      - name: Deploy summary
+        run: |
+          echo "=========================================="
+          echo "  WebTemplate — template.bhquan.store"
+          echo "  Mode: ${{ needs.build.outputs.mode }}"
+          echo "  FE: ${{ needs.build.outputs.fe }} | BE: ${{ needs.build.outputs.be }}"
+          echo "  DB: ${{ needs.build.outputs.db }} | Infra: ${{ needs.build.outputs.infra }}"
+          echo "=========================================="
