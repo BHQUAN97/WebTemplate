@@ -268,7 +268,7 @@ jobs:
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
-          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" > /tmp/create_wt.sql
+          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nALTER USER 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" "$WT_DB_PASSWORD" > /tmp/create_wt.sql
           sshpass -e scp -P $PORT /tmp/create_wt.sql $VPS:/tmp/create_wt.sql
           rm -f /tmp/create_wt.sql
           sshpass -e ssh -p $PORT $VPS "
@@ -568,7 +568,7 @@ jobs:
           PORT="${{ secrets.VPS_PORT }}"
           MYSQL_STATUS=$(sshpass -e ssh -p $PORT $VPS "docker ps --filter name=shared-mysql --format '{{.Names}}'" 2>&1)
           [ -z "$MYSQL_STATUS" ] && { echo "::warning::shared-mysql not running — skip"; exit 0; }
-          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" > /tmp/ensure_wt.sql
+          printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nALTER USER 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" "$WT_DB_PASSWORD" > /tmp/ensure_wt.sql
           sshpass -e scp -P $PORT /tmp/ensure_wt.sql $VPS:/tmp/ensure_wt.sql
           rm -f /tmp/ensure_wt.sql
           sshpass -e ssh -p $PORT $VPS "
