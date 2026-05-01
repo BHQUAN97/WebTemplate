@@ -338,13 +338,21 @@ jobs:
 
           echo ""
           echo "=== Starting services ==="
+          set +e
           sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d --remove-orphans 2>&1"
-          if [ $? -ne 0 ]; then
-            echo "::error::Docker start failed"
+          COMPOSE_EXIT=$?
+          set -e
+          if [ $COMPOSE_EXIT -ne 0 ]; then
+            echo "::error::Docker start failed (exit $COMPOSE_EXIT)"
             sshpass -e ssh -p $PORT $VPS "
+              echo '--- Container status ---'
               docker ps -a --format 'table {{.Names}}\t{{.Status}}' | grep -E 'wt-|shared'
-              echo '--- Backend logs ---'; docker logs wt-backend --tail 30 2>&1
-              echo '--- Frontend logs ---'; docker logs wt-frontend --tail 30 2>&1
+              echo '--- Backend logs (last 50) ---'
+              docker logs wt-backend --tail 50 2>&1 || echo 'no backend logs'
+              echo '--- Backend inspect ---'
+              docker inspect wt-backend --format 'State: {{.State.Status}} ExitCode: {{.State.ExitCode}}' 2>&1 || echo 'container gone'
+              echo '--- Frontend logs ---'
+              docker logs wt-frontend --tail 20 2>&1 || echo 'no frontend logs'
             "
             exit 1
           fi
