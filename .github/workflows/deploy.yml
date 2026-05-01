@@ -167,7 +167,7 @@ jobs:
           } > /tmp/prod.env
           sshpass -e ssh -p $PORT $VPS "mkdir -p ${APP_DIR}"
           sshpass -e scp -P $PORT /tmp/prod.env $VPS:${APP_DIR}/.env
-          sshpass -e ssh -p $PORT $VPS "chmod 600 ${APP_DIR}/.env"
+          sshpass -e ssh -p $PORT $VPS "chmod 600 ${APP_DIR}/.env && cp ${APP_DIR}/.env ${APP_DIR}/.env.production && chmod 600 ${APP_DIR}/.env.production"
 
       # ── INIT: Full upload ────────────────────────
       - name: "[INIT] Upload full project"
