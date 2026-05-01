@@ -192,8 +192,9 @@ jobs:
 
           echo "  Uploading frontend..."
           tar czf - frontend/src frontend/public frontend/package.json frontend/package-lock.json \
-            frontend/Dockerfile frontend/next.config.mjs frontend/tailwind.config.ts \
-            frontend/tsconfig.json frontend/postcss.config.mjs 2>/dev/null | \
+            frontend/Dockerfile frontend/next.config.ts frontend/postcss.config.mjs \
+            frontend/tsconfig.json frontend/eslint.config.mjs \
+            frontend/sentry.client.config.ts frontend/sentry.server.config.ts frontend/sentry.edge.config.ts 2>/dev/null | \
             sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
 
           echo "  Uploading nginx conf.d + db..."
@@ -418,8 +419,9 @@ jobs:
           PORT="${{ secrets.VPS_PORT }}"
           sshpass -e ssh -p $PORT $VPS "rm -rf ${APP_DIR}/frontend/src"
           tar czf - frontend/src frontend/public frontend/package.json frontend/package-lock.json \
-            frontend/Dockerfile frontend/next.config.mjs frontend/tailwind.config.ts \
-            frontend/tsconfig.json frontend/postcss.config.mjs 2>/dev/null | \
+            frontend/Dockerfile frontend/next.config.ts frontend/postcss.config.mjs \
+            frontend/tsconfig.json frontend/eslint.config.mjs \
+            frontend/sentry.client.config.ts frontend/sentry.server.config.ts frontend/sentry.edge.config.ts 2>/dev/null | \
             sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
 
       - name: "[UPDATE] Upload backend"
