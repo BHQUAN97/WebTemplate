@@ -265,18 +265,22 @@ jobs:
         if: needs.build.outputs.mode == 'init'
         env:
           WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nALTER USER 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" "$WT_DB_PASSWORD" > /tmp/create_wt.sql
+          printf '%s' "$MYSQL_ROOT_PASSWORD" > /tmp/wt_root_pass.txt
           sshpass -e scp -P $PORT /tmp/create_wt.sql $VPS:/tmp/create_wt.sql
-          rm -f /tmp/create_wt.sql
+          sshpass -e scp -P $PORT /tmp/wt_root_pass.txt $VPS:/tmp/wt_root_pass.txt
+          rm -f /tmp/create_wt.sql /tmp/wt_root_pass.txt
           sshpass -e ssh -p $PORT $VPS "
             export PATH=\$PATH:/usr/local/bin
+            MYSQL_ROOT_PASS=\$(cat /tmp/wt_root_pass.txt)
             docker cp /tmp/create_wt.sql shared-mysql:/tmp/create_wt.sql
-            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root < /tmp/create_wt.sql' 2>&1
+            docker exec -e MYSQL_PWD=\"\$MYSQL_ROOT_PASS\" shared-mysql mysql -u root -e 'source /tmp/create_wt.sql' 2>&1
             docker exec shared-mysql rm -f /tmp/create_wt.sql
-            rm -f /tmp/create_wt.sql
+            rm -f /tmp/create_wt.sql /tmp/wt_root_pass.txt
           "
 
       - name: "[INIT] SSL placeholder cert"
@@ -563,20 +567,24 @@ jobs:
       - name: Ensure DB + user
         env:
           WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}
+          MYSQL_ROOT_PASSWORD: ${{ secrets.MYSQL_ROOT_PASSWORD }}
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           MYSQL_STATUS=$(sshpass -e ssh -p $PORT $VPS "docker ps --filter name=shared-mysql --format '{{.Names}}'" 2>&1)
           [ -z "$MYSQL_STATUS" ] && { echo "::warning::shared-mysql not running — skip"; exit 0; }
           printf "CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\nCREATE USER IF NOT EXISTS 'webtemplate'@'%%' IDENTIFIED BY '%s';\nALTER USER 'webtemplate'@'%%' IDENTIFIED BY '%s';\nGRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%%';\nFLUSH PRIVILEGES;\n" "$WT_DB_PASSWORD" "$WT_DB_PASSWORD" > /tmp/ensure_wt.sql
+          printf '%s' "$MYSQL_ROOT_PASSWORD" > /tmp/wt_root_pass.txt
           sshpass -e scp -P $PORT /tmp/ensure_wt.sql $VPS:/tmp/ensure_wt.sql
-          rm -f /tmp/ensure_wt.sql
+          sshpass -e scp -P $PORT /tmp/wt_root_pass.txt $VPS:/tmp/wt_root_pass.txt
+          rm -f /tmp/ensure_wt.sql /tmp/wt_root_pass.txt
           sshpass -e ssh -p $PORT $VPS "
             export PATH=\$PATH:/usr/local/bin
+            MYSQL_ROOT_PASS=\$(cat /tmp/wt_root_pass.txt)
             docker cp /tmp/ensure_wt.sql shared-mysql:/tmp/ensure_wt.sql
-            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root < /tmp/ensure_wt.sql' 2>&1
+            docker exec -e MYSQL_PWD=\"\$MYSQL_ROOT_PASS\" shared-mysql mysql -u root -e 'source /tmp/ensure_wt.sql' 2>&1
             docker exec shared-mysql rm -f /tmp/ensure_wt.sql
-            rm -f /tmp/ensure_wt.sql
+            rm -f /tmp/ensure_wt.sql /tmp/wt_root_pass.txt
           "
 
       - name: Run DB migrations
