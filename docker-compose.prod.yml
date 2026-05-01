@@ -1,219 +1,92 @@
-version: '3.8'
-
-# ==========================================
-# Production — Full stack
-# MySQL + Redis CHI internal Docker network (khong expose port)
-# Backend + Frontend bind 127.0.0.1 de debug noi bo (Nginx se reverse proxy)
-# Nginx la service duy nhat expose 80/443 ra internet
-# ==========================================
+# ============================================
+# WebTemplate — PRODUCTION (Shared VPS)
+# Domain: template.bhquan.store
+# Dung chung MySQL (shared-mysql), Redis (shared-redis), Nginx (shared-nginx)
+# tu /opt/infra/docker-compose.yml
+# ============================================
 
 services:
-  # ==========================================
-  # MySQL 8 — primary database (internal only)
-  # ==========================================
-  mysql:
-    image: mysql:8.0
-    container_name: wt-mysql
-    restart: unless-stopped
-    env_file:
-      - ./.env.production
-    # KHONG expose port ra host — chi dung internal network
-    # Neu can debug local, uncomment dong duoi:
-    # ports:
-    #   - '127.0.0.1:6002:3306'
-    environment:
-      MYSQL_ROOT_PASSWORD: ${DB_ROOT_PASSWORD:-rootpass}
-      MYSQL_DATABASE: ${DB_NAME:-webtemplate}
-      MYSQL_USER: ${DB_USER:-wtuser}
-      MYSQL_PASSWORD: ${DB_PASSWORD:-wtpass}
-    volumes:
-      - mysql_data:/var/lib/mysql
-    networks:
-      - webtemplate-net
-    command: >
-      --default-authentication-plugin=mysql_native_password
-      --character-set-server=utf8mb4
-      --collation-server=utf8mb4_unicode_ci
-      --innodb-buffer-pool-size=256M
-      --max-connections=200
-    healthcheck:
-      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost', '-u', 'root', '-p${DB_ROOT_PASSWORD:-rootpass}']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-      start_period: 30s
 
-  # ==========================================
-  # Redis 7 — cache + session + BullMQ (internal only)
-  # ==========================================
-  redis:
-    image: redis:7-alpine
-    container_name: wt-redis
-    restart: unless-stopped
-    env_file:
-      - ./.env.production
-    # KHONG expose port — chi dung internal network
-    volumes:
-      - redis_data:/data
-    networks:
-      - webtemplate-net
-    command: redis-server --appendonly yes --maxmemory 128mb --maxmemory-policy allkeys-lru
-    healthcheck:
-      test: ['CMD', 'redis-cli', 'ping']
-      interval: 10s
-      timeout: 5s
-      retries: 5
-
-  # ==========================================
-  # Backend — NestJS 10 API
-  # Bind loopback only → Nginx proxy tu container bridge
-  # ==========================================
+  # ─── NestJS Backend ──────────────────────
   backend:
     build:
       context: ./backend
       dockerfile: Dockerfile
-      args:
-        APP_VERSION: ${APP_VERSION:-unknown}
     container_name: wt-backend
-    restart: unless-stopped
+    restart: always
     env_file:
-      - ./.env.production
-    ports:
-      # Loopback debug only — Nginx dung DNS wt-backend:6001
-      - '127.0.0.1:6001:6001'
+      - .env
     environment:
       NODE_ENV: production
-      DB_HOST: mysql
-      DB_PORT: 3306
-      DB_NAME: ${DB_NAME:-webtemplate}
-      DB_USER: ${DB_USER:-wtuser}
-      DB_PASSWORD: ${DB_PASSWORD:-wtpass}
-      REDIS_HOST: redis
-      REDIS_PORT: 6379
-      REDIS_PASSWORD: ${REDIS_PASSWORD:-}
-      JWT_ACCESS_SECRET: ${JWT_ACCESS_SECRET}
-      JWT_REFRESH_SECRET: ${JWT_REFRESH_SECRET}
-      JWT_RESET_SECRET: ${JWT_RESET_SECRET}
-      JWT_ACCESS_EXPIRES: ${JWT_ACCESS_EXPIRES:-15m}
-      JWT_REFRESH_EXPIRES: ${JWT_REFRESH_EXPIRES:-7d}
-      APP_NAME: ${APP_NAME:-WebTemplate}
-      APP_URL: ${APP_URL:-http://localhost:6000}
-      API_URL: ${API_URL:-http://localhost:6001}
       APP_PORT: 6001
-      CORS_ORIGINS: ${CORS_ORIGINS}
-      S3_ENDPOINT: ${S3_ENDPOINT}
-      S3_BUCKET: ${S3_BUCKET}
-      S3_ACCESS_KEY: ${S3_ACCESS_KEY}
-      S3_SECRET_KEY: ${S3_SECRET_KEY}
-      S3_REGION: ${S3_REGION:-auto}
-      S3_PUBLIC_URL: ${S3_PUBLIC_URL}
-      RESEND_API_KEY: ${RESEND_API_KEY}
-      EMAIL_FROM: ${EMAIL_FROM}
-    volumes:
-      - uploads_data:/app/uploads
-    depends_on:
-      mysql:
-        condition: service_healthy
-      redis:
-        condition: service_healthy
-    networks:
-      - webtemplate-net
+      DB_HOST: shared-mysql
+      DB_PORT: 3306
+      DB_NAME: webtemplate
+      DB_USER: webtemplate
+      DB_PASSWORD: ${WT_DB_PASSWORD}
+      REDIS_HOST: shared-redis
+      REDIS_PORT: 6379
+      REDIS_PREFIX: "wt:"
+      APP_URL: https://template.bhquan.store
+      API_URL: https://template.bhquan.store/api
+      CORS_ORIGINS: https://template.bhquan.store
+    ports:
+      - '127.0.0.1:6001:6001'
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:6001/api']
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:6001/api/health || exit 1']
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 15s
+      start_period: 30s
     deploy:
       resources:
         limits:
           cpus: '0.75'
           memory: 768M
+    networks:
+      - webphoto_backend
+      - webtemplate_frontend
 
-  # ==========================================
-  # Frontend — Next.js 14
-  # Bind loopback only → Nginx proxy tu container bridge
-  # ==========================================
+  # ─── Next.js Frontend ────────────────────
   frontend:
     build:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:6001}/api
-        APP_VERSION: ${APP_VERSION:-unknown}
+        NEXT_PUBLIC_API_URL: /api
+        APP_VERSION: ${APP_VERSION:-latest}
     container_name: wt-frontend
-    restart: unless-stopped
-    env_file:
-      - ./.env.production
+    restart: always
     ports:
       - '127.0.0.1:6000:6000'
     environment:
       NODE_ENV: production
-      NEXT_PUBLIC_API_URL: ${API_URL:-http://localhost:6001}/api
+      NEXT_PUBLIC_API_URL: /api
+      NEXT_PUBLIC_SITE_URL: https://template.bhquan.store
+      INTERNAL_API_URL: http://wt-backend:6001/api
     depends_on:
       backend:
         condition: service_healthy
-    networks:
-      - webtemplate-net
     healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:6000']
+      test: ['CMD-SHELL', 'wget -qO- http://localhost:6000 || exit 1']
       interval: 30s
-      timeout: 5s
+      timeout: 10s
       retries: 3
-      start_period: 20s
+      start_period: 60s
     deploy:
       resources:
         limits:
           cpus: '0.75'
           memory: 768M
-
-  # ==========================================
-  # Nginx — reverse proxy + SSL termination (public)
-  # ==========================================
-  nginx:
-    image: nginx:1.25-alpine
-    container_name: wt-nginx
-    restart: unless-stopped
-    env_file:
-      - ./.env.production
-    ports:
-      - '80:80'
-      - '443:443'
-    volumes:
-      # Production config (${DOMAIN} placeholder — cac rendered thu cong truoc)
-      - ./nginx/nginx.prod.conf:/etc/nginx/nginx.conf:ro
-      # Letsencrypt certs qua certbot (default path)
-      - certbot_conf:/etc/letsencrypt:ro
-      - certbot_www:/var/www/certbot:ro
-      - nginx_logs:/var/log/nginx
-      - uploads_data:/var/www/uploads:ro
-    depends_on:
-      frontend:
-        condition: service_healthy
-      backend:
-        condition: service_healthy
     networks:
-      - webtemplate-net
-    healthcheck:
-      test: ['CMD', 'wget', '--no-verbose', '--tries=1', '--spider', 'http://localhost:80']
-      interval: 30s
-      timeout: 5s
-      retries: 3
-
-volumes:
-  mysql_data:
-    driver: local
-  redis_data:
-    driver: local
-  uploads_data:
-    driver: local
-  certbot_conf:
-    driver: local
-  certbot_www:
-    driver: local
-  nginx_logs:
-    driver: local
+      - webtemplate_frontend
 
 networks:
-  webtemplate-net:
-    driver: bridge
+  # Network rieng — shared-nginx join vao de proxy
+  webtemplate_frontend:
+    name: webtemplate_frontend
+    external: true
+  # Network chung — truy cap shared-mysql + shared-redis
+  webphoto_backend:
+    name: webphoto_backend
+    external: true
