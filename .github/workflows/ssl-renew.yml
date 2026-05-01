@@ -74,7 +74,13 @@ jobs:
           "
 
           echo ""
-          echo "=== Verify cert in nginx container ==="
+          echo "=== Upload nginx config for template.bhquan.store ==="
+          sshpass -e ssh -p $PORT $VPS "mkdir -p /opt/infra/nginx/conf.d"
+          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf \
+            $VPS:/opt/infra/nginx/conf.d/template.bhquan.store.conf
+
+          echo ""
+          echo "=== Verify cert + reload nginx ==="
           sshpass -e ssh -p $PORT $VPS "
             docker exec shared-nginx ls -la /etc/letsencrypt/live/template.bhquan.store/
             docker exec shared-nginx sh -c 'openssl x509 -in /etc/letsencrypt/live/template.bhquan.store/fullchain.pem -noout -subject -dates' 2>&1
