@@ -18,69 +18,82 @@ jobs:
           ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
           echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
 
-      - name: Diagnose current state
+      - name: Diagnose
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
 
-          echo "=== shared-nginx container state ==="
-          sshpass -e ssh -p $PORT $VPS "docker inspect shared-nginx --format 'Status: {{.State.Status}} | Running: {{.State.Running}}' 2>&1 || echo 'Container not found'"
+          echo "=== All containers ==="
+          sshpass -e ssh -p $PORT $VPS "docker ps -a --format 'table {{.Names}}\t{{.Status}}'"
 
           echo ""
-          echo "=== shared-nginx last 20 log lines ==="
-          sshpass -e ssh -p $PORT $VPS "docker logs shared-nginx --tail 20 2>&1 || echo 'No logs (container gone)'"
+          echo "=== Docker networks ==="
+          sshpass -e ssh -p $PORT $VPS "docker network ls --format '{{.Name}}' | grep -v 'bridge\|host\|none'"
 
           echo ""
-          echo "=== All running containers ==="
-          sshpass -e ssh -p $PORT $VPS "docker ps --format 'table {{.Names}}\t{{.Status}}'"
-
-          echo ""
-          echo "=== Active networks ==="
-          sshpass -e ssh -p $PORT $VPS "docker network ls --format 'table {{.Name}}\t{{.Driver}}' | grep -v 'bridge\|host\|none'"
-
-      - name: Recreate shared-nginx from infra compose
-        run: |
-          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
-          PORT="${{ secrets.VPS_PORT }}"
-
-          echo "=== Remove stuck container (clears stale network refs) ==="
-          sshpass -e ssh -p $PORT $VPS "docker rm -f shared-nginx 2>/dev/null || echo 'Already removed'"
-
-          echo ""
-          echo "=== Recreate via infra docker-compose ==="
+          echo "=== Certs in webphoto_certbot_data ==="
           sshpass -e ssh -p $PORT $VPS "
-            cd ${INFRA_DIR}
-            docker compose up -d 2>&1
+            docker run --rm -v webphoto_certbot_data:/etc/letsencrypt alpine ls /etc/letsencrypt/live/ 2>&1 || echo 'volume missing'
+          "
+
+      - name: Recreate shared-nginx (docker run with correct cert volume)
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          echo "=== Remove stale container ==="
+          sshpass -e ssh -p $PORT $VPS "docker rm -f shared-nginx 2>/dev/null || echo 'Already gone'"
+
+          echo ""
+          echo "=== Ensure static dir exists ==="
+          sshpass -e ssh -p $PORT $VPS "mkdir -p /opt/webphoto/photo-storage/dist"
+
+          echo ""
+          echo "=== Start nginx with webphoto_certbot_data (real LE certs) ==="
+          sshpass -e ssh -p $PORT $VPS "
+            docker run -d \
+              --name shared-nginx \
+              --restart always \
+              -p 80:80 \
+              -p 443:443 \
+              -v ${INFRA_DIR}/nginx/nginx.conf:/etc/nginx/nginx.conf:ro \
+              -v ${INFRA_DIR}/nginx/conf.d:/etc/nginx/conf.d:ro \
+              -v /opt/webphoto/photo-storage/dist:/usr/share/nginx/html:ro \
+              -v webphoto_certbot_data:/etc/letsencrypt:ro \
+              -v certbot_webroot:/var/www/certbot:ro \
+              --network webphoto_backend \
+              nginx:1.27-alpine 2>&1
           "
 
           sleep 8
 
           echo ""
-          echo "=== Verify nginx is running ==="
-          sshpass -e ssh -p $PORT $VPS "docker ps --filter name=shared-nginx --format 'table {{.Names}}\t{{.Status}}'"
+          echo "=== nginx status ==="
+          sshpass -e ssh -p $PORT $VPS "
+            docker inspect shared-nginx --format 'Status: {{.State.Status}} | Running: {{.State.Running}}' 2>&1
+            docker logs shared-nginx --tail 10 2>&1 || true
+          "
 
-      - name: Reconnect nginx to project networks
+      - name: Connect nginx to project networks + reload
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
 
-          echo "=== Connect nginx to project networks ==="
           sshpass -e ssh -p $PORT $VPS "
+            docker network connect webphoto_frontend shared-nginx 2>/dev/null || echo 'webphoto_frontend: already connected or missing'
             docker network connect lqd_frontend shared-nginx 2>/dev/null || echo 'lqd_frontend: already connected or missing'
             docker network connect fashionecom_fashionecom-net shared-nginx 2>/dev/null || echo 'fashionecom_fashionecom-net: already connected or missing'
-            echo 'Network connections done'
+            echo ''
+            echo 'Networks nginx is on:'
+            docker inspect shared-nginx --format '{{range \$k, \$v := .NetworkSettings.Networks}}{{\$k}} {{end}}' 2>&1
           "
 
           echo ""
-          echo "=== Reload nginx config ==="
+          echo "=== nginx config test + reload ==="
           sshpass -e ssh -p $PORT $VPS "
             docker exec shared-nginx nginx -t 2>&1
             docker exec shared-nginx nginx -s reload 2>&1 || true
           "
-
-          echo ""
-          echo "=== Networks shared-nginx is now on ==="
-          sshpass -e ssh -p $PORT $VPS "docker inspect shared-nginx --format '{{range \$k, \$v := .NetworkSettings.Networks}}{{\$k}} {{end}}' 2>&1"
 
       - name: Test all sites
         run: |
@@ -89,21 +102,9 @@ jobs:
 
           sleep 5
 
-          echo "=== HTTP status checks from VPS ==="
           sshpass -e ssh -p $PORT $VPS "
-            echo -n 'bhquan.site: '
-            curl -sk -o /dev/null -w '%{http_code}' https://bhquan.site/ 2>/dev/null || echo 'FAIL'
-
-            echo -n 'lqd.bhquan.store: '
-            curl -sk -o /dev/null -w '%{http_code}' https://lqd.bhquan.store/ 2>/dev/null || echo 'FAIL'
-
-            echo -n 'template.bhquan.store: '
-            curl -sk -o /dev/null -w '%{http_code}' https://template.bhquan.store/ 2>/dev/null || echo 'FAIL'
-
-            echo -n 'shop.bhquan.store: '
-            curl -sk -o /dev/null -w '%{http_code}' https://shop.bhquan.store/ 2>/dev/null || echo 'FAIL'
-
-            echo ''
-            echo '=== Cert check lqd.bhquan.store ==='
-            echo | openssl s_client -connect localhost:443 -servername lqd.bhquan.store 2>/dev/null | openssl x509 -noout -subject -dates 2>/dev/null || echo 'cert check skipped'
+            echo -n 'bhquan.site:           '; curl -sk -o /dev/null -w '%{http_code}\n' https://bhquan.site/
+            echo -n 'lqd.bhquan.store:      '; curl -sk -o /dev/null -w '%{http_code}\n' https://lqd.bhquan.store/
+            echo -n 'template.bhquan.store: '; curl -sk -o /dev/null -w '%{http_code}\n' https://template.bhquan.store/
+            echo -n 'shop.bhquan.store:     '; curl -sk -o /dev/null -w '%{http_code}\n' https://shop.bhquan.store/
           "
