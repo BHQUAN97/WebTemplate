@@ -1,0 +1,83 @@
+name: SSL Renew
+
+on:
+  workflow_dispatch:
+
+env:
+  INFRA_DIR: /opt/infra
+
+jobs:
+  ssl:
+    name: "Renew SSL cert"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass > /dev/null
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Get SSL cert for template.bhquan.store
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          echo "=== Current cert in volume ==="
+          sshpass -e ssh -p $PORT $VPS "
+            docker exec shared-nginx ls -la /etc/letsencrypt/live/ 2>&1 || echo 'No cert dir'
+            docker exec shared-nginx ls -la /etc/letsencrypt/live/template.bhquan.store/ 2>&1 || echo 'No template cert'
+          "
+
+          echo ""
+          echo "=== Removing old/placeholder cert from volume ==="
+          sshpass -e ssh -p $PORT $VPS "
+            CERT_VOL=\$(docker inspect shared-nginx --format '{{range .Mounts}}{{if eq .Destination \"/etc/letsencrypt\"}}{{.Source}}{{end}}{{end}}')
+            echo \"Cert volume/path: \$CERT_VOL\"
+            docker run --rm -v \${CERT_VOL}:/etc/letsencrypt alpine sh -c '
+              rm -rf /etc/letsencrypt/live/template.bhquan.store*
+              rm -rf /etc/letsencrypt/archive/template.bhquan.store*
+              rm -rf /etc/letsencrypt/renewal/template.bhquan.store*.conf
+              echo Cleaned
+            '
+          "
+
+          echo ""
+          echo "=== Stopping nginx to free port 80 ==="
+          sshpass -e ssh -p $PORT $VPS "docker stop shared-nginx 2>/dev/null || true"
+
+          echo ""
+          echo "=== Running certbot standalone into Docker volume ==="
+          sshpass -e ssh -p $PORT $VPS "
+            CERT_VOL=\$(docker inspect shared-nginx --format '{{range .Mounts}}{{if eq .Destination \"/etc/letsencrypt\"}}{{.Name}}{{end}}{{end}}')
+            echo \"Using volume: \$CERT_VOL\"
+
+            docker run --rm \
+              -v \${CERT_VOL}:/etc/letsencrypt \
+              -p 80:80 \
+              certbot/certbot certonly --standalone \
+              --non-interactive \
+              --cert-name template.bhquan.store \
+              --email admin@bhquan.site \
+              --agree-tos --no-eff-email \
+              -d template.bhquan.store \
+              2>&1
+          "
+
+          echo ""
+          echo "=== Restarting nginx ==="
+          sshpass -e ssh -p $PORT $VPS "
+            docker start shared-nginx
+            sleep 2
+          "
+
+          echo ""
+          echo "=== Verify cert in nginx container ==="
+          sshpass -e ssh -p $PORT $VPS "
+            docker exec shared-nginx ls -la /etc/letsencrypt/live/template.bhquan.store/
+            docker exec shared-nginx sh -c 'openssl x509 -in /etc/letsencrypt/live/template.bhquan.store/fullchain.pem -noout -subject -dates' 2>&1
+            docker exec shared-nginx nginx -t 2>&1
+            docker exec shared-nginx nginx -s reload 2>&1
+          "
