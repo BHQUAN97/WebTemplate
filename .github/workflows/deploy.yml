@@ -338,7 +338,7 @@ jobs:
 
           echo ""
           echo "=== Starting services ==="
-          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d 2>&1"
+          sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d --remove-orphans 2>&1"
           if [ $? -ne 0 ]; then
             echo "::error::Docker start failed"
             sshpass -e ssh -p $PORT $VPS "

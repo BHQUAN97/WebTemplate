@@ -23,7 +23,7 @@ services:
       DB_PORT: 3306
       DB_NAME: webtemplate
       DB_USER: webtemplate
-      DB_PASSWORD: ${WT_DB_PASSWORD}
+      DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: shared-redis
       REDIS_PORT: 6379
       REDIS_PREFIX: "wt:"
