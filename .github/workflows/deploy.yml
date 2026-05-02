@@ -561,7 +561,31 @@ jobs:
             docker exec shared-nginx nginx -s reload 2>/dev/null || true
           "
 
-      # ── SHARED: DB migrations ────────────────────
+      # ── SHARED: Crontab + DB ─────────────────────
+      - name: Install crontab (idempotent)
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "mkdir -p ${APP_DIR}/scripts"
+          sshpass -e scp -P $PORT scripts/crontab.example $VPS:${APP_DIR}/scripts/crontab.example
+          sshpass -e ssh -p $PORT $VPS "
+            mkdir -p /var/log/webtemplate
+            if [ ! -f /etc/cron.d/webtemplate ]; then
+              if cp ${APP_DIR}/scripts/crontab.example /etc/cron.d/webtemplate 2>/dev/null; then
+                chmod 644 /etc/cron.d/webtemplate
+                chown root:root /etc/cron.d/webtemplate 2>/dev/null || true
+                echo 'Crontab installed: /etc/cron.d/webtemplate'
+                ls -la /etc/cron.d/webtemplate
+              else
+                echo '::warning::Cannot write /etc/cron.d/webtemplate — manual install needed:'
+                echo '  sudo cp ${APP_DIR}/scripts/crontab.example /etc/cron.d/webtemplate && sudo chmod 644 /etc/cron.d/webtemplate'
+              fi
+            else
+              echo 'Crontab already exists — skip (/etc/cron.d/webtemplate)'
+              ls -la /etc/cron.d/webtemplate
+            fi
+          "
+
       - name: Ensure DB + user
         env:
           WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}

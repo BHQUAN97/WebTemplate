@@ -1,0 +1,16 @@
+# ──────────────────────────────────────────
+# WebTemplate — System crontab (/etc/cron.d/webtemplate)
+# Install: sudo cp /opt/webtemplate/scripts/crontab.example /etc/cron.d/webtemplate
+#          sudo chmod 644 /etc/cron.d/webtemplate
+# Schedule offset (tránh xung đột VietNet 2:00, LeQuyDon 2:30, FashionEcom 2:45):
+#   Backup: 3:00 AM | Docker cleanup: Sun 4:30 AM
+# ──────────────────────────────────────────
+
+SHELL=/bin/bash
+PATH=/usr/local/sbin:/usr/local/bin:/sbin:/bin:/usr/sbin:/usr/bin
+
+# MySQL backup — daily 3:00 AM (offset: VietNet=2:00, LQD=2:30, FE=2:45, WebTemplate=3:00)
+0 3 * * * root /opt/webtemplate/scripts/backup-mysql.sh >> /var/log/webtemplate/backup.log 2>&1
+
+# Docker cleanup — weekly Sunday 4:30 AM (offset: VietNet=3:00, LQD=3:30, FE=4:00, WebTemplate=4:30)
+30 4 * * 0 root /opt/webtemplate/scripts/docker-cleanup.sh >> /var/log/webtemplate/docker-cleanup.log 2>&1
