@@ -16,6 +16,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
   const [scale, setScale] = React.useState<number>(1);
   const [rotation, setRotation] = React.useState<number>(0);
   const [pos, setPos] = React.useState<{ x: number; y: number }>({ x: 0, y: 0 });
+  const [isDragging, setIsDragging] = React.useState(false);
   const dragState = React.useRef<{
     dragging: boolean;
     startX: number;
@@ -37,6 +38,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
       origX: pos.x,
       origY: pos.y,
     };
+    setIsDragging(true);
   };
 
   const onMouseMove = (e: React.MouseEvent) => {
@@ -49,6 +51,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
 
   const onMouseUp = () => {
     dragState.current.dragging = false;
+    setIsDragging(false);
   };
 
   return (
@@ -108,8 +111,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
           className="max-w-full max-h-[70vh] select-none"
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale}) rotate(${rotation}deg)`,
-            // eslint-disable-next-line react-compiler/react-compiler
-            transition: dragState.current.dragging ? 'none' : 'transform 0.1s',
+            transition: isDragging ? 'none' : 'transform 0.1s',
           }}
           draggable={false}
         />

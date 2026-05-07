@@ -141,19 +141,15 @@ export default function NavigationPage() {
   const topLevelItems = items
     .filter((i) => !i.parent_id)
     .sort((a, b) => a.sort_order - b.sort_order);
-  // eslint-disable-next-line react-compiler/react-compiler
-  const childrenByParent = useMemo(() => {
-    const m = new Map<string, NavigationItem[]>();
-    items.forEach((i) => {
-      if (i.parent_id) {
-        const arr = m.get(i.parent_id) ?? [];
-        arr.push(i);
-        m.set(i.parent_id, arr);
-      }
-    });
-    m.forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
-    return m;
-  }, [items]);
+  const childrenByParent = new Map<string, NavigationItem[]>();
+  items.forEach((i) => {
+    if (i.parent_id) {
+      const arr = childrenByParent.get(i.parent_id) ?? [];
+      arr.push(i);
+      childrenByParent.set(i.parent_id, arr);
+    }
+  });
+  childrenByParent.forEach((arr) => arr.sort((a, b) => a.sort_order - b.sort_order));
 
   return (
     <div className="space-y-6">
