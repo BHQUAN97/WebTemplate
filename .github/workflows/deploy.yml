@@ -105,7 +105,7 @@ jobs:
             echo "$DIFF" | grep -qE '^frontend/' && fe=true
             echo "$DIFF" | grep -qE '^backend/' && be=true
             echo "$DIFF" | grep -qE '^(docker-compose|infra/|nginx/|.*/Dockerfile)' && infra=true
-            echo "$DIFF" | grep -qE '^(db/|backend/src/.*entity)' && db=true
+            echo "$DIFF" | grep -qE '^(db/|backend/src/.*entity|backend/src/database/migrations/)' && db=true
           fi
 
           if [ "${{ steps.detect.outputs.mode }}" = "init" ]; then
@@ -424,7 +424,7 @@ jobs:
           done
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
-            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run 2>&1 || echo '::warning::Migrations skipped (may already be applied)'
+            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run -d dist/config/database.config.js 2>&1 || echo '::warning::Migrations skipped (may already be applied)'
           "
 
       # ── UPDATE: Upload changed files ─────────────
@@ -614,7 +614,7 @@ jobs:
           "
 
       - name: Run DB migrations
-        if: needs.build.outputs.db == 'true'
+        if: needs.build.outputs.db == 'true' || needs.build.outputs.be == 'true'
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
@@ -626,7 +626,7 @@ jobs:
           done
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
-            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run 2>&1 || echo '::warning::Migrations skipped'
+            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run -d dist/config/database.config.js 2>&1 || echo '::warning::Migrations skipped'
           "
 
       - name: Restart after DB changes

@@ -13,7 +13,7 @@ export function getDatabaseConfig(): TypeOrmModuleOptions {
     port: parseInt(process.env.DB_PORT || '6002', 10),
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || '',
-    database: process.env.DB_DATABASE || 'webtemplate',
+    database: process.env.DB_DATABASE || process.env.DB_NAME || 'webtemplate',
     // Tu dong load tat ca entity
     autoLoadEntities: true,
     // CANH BAO: synchronize chi bat khi CA HAI dieu kien:
@@ -25,6 +25,8 @@ export function getDatabaseConfig(): TypeOrmModuleOptions {
     synchronize:
       process.env.NODE_ENV === 'development' &&
       process.env.TYPEORM_SYNC === 'true',
+    // Migrations path — can thiet de migrationsRun:true tim duoc file .js da compile
+    migrations: [join(__dirname, '..', 'database', 'migrations', '*.js')],
     // Tu dong chay migration khi khoi dong production — dam bao schema luon up-to-date
     migrationsRun: process.env.NODE_ENV === 'production',
     logging: process.env.DB_LOGGING === 'true',

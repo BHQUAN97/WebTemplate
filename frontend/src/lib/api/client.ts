@@ -80,13 +80,14 @@ class ApiClient {
     endpoint: string,
     params?: Record<string, string | number | boolean | undefined>,
   ): string {
-    const url = new URL(endpoint, this.baseUrl);
-    if (params) {
-      Object.entries(params).forEach(([key, value]) => {
-        if (value !== undefined) url.searchParams.set(key, String(value));
-      });
-    }
-    return url.toString();
+    const base = this.baseUrl.endsWith('/') ? this.baseUrl.slice(0, -1) : this.baseUrl;
+    const path = endpoint.startsWith('/') ? endpoint : `/${endpoint}`;
+    const fullUrl = `${base}${path}`;
+    if (!params) return fullUrl;
+    const pairs = Object.entries(params)
+      .filter(([, v]) => v !== undefined)
+      .map(([k, v]) => `${encodeURIComponent(k)}=${encodeURIComponent(String(v!))}`);
+    return pairs.length ? `${fullUrl}?${pairs.join('&')}` : fullUrl;
   }
 
   /**
