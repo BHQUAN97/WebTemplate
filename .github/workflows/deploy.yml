@@ -134,7 +134,13 @@ jobs:
           echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
 
       - name: Sync .env
+        env:
+          WT_DB_PASSWORD: ${{ secrets.WT_DB_PASSWORD }}
         run: |
+          if [ -z "$WT_DB_PASSWORD" ]; then
+            echo "::error::WT_DB_PASSWORD secret is not set. Add it in GitHub repo Settings → Secrets."
+            exit 1
+          fi
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           {
@@ -144,7 +150,7 @@ jobs:
             echo "DB_PORT=3306"
             echo "DB_NAME=webtemplate"
             echo "DB_USER=webtemplate"
-            echo "DB_PASSWORD=${{ secrets.WT_DB_PASSWORD }}"
+            echo "DB_PASSWORD=${WT_DB_PASSWORD}"
             echo "REDIS_HOST=shared-redis"
             echo "REDIS_PORT=6379"
             echo "REDIS_PREFIX=wt:"
