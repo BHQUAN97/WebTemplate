@@ -32,6 +32,7 @@ type ConsentCategory = 'analytics' | 'marketing' | 'preferences';
  * Translation helper an toan — fallback khi namespace 'cookies' chua co trong messages.
  */
 function useSafeT(namespace: string) {
+  'use no memo';
   const t = useTranslations(namespace);
   return (key: string, fallback: string): string => {
     try {
@@ -101,12 +102,13 @@ export function useCookieConsent() {
 
   const setConsent = useCallback(
     (next: Omit<CookieConsent, 'necessary' | 'timestamp'>) => {
+      const now = Date.now();
       const full: CookieConsent = {
         necessary: true,
         analytics: !!next.analytics,
         marketing: !!next.marketing,
         preferences: !!next.preferences,
-        timestamp: Date.now(),
+        timestamp: now,
       };
       writeConsent(full);
       setConsentState(full);
