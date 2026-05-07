@@ -11,6 +11,8 @@ import { RefreshToken } from '../../auth/entities/refresh-token.entity.js';
  * Sensitive fields (password_hash, two_factor_secret, reset_token_jti,
  * backup_codes_hash, email_verification_jti) duoc danh dau @Exclude de
  * ClassSerializerInterceptor tu dong loai bo khoi response.
+ *
+ * Trigger migration 2026-05-07
  */
 @Entity('users')
 @Index(['tenant_id'])
