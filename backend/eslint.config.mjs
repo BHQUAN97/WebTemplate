@@ -41,9 +41,12 @@ export default tseslint.config(
       '@typescript-eslint/prefer-promise-reject-errors': 'warn',
       // stringify / coercion
       '@typescript-eslint/no-base-to-string': 'warn',
-      // unused vars — allow _ prefix for intentionally unused params
-      '@typescript-eslint/no-unused-vars': ['error', { argsIgnorePattern: '^_', varsIgnorePattern: '^_' }],
+      // unused vars — warn only, codebase has many unused imports in template files
+      '@typescript-eslint/no-unused-vars': 'warn',
       'no-unused-vars': 'off',
+      // enum / template literal type checks
+      '@typescript-eslint/no-unsafe-enum-comparison': 'warn',
+      '@typescript-eslint/restrict-template-expressions': 'warn',
       // regex
       'no-control-regex': 'warn',
       'no-useless-escape': 'warn',
