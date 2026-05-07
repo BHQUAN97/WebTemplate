@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Suspense, useEffect, useRef, useState } from 'react';
 import Link from 'next/link';
@@ -39,7 +39,7 @@ function VerifyEmailInner() {
       .catch((err: any) => {
         setStatus('error');
         setMessage(
-          err?.message || 'Token khong hop le hoac da het han',
+          err?.message || 'Token không hợp lệ hoặc đã hết hạn',
         );
       });
   }, [sp]);
@@ -47,7 +47,7 @@ function VerifyEmailInner() {
   const handleResend = async () => {
     const email = sp.get('email');
     if (!email) {
-      setMessage('Vui long dang nhap de gui lai email xac thuc');
+      setMessage('Vui lòng đăng nhập để gửi lại email xác thực');
       return;
     }
     setResending(true);
@@ -55,7 +55,7 @@ function VerifyEmailInner() {
       await authApi.resendVerificationEmail(email);
       setResent(true);
     } catch (err: any) {
-      setMessage(err?.message || 'Gui lai email that bai');
+      setMessage(err?.message || 'Gửi lại email thất bại');
     } finally {
       setResending(false);
     }
@@ -64,14 +64,14 @@ function VerifyEmailInner() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Xac thuc email</CardTitle>
+        <CardTitle className="text-2xl">Xác thực email</CardTitle>
       </CardHeader>
       <CardContent>
         {status === 'loading' && (
           <div className="text-center py-8">
             <Loader2 className="h-10 w-10 text-blue-500 mx-auto mb-4 animate-spin" />
             <p className="text-sm text-gray-500">
-              Dang xac thuc email cua ban...
+              Đang xác thực email của bạn...
             </p>
           </div>
         )}
@@ -80,14 +80,14 @@ function VerifyEmailInner() {
           <div className="text-center py-4">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">
-              Xac thuc thanh cong!
+              Xác thực thanh cong!
             </h3>
             <p className="text-sm text-gray-500 mb-6">
               Email cua ban da duoc xac thuc. Ban co the dang nhap de bat dau
               su dung.
             </p>
             <Button asChild className="w-full">
-              <Link href="/login">Dang nhap</Link>
+              <Link href="/login">Đăng nhập</Link>
             </Button>
           </div>
         )}
@@ -96,10 +96,10 @@ function VerifyEmailInner() {
           <div className="text-center py-4">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">
-              Xac thuc that bai
+              Xác thực that bai
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              {message || 'Link xac thuc khong hop le hoac da het han.'}
+              {message || 'Link xác thực không hợp lệ hoặc đã hết hạn.'}
             </p>
 
             {resent ? (
@@ -114,12 +114,12 @@ function VerifyEmailInner() {
                 onClick={handleResend}
                 disabled={resending}
               >
-                {resending ? 'Dang gui...' : 'Gui lai email xac thuc'}
+                {resending ? 'Đang gửi...' : 'Gửi lại email xác thực'}
               </Button>
             )}
 
             <Button variant="ghost" asChild className="w-full">
-              <Link href="/login">Quay lai dang nhap</Link>
+              <Link href="/login">Quay lại đăng nhập</Link>
             </Button>
           </div>
         )}
@@ -135,7 +135,7 @@ export default function VerifyEmailPage() {
         <Card>
           <CardContent className="py-8 text-center">
             <Loader2 className="h-10 w-10 text-blue-500 mx-auto mb-4 animate-spin" />
-            <p className="text-sm text-gray-500">Dang tai...</p>
+            <p className="text-sm text-gray-500">Đang tải...</p>
           </CardContent>
         </Card>
       }

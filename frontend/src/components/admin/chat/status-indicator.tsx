@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Bot, Headphones, Clock, CheckCircle2, Archive } from 'lucide-react';
@@ -17,7 +17,7 @@ const STATUS_META: Record<
     icon: Clock,
   },
   IN_PROGRESS: {
-    label: 'Dang xu ly',
+    label: 'Đang xử lý',
     cls: 'bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-300',
     icon: Headphones,
   },
@@ -32,7 +32,7 @@ const STATUS_META: Record<
     icon: CheckCircle2,
   },
   ARCHIVED: {
-    label: 'Luu tru',
+    label: 'Lưu trữ',
     cls: 'bg-gray-100 text-gray-500 dark:bg-gray-800 dark:text-gray-400',
     icon: Archive,
   },
@@ -65,7 +65,7 @@ export function ConversationStatusBadge({
 /** Icon mode (AI/Human/Hybrid/Offline) */
 export function ModeIcon({ mode, className }: { mode: ChatMode; className?: string }) {
   if (mode === 'ai') return <Bot className={cn('h-4 w-4 text-purple-500', className)} aria-label="AI" />;
-  if (mode === 'human') return <Headphones className={cn('h-4 w-4 text-blue-500', className)} aria-label="Nhan vien" />;
+  if (mode === 'human') return <Headphones className={cn('h-4 w-4 text-blue-500', className)} aria-label="Nhân viên" />;
   if (mode === 'hybrid')
     return (
       <span className={cn('inline-flex items-center gap-0.5', className)} aria-label="Hybrid">

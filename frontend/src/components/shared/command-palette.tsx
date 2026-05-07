@@ -1,8 +1,8 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { useTheme } from 'next-themes';
+import { useThême } from 'next-themes';
 import {
   Home,
   Package,
@@ -44,7 +44,7 @@ import { UserRole } from '@/lib/types';
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
-  const { setTheme } = useTheme();
+  const { setThême } = useThême();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -89,7 +89,7 @@ export function CommandPalette() {
     <CommandDialog open={open} onOpenChange={setOpen}>
       <CommandInput placeholder="Go lenh hoac tim kiem..." />
       <CommandList>
-        <CommandEmpty>Khong tim thay ket qua</CommandEmpty>
+        <CommandEmpty>Không tìm thấy kết quả</CommandEmpty>
 
         <CommandGroup heading="Dieu huong">
           <CommandItem onSelect={() => runCommand(() => router.push('/'))}>
@@ -98,7 +98,7 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/products'))}>
             <Package />
-            <span>San pham</span>
+            <span>Sản phẩm</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/blog'))}>
             <Newspaper />
@@ -130,13 +130,13 @@ export function CommandPalette() {
                 onSelect={() => runCommand(() => router.push('/admin/products'))}
               >
                 <Boxes />
-                <span>San pham</span>
+                <span>Sản phẩm</span>
               </CommandItem>
               <CommandItem
                 onSelect={() => runCommand(() => router.push('/admin/orders'))}
               >
                 <ClipboardList />
-                <span>Don hang</span>
+                <span>Đơn hàng</span>
               </CommandItem>
               <CommandItem onSelect={() => runCommand(() => router.push('/admin/users'))}>
                 <Users />
@@ -154,21 +154,21 @@ export function CommandPalette() {
 
         <CommandSeparator />
         <CommandGroup heading="Hanh dong">
-          <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
+          <CommandItem onSelect={() => runCommand(() => setThême('light'))}>
             <Sun />
             <span>Giao dien sang</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
+          <CommandItem onSelect={() => runCommand(() => setThême('dark'))}>
             <Moon />
             <span>Giao dien toi</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
+          <CommandItem onSelect={() => runCommand(() => setThême('system'))}>
             <Monitor />
             <span>Theo he thong</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/search'))}>
             <Search />
-            <span>Tim kiem</span>
+            <span>Tìm kiếm</span>
             <CommandShortcut>/</CommandShortcut>
           </CommandItem>
           {user && (
@@ -181,7 +181,7 @@ export function CommandPalette() {
               }
             >
               <LogOut />
-              <span>Dang xuat</span>
+              <span>Đăng xuất</span>
             </CommandItem>
           )}
         </CommandGroup>

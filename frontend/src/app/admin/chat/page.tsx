@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -20,9 +20,9 @@ import { cn } from '@/lib/utils';
 
 /** Cac tab filter theo status */
 const STATUS_TABS: Array<{ value: 'all' | ConversationStatus; label: string }> = [
-  { value: 'all', label: 'Tat ca' },
+  { value: 'all', label: 'Tất cả' },
   { value: 'WAITING_AGENT', label: 'Cho nhan vien' },
-  { value: 'IN_PROGRESS', label: 'Dang xu ly' },
+  { value: 'IN_PROGRESS', label: 'Đang xử lý' },
   { value: 'AI_RESPONDING', label: 'AI tra loi' },
   { value: 'CLOSED', label: 'Da dong' },
 ];
@@ -65,7 +65,7 @@ export default function AdminChatPage() {
       const data = Array.isArray(res) ? res : (res?.data ?? []);
       setConversations(data);
     } catch (err) {
-      toast('Khong tai duoc danh sach', (err as Error).message, 'destructive');
+      toast('Không tải được danh sach', (err as Error).message, 'destructive');
     } finally {
       setListLoading(false);
     }
@@ -97,7 +97,7 @@ export default function AdminChatPage() {
         adminChatApi.markRead(selectedId).catch(() => {});
       })
       .catch((err) => {
-        if (!cancelled) toast('Khong tai duoc cuoc chat', (err as Error).message, 'destructive');
+        if (!cancelled) toast('Không tải được cuoc chat', (err as Error).message, 'destructive');
       })
       .finally(() => {
         if (!cancelled) setDetailLoading(false);
@@ -131,12 +131,12 @@ export default function AdminChatPage() {
 
     const offNewConv = on('conversation:new', (payload: { conversation: AdminConversation }) => {
       if (!payload?.conversation) return;
-      // Them vao dau danh sach neu match tab hien tai
+      // Thêm vao dau danh sach neu match tab hien tai
       if (tab === 'all' || payload.conversation.status === tab) {
         setConversations((prev) => [payload.conversation, ...prev.filter((c) => c.id !== payload.conversation.id)]);
       }
       if (payload.conversation.status === 'WAITING_AGENT') {
-        toast('Co khach cho', `Khach #${payload.conversation.id.slice(-6).toUpperCase()} dang doi`, 'warning');
+        toast('Co khach cho', `Khách #${payload.conversation.id.slice(-6).toUpperCase()} dang doi`, 'warning');
       }
     });
 
@@ -176,7 +176,7 @@ export default function AdminChatPage() {
       const msg = await adminChatApi.sendMessage(selectedId, { content, type: 'text' });
       setMessages((prev) => [...prev, msg]);
     } catch (err) {
-      toast('Gui that bai', (err as Error).message, 'destructive');
+      toast('Gửi that bai', (err as Error).message, 'destructive');
     } finally {
       setSending(false);
     }
@@ -189,7 +189,7 @@ export default function AdminChatPage() {
       setSelected(updated);
       toast('Da nhan cuoc chat', undefined, 'success');
     } catch (err) {
-      toast('Khong the nhan', (err as Error).message, 'destructive');
+      toast('Không thể nhận', (err as Error).message, 'destructive');
     }
   };
 
@@ -201,7 +201,7 @@ export default function AdminChatPage() {
       toast('Da dong cuoc chat', undefined, 'success');
       loadList();
     } catch (err) {
-      toast('Khong the dong', (err as Error).message, 'destructive');
+      toast('Không thể đóng', (err as Error).message, 'destructive');
     }
   };
 

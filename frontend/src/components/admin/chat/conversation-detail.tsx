@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { ArrowLeft, UserPlus, XCircle, Info, RotateCcw } from 'lucide-react';
@@ -54,7 +54,7 @@ export function ConversationDetail({
 
   const isClosed = conversation.status === 'CLOSED' || conversation.status === 'ARCHIVED';
   const customerName =
-    conversation.customerName?.trim() || `Khach #${conversation.id.slice(-6).toUpperCase()}`;
+    conversation.customerName?.trim() || `Khách #${conversation.id.slice(-6).toUpperCase()}`;
 
   return (
     <div className="flex h-full flex-1 min-w-0">
@@ -135,7 +135,7 @@ export function ConversationDetail({
         open={confirmClose}
         onOpenChange={setConfirmClose}
         title="Dong cuoc tro chuyen"
-        description="Sau khi dong, ban khong the gui them tin nhan. Tiep tuc?"
+        description="Sau khi dong, ban khong the gui them tin nhan. Tiếp tục?"
         confirmLabel="Dong cuoc chat"
         variant="danger"
         onConfirm={() => {

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Power, PowerOff, Search } from 'lucide-react';
@@ -44,7 +44,7 @@ export default function ProductsPage() {
   const columns: ColumnDef<Product>[] = [
     {
       key: 'image',
-      header: 'Anh',
+      header: 'Ảnh',
       className: 'w-16',
       render: (row) => (
         <div className="h-12 w-12 rounded bg-gray-100 overflow-hidden">
@@ -92,7 +92,7 @@ export default function ProductsPage() {
     },
     {
       key: 'category',
-      header: 'Danh muc',
+      header: 'Danh mục',
       render: (row) => row.category?.name ?? '---',
     },
     {
@@ -101,7 +101,7 @@ export default function ProductsPage() {
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
-          label={row.is_active ? 'Dang ban' : 'Ngung ban'}
+          label={row.is_active ? 'Đang bán' : 'Ngừng bán'}
         />
       ),
     },
@@ -109,12 +109,12 @@ export default function ProductsPage() {
 
   const actions: ActionDef<Product>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/products/${row.id}`; },
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -123,18 +123,18 @@ export default function ProductsPage() {
 
   const bulkActions: BulkActionDef[] = [
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (ids) => { /* Bulk delete */ },
     },
     {
-      label: 'Kich hoat',
+      label: 'Kích hoạt',
       icon: <Power className="h-4 w-4 mr-2" />,
       onClick: (ids) => { /* Bulk activate */ },
     },
     {
-      label: 'Vo hieu hoa',
+      label: 'Vô hiệu hóa',
       icon: <PowerOff className="h-4 w-4 mr-2" />,
       onClick: (ids) => { /* Bulk deactivate */ },
     },
@@ -150,16 +150,16 @@ export default function ProductsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly san pham"
+        title="Quản lý sản phẩm"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'San pham' },
+          { label: 'Sản phẩm' },
         ]}
         actions={
           <Button asChild>
             <a href="/admin/products/new">
               <Plus className="h-4 w-4 mr-2" />
-              Them san pham
+              Thêm sản phẩm
             </a>
           </Button>
         }
@@ -169,10 +169,10 @@ export default function ProductsPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={categoryFilter} onValueChange={setCategoryFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Danh muc" />
+            <SelectValue placeholder="Danh mục" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca danh muc</SelectItem>
+            <SelectItem value="all">Tất cả danh mục</SelectItem>
           </SelectContent>
         </Select>
 
@@ -181,9 +181,9 @@ export default function ProductsPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca trang thai</SelectItem>
-            <SelectItem value="true">Dang ban</SelectItem>
-            <SelectItem value="false">Ngung ban</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="true">Đang bán</SelectItem>
+            <SelectItem value="false">Ngừng bán</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -197,7 +197,7 @@ export default function ProductsPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ten, SKU..."
+        searchPlaceholder="Tìm theo tên, SKU..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -208,10 +208,10 @@ export default function ProductsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa san pham"
-        description="Ban co chac chan muon xoa san pham nay? Hanh dong nay khong the hoan tac."
+        title="Xóa sản phẩm"
+        description="Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

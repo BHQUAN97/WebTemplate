@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -156,13 +156,13 @@ export function BlogClient() {
 
         {/* Sidebar */}
         <aside className="w-full lg:w-56 flex-shrink-0">
-          <h3 className="font-semibold text-sm mb-3">Danh muc</h3>
+          <h3 className="font-semibold text-sm mb-3">Danh mục</h3>
           <div className="space-y-2">
             <button
               onClick={() => { setSelectedCategory(''); setPage(1); }}
               className={`block text-sm w-full text-left px-2 py-1.5 rounded ${!selectedCategory ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
             >
-              Tat ca
+              Tất cả
             </button>
             {categories.map((cat) => (
               <button

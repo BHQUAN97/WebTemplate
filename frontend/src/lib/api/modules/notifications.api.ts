@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 import type { Notification } from '@/lib/types';
 
 export const notificationsApi = {
@@ -23,7 +23,7 @@ export const notificationsApi = {
   },
 
   /**
-   * Xoa bulk tat ca notifications da doc cua user hien tai.
+   * Xóa bulk tat ca notifications da doc cua user hien tai.
    * Tra ve so luong bi xoa.
    */
   deleteReadBulk() {

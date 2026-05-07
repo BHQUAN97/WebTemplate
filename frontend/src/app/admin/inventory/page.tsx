@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Package, AlertTriangle, XCircle, Pencil, History } from 'lucide-react';
@@ -75,7 +75,7 @@ export default function InventoryPage() {
   const columns: ColumnDef<InventoryItem>[] = [
     {
       key: 'product_name',
-      header: 'San pham',
+      header: 'Sản phẩm',
       sortable: true,
       render: (row) => (
         <div>
@@ -131,7 +131,7 @@ export default function InventoryPage() {
     },
     {
       key: 'last_updated',
-      header: 'Cap nhat',
+      header: 'Cập nhật',
       sortable: true,
       render: (row) => (row.last_updated ? formatDate(row.last_updated) : formatDate(row.updated_at)),
     },
@@ -258,7 +258,7 @@ export default function InventoryPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setAdjustItem(null)}>Huy</Button>
             <Button onClick={handleAdjust} disabled={adjustMutation.loading || !adjustForm.reason}>
-              {adjustMutation.loading ? 'Dang luu...' : 'Luu'}
+              {adjustMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>

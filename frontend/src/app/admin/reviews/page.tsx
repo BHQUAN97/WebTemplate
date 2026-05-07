@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Check, X, MessageSquare, Trash2, Star } from 'lucide-react';
@@ -68,7 +68,7 @@ export default function AdminReviewsPage() {
   const columns: ColumnDef<Review>[] = [
     {
       key: 'product',
-      header: 'San pham',
+      header: 'Sản phẩm',
       render: (row) => (
         <div>
           <p className="font-medium line-clamp-1">{row.product?.name ?? row.product_id}</p>
@@ -82,7 +82,7 @@ export default function AdminReviewsPage() {
     },
     {
       key: 'rating',
-      header: 'Danh gia',
+      header: 'Đánh giá',
       sortable: true,
       render: (row) => (
         <div className="flex items-center gap-0.5">
@@ -97,7 +97,7 @@ export default function AdminReviewsPage() {
     },
     {
       key: 'comment',
-      header: 'Noi dung',
+      header: 'Nội dung',
       render: (row) => (
         <div className="max-w-xs">
           {row.title && <p className="font-medium text-sm truncate">{row.title}</p>}
@@ -144,7 +144,7 @@ export default function AdminReviewsPage() {
       },
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -188,7 +188,7 @@ export default function AdminReviewsPage() {
         description="Duyet va phan hoi danh gia tu khach hang"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Danh gia' },
+          { label: 'Đánh giá' },
         ]}
       />
 
@@ -199,7 +199,7 @@ export default function AdminReviewsPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca</SelectItem>
+            <SelectItem value="all">Tất cả</SelectItem>
             <SelectItem value="pending">Cho duyet</SelectItem>
             <SelectItem value="approved">Da duyet</SelectItem>
             <SelectItem value="rejected">Tu choi</SelectItem>
@@ -211,7 +211,7 @@ export default function AdminReviewsPage() {
             <SelectValue placeholder="So sao" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca sao</SelectItem>
+            <SelectItem value="all">Tất cả sao</SelectItem>
             <SelectItem value="5">5 sao</SelectItem>
             <SelectItem value="4">4 sao</SelectItem>
             <SelectItem value="3">3 sao</SelectItem>
@@ -248,7 +248,7 @@ export default function AdminReviewsPage() {
               <p className="font-medium">{replyReview?.title ?? `${replyReview?.rating} sao`}</p>
               <p className="text-gray-600 mt-1">{replyReview?.comment ?? '---'}</p>
             </div>
-            <FormField label="Noi dung phan hoi" required>
+            <FormField label="Nội dung phan hoi" required>
               <Textarea
                 rows={4}
                 value={replyText}
@@ -260,7 +260,7 @@ export default function AdminReviewsPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setReplyReview(null)}>Huy</Button>
             <Button onClick={handleReply} disabled={replyMutation.loading || !replyText.trim()}>
-              {replyMutation.loading ? 'Dang gui...' : 'Gui phan hoi'}
+              {replyMutation.loading ? 'Đang gửi...' : 'Gửi phản hồi'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -291,10 +291,10 @@ export default function AdminReviewsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xoa danh gia"
-        description="Xoa vinh vien danh gia nay?"
+        title="Xóa danh gia"
+        description="Xóa vĩnh viễn danh gia nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

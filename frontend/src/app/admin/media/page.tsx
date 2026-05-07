@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRef, useState } from 'react';
@@ -122,7 +122,7 @@ export default function MediaPage() {
       saveAs(blob, `media-bundle-${Date.now()}.zip`);
       toast('Da tao ZIP', `${ids.length} file`, 'success');
     } catch (err) {
-      toast('Tai ZIP that bai', (err as Error).message, 'destructive');
+      toast('Tải ZIP that bai', (err as Error).message, 'destructive');
     } finally {
       setBulkLoading(false);
     }
@@ -285,7 +285,7 @@ export default function MediaPage() {
       {/* Toolbar */}
       <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3">
         <Input
-          placeholder="Tim kiem file..."
+          placeholder="Tìm kiếm file..."
           value={search}
           onChange={(e) => setSearch(e.target.value)}
           className="w-full sm:max-w-sm"
@@ -321,7 +321,7 @@ export default function MediaPage() {
               disabled={bulkLoading}
             >
               <Download className="h-4 w-4 mr-2" />
-              {bulkLoading ? 'Dang tao ZIP...' : 'Tai ZIP'}
+              {bulkLoading ? 'Đang tạo ZIP...' : 'Tải ZIP'}
             </Button>
             <Button size="sm" variant="outline" onClick={clearSelection}>
               Bo chon
@@ -574,7 +574,7 @@ export default function MediaPage() {
             <Card>
               <CardContent className="p-4 space-y-4">
                 <div className="flex items-center justify-between">
-                  <h3 className="font-medium text-sm">Chi tiet file</h3>
+                  <h3 className="font-medium text-sm">Chi tiết file</h3>
                   <Button
                     variant="ghost"
                     size="icon"
@@ -664,7 +664,7 @@ export default function MediaPage() {
                     onClick={() => setDeleteId(selectedFile.id)}
                   >
                     <Trash2 className="h-4 w-4 mr-2" />
-                    Xoa file
+                    Xóa file
                   </Button>
                 </div>
               </CardContent>
@@ -676,10 +676,10 @@ export default function MediaPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa file"
+        title="Xóa file"
         description="Ban co chac chan muon xoa file nay? Hanh dong nay khong the hoan tac."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

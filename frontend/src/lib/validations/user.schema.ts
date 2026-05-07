@@ -2,20 +2,20 @@ import { z } from 'zod';
 
 export const createUserSchema = z.object({
   name: z
-    .string({ error: 'Vui long nhap ho ten' })
-    .min(1, 'Vui long nhap ho ten')
-    .min(2, 'Ho ten phai co it nhat 2 ky tu')
-    .max(100, 'Ho ten khong vuot qua 100 ky tu'),
+    .string({ error: 'Vui lòng nhập họ tên' })
+    .min(1, 'Vui lòng nhập họ tên')
+    .min(2, 'Họ tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ tên không vượt quá 100 ký tự'),
   email: z
-    .string({ error: 'Vui long nhap email' })
-    .min(1, 'Vui long nhap email')
-    .email('Email khong hop le'),
+    .string({ error: 'Vui lòng nhập email' })
+    .min(1, 'Vui lòng nhập email')
+    .email('Email không hợp lệ'),
   password: z
-    .string({ error: 'Vui long nhap mat khau' })
-    .min(8, 'Mat khau phai co it nhat 8 ky tu'),
+    .string({ error: 'Vui lòng nhập mật khẩu' })
+    .min(8, 'Mật khẩu phải có ít nhất 8 ký tự'),
   phone: z
     .string()
-    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'So dien thoai khong hop le')
+    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'Số điện thoại không hợp lệ')
     .optional()
     .or(z.literal('')),
   role: z.enum(['ADMIN', 'MANAGER', 'EDITOR', 'USER']).default('USER'),
@@ -24,16 +24,16 @@ export const createUserSchema = z.object({
 
 export const updateProfileSchema = z.object({
   name: z
-    .string({ error: 'Vui long nhap ho ten' })
-    .min(1, 'Vui long nhap ho ten')
-    .min(2, 'Ho ten phai co it nhat 2 ky tu')
-    .max(100, 'Ho ten khong vuot qua 100 ky tu'),
+    .string({ error: 'Vui lòng nhập họ tên' })
+    .min(1, 'Vui lòng nhập họ tên')
+    .min(2, 'Họ tên phải có ít nhất 2 ký tự')
+    .max(100, 'Họ tên không vượt quá 100 ký tự'),
   phone: z
     .string()
-    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'So dien thoai khong hop le')
+    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'Số điện thoại không hợp lệ')
     .optional()
     .or(z.literal('')),
-  avatar_url: z.string().url('URL avatar khong hop le').optional().nullable(),
+  avatar_url: z.string().url('URL avatar không hợp lệ').optional().nullable(),
 });
 
 export type CreateUserFormValues = z.infer<typeof createUserSchema>;

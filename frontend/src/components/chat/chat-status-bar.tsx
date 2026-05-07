@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Bot, User2, Clock } from 'lucide-react';
 import type { ChatAgent, ChatMode } from '@/lib/types/chat';
@@ -12,7 +12,7 @@ interface Props {
 
 /**
  * Hien thi mode hien tai cua conversation — AI, nhan vien, hoac ngoai gio.
- * Them 1 dot nho the hien trang thai WS connected.
+ * Thêm 1 dot nho the hien trang thai WS connected.
  */
 export function ChatStatusBar({ mode, agent, isConnected }: Props) {
   let icon = <Bot className="h-4 w-4" />;
@@ -21,7 +21,7 @@ export function ChatStatusBar({ mode, agent, isConnected }: Props) {
 
   if (mode === 'human' && agent?.name) {
     icon = <User2 className="h-4 w-4" />;
-    label = `Nhan vien ${agent.name} dang tra loi`;
+    label = `Nhân viên ${agent.name} dang tra loi`;
     tone = 'text-emerald-600 dark:text-emerald-400';
   } else if (mode === 'hybrid') {
     icon = <User2 className="h-4 w-4" />;

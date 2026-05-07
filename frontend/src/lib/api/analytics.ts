@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Analytics API — typed client cho admin dashboard charts.
  * Backend endpoints: xem `backend/src/modules/analytics/analytics.controller.ts`.
  * Mot so endpoint (overview/top-products/by-status) chua co o BE — fallback mock
@@ -76,7 +76,7 @@ function buildParams(range: AnalyticsRange, extra?: Record<string, unknown>) {
 }
 
 /**
- * Tong quan 4 stat card.
+ * Tổng quan 4 stat card.
  * TODO: Replace with real API — BE chua co /analytics/overview gop stats.
  * Tam thoi goi /analytics/dashboard va fill cac delta = 0.
  */
@@ -148,7 +148,7 @@ export async function getRevenueTrend(
 }
 
 /**
- * Don hang theo trang thai.
+ * Đơn hàng theo trang thai.
  * TODO: Replace with real API — BE chua co /analytics/by-status hay /orders/stats.
  * Fallback: tra mock cho UI render duoc.
  */

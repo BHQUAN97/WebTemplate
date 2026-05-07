@@ -422,36 +422,8 @@ jobs:
             [ $i -eq 30 ] && { echo "::warning::Backend not ready — skip migrations"; exit 0; }
             sleep 3
           done
-          # Write migration-marking script to file — avoids shell escaping in SSH/docker exec
-          cat > /tmp/mark-migrations.js << 'JSEOF'
-const {DataSource} = require('typeorm');
-const ds = new DataSource({
-  type: 'mysql',
-  host: process.env.DB_HOST || 'shared-mysql',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  username: process.env.DB_USERNAME || 'webtemplate',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_DATABASE || process.env.DB_NAME || 'webtemplate'
-});
-ds.initialize().then(async () => {
-  await ds.query('CREATE TABLE IF NOT EXISTS `migrations` (`id` int NOT NULL AUTO_INCREMENT,`timestamp` bigint NOT NULL,`name` varchar(255) NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB');
-  const rows = [
-    [1713312000000, 'AddAuthHardeningColumns1713312000000'],
-    [1713398400000, 'AddWebhookNextRetryAt1713398400000'],
-    [1713484800000, 'CreateChatTables1713484800000'],
-    [1713571200000, 'CreateChatToolCalls1713571200000'],
-    [1713657600000, 'AddCartUniqueAuditIndexes1713657600000'],
-    [1713744000000, 'AddDeletedAtIndexes1713744000000']
-  ];
-  for (const [ts, name] of rows) {
-    await ds.query('INSERT IGNORE INTO `migrations` (`timestamp`,`name`) VALUES (?,?)', [ts, name]).catch(() => {});
-  }
-  console.log('Migrations marked as applied');
-  await ds.destroy();
-}).catch(e => { console.error(e.message); process.exit(1); });
-JSEOF
-          sshpass -e scp -P $PORT /tmp/mark-migrations.js $VPS:/tmp/mark-migrations.js
-          rm -f /tmp/mark-migrations.js
+          # Upload committed script — no shell escaping needed
+          sshpass -e scp -P $PORT scripts/mark-migrations.js $VPS:/tmp/mark-migrations.js
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
             echo '=== Syncing DB schema from entities ==='
@@ -665,35 +637,7 @@ JSEOF
             [ $i -eq 20 ] && { echo "::warning::Backend not ready — skip migrations"; exit 0; }
             sleep 3
           done
-          cat > /tmp/mark-migrations.js << 'JSEOF'
-const {DataSource} = require('typeorm');
-const ds = new DataSource({
-  type: 'mysql',
-  host: process.env.DB_HOST || 'shared-mysql',
-  port: parseInt(process.env.DB_PORT || '3306'),
-  username: process.env.DB_USERNAME || 'webtemplate',
-  password: process.env.DB_PASSWORD || '',
-  database: process.env.DB_DATABASE || process.env.DB_NAME || 'webtemplate'
-});
-ds.initialize().then(async () => {
-  await ds.query('CREATE TABLE IF NOT EXISTS `migrations` (`id` int NOT NULL AUTO_INCREMENT,`timestamp` bigint NOT NULL,`name` varchar(255) NOT NULL,PRIMARY KEY (`id`)) ENGINE=InnoDB');
-  const rows = [
-    [1713312000000, 'AddAuthHardeningColumns1713312000000'],
-    [1713398400000, 'AddWebhookNextRetryAt1713398400000'],
-    [1713484800000, 'CreateChatTables1713484800000'],
-    [1713571200000, 'CreateChatToolCalls1713571200000'],
-    [1713657600000, 'AddCartUniqueAuditIndexes1713657600000'],
-    [1713744000000, 'AddDeletedAtIndexes1713744000000']
-  ];
-  for (const [ts, name] of rows) {
-    await ds.query('INSERT IGNORE INTO `migrations` (`timestamp`,`name`) VALUES (?,?)', [ts, name]).catch(() => {});
-  }
-  console.log('Schema synced and migrations marked');
-  await ds.destroy();
-}).catch(e => { console.error(e.message); process.exit(0); });
-JSEOF
-          sshpass -e scp -P $PORT /tmp/mark-migrations.js $VPS:/tmp/mark-migrations.js
-          rm -f /tmp/mark-migrations.js
+          sshpass -e scp -P $PORT scripts/mark-migrations.js $VPS:/tmp/mark-migrations.js
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
             echo '=== Running migrations ==='

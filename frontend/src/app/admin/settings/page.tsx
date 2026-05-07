@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Save, MessageCircle, Phone, Mail, ArrowUp, LayoutGrid } from 'lucide-react';
@@ -18,24 +18,24 @@ import { apiClient } from '@/lib/api/client';
 
 // Danh sach module
 const MODULES = [
-  { key: 'auth', name: 'Xac thuc (Auth)', description: 'Dang nhap, dang ky, JWT, 2FA' },
-  { key: 'users', name: 'Nguoi dung', description: 'Quan ly tai khoan, vai tro' },
-  { key: 'products', name: 'San pham', description: 'Quan ly san pham, bien the' },
-  { key: 'categories', name: 'Danh muc', description: 'Phan loai san pham, bai viet' },
+  { key: 'auth', name: 'Xác thực (Auth)', description: 'Đăng nhập, đăng ký, JWT, 2FA' },
+  { key: 'users', name: 'Người dùng', description: 'Quản lý tài khoản, vai trò' },
+  { key: 'products', name: 'Sản phẩm', description: 'Quản lý sản phẩm, bien the' },
+  { key: 'categories', name: 'Danh mục', description: 'Phân loại sản phẩm, bài viết' },
   { key: 'inventory', name: 'Ton kho', description: 'Quan ly kho hang, so luong' },
   { key: 'cart', name: 'Gio hang', description: 'Gio hang mua sam' },
-  { key: 'orders', name: 'Don hang', description: 'Xu ly don hang, trang thai' },
+  { key: 'orders', name: 'Đơn hàng', description: 'Xử lý đơn hàng, trạng thái' },
   { key: 'payments', name: 'Thanh toan', description: 'Thanh toan online, COD' },
-  { key: 'reviews', name: 'Danh gia', description: 'Danh gia san pham, phe duyet' },
+  { key: 'reviews', name: 'Đánh giá', description: 'Đánh giá sản phẩm, phê duyệt' },
   { key: 'promotions', name: 'Khuyen mai', description: 'Ma giam gia, uu dai' },
-  { key: 'articles', name: 'Bai viet', description: 'Quan ly noi dung CMS' },
+  { key: 'articles', name: 'Bài viết', description: 'Quan ly noi dung CMS' },
   { key: 'pages', name: 'Trang', description: 'Trang tinh, landing page' },
   { key: 'navigation', name: 'Menu', description: 'Menu dieu huong, footer' },
   { key: 'seo', name: 'SEO', description: 'Toi uu hoa cong cu tim kiem' },
   { key: 'media', name: 'Media', description: 'Thu vien hinh anh, file' },
-  { key: 'notifications', name: 'Thong bao', description: 'Thong bao he thong, push' },
+  { key: 'notifications', name: 'Thông báo', description: 'Thông báo he thong, push' },
   { key: 'analytics', name: 'Phan tich', description: 'Thong ke, bao cao' },
-  { key: 'search', name: 'Tim kiem', description: 'Tim kiem nang cao, full-text' },
+  { key: 'search', name: 'Tìm kiếm', description: 'Tìm kiếm nâng cao, full-text' },
   { key: 'export_import', name: 'Xuat/Nhap', description: 'Export/Import du lieu' },
   { key: 'i18n', name: 'Da ngon ngu', description: 'Ho tro nhieu ngon ngu' },
   { key: 'contacts', name: 'Lien he', description: 'Form lien he, phan hoi' },
@@ -45,12 +45,12 @@ const MODULES = [
   { key: 'api_keys', name: 'API Keys', description: 'Quan ly API key' },
   { key: 'webhooks', name: 'Webhooks', description: 'Webhook endpoint' },
   { key: 'email_templates', name: 'Email Template', description: 'Mau email tu dong' },
-  { key: 'settings', name: 'Cai dat', description: 'Cai dat he thong' },
+  { key: 'settings', name: 'Cài đặt', description: 'Cài đặt he thong' },
   { key: 'logs', name: 'Nhat ky', description: 'Log audit, access' },
   { key: 'changelog', name: 'Changelog', description: 'Lich su thay doi' },
 ];
 
-/** Cai dat he thong */
+/** Cài đặt he thong */
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [moduleStates, setModuleStates] = useState<Record<string, boolean>>(
@@ -162,10 +162,10 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Cai dat he thong"
+        title="Cài đặt he thong"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Cai dat' },
+          { label: 'Cài đặt' },
         ]}
       />
 
@@ -182,7 +182,7 @@ export default function SettingsPage() {
         {/* General */}
         <TabsContent value="general">
           <Card>
-            <CardHeader><CardTitle>Cai dat chung</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Cài đặt chung</CardTitle></CardHeader>
             <CardContent className="space-y-4 max-w-2xl">
               <FormField label="Ten website" required>
                 <Input value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder="VD: My Store" />
@@ -220,7 +220,7 @@ export default function SettingsPage() {
               </div>
               <Button onClick={handleSave} disabled={saveMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {saveMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+                {saveMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </CardContent>
           </Card>
@@ -231,7 +231,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Cau hinh Email</CardTitle>
-              <CardDescription>Cai dat SMTP de gui email tu he thong</CardDescription>
+              <CardDescription>Cài đặt SMTP de gui email tu he thong</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-w-2xl">
               <div className="grid grid-cols-2 gap-4">
@@ -250,7 +250,7 @@ export default function SettingsPage() {
               </FormField>
               <Button onClick={handleSave} disabled={saveMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {saveMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+                {saveMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </CardContent>
           </Card>
@@ -281,7 +281,7 @@ export default function SettingsPage() {
               ))}
               <Button onClick={handleSave} disabled={saveMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {saveMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+                {saveMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </CardContent>
           </Card>
@@ -290,7 +290,7 @@ export default function SettingsPage() {
         {/* SEO */}
         <TabsContent value="seo">
           <Card>
-            <CardHeader><CardTitle>Cai dat SEO</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Cài đặt SEO</CardTitle></CardHeader>
             <CardContent className="space-y-4 max-w-2xl">
               <FormField label="Meta Title mac dinh" description="Toi da 70 ky tu">
                 <Input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} maxLength={70} />
@@ -310,7 +310,7 @@ export default function SettingsPage() {
               </div>
               <Button onClick={handleSave} disabled={saveMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {saveMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+                {saveMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
               </Button>
             </CardContent>
           </Card>
@@ -359,7 +359,7 @@ export default function SettingsPage() {
                     </div>
                     <Switch checked={ctaMessengerEnabled} onCheckedChange={setCtaMessengerEnabled} />
                   </div>
-                  <FormField label="Link Messenger" description="Dang https://m.me/your-page">
+                  <FormField label="Link Messenger" description="Dạng https://m.me/your-page">
                     <Input
                       type="url"
                       inputMode="url"
@@ -403,7 +403,7 @@ export default function SettingsPage() {
                     </div>
                     <Switch checked={ctaWhatsappEnabled} onCheckedChange={setCtaWhatsappEnabled} />
                   </div>
-                  <FormField label="So WhatsApp" description="Dang quoc te, vd: 84901234567">
+                  <FormField label="Số WhatsApp" description="Dạng quốc tế, vd: 84901234567">
                     <Input
                       type="tel"
                       inputMode="tel"
@@ -426,7 +426,7 @@ export default function SettingsPage() {
                     </div>
                     <Switch checked={ctaEmailEnabled} onCheckedChange={setCtaEmailEnabled} />
                   </div>
-                  <FormField label="Dia chi email">
+                  <FormField label="Địa chỉ email">
                     <Input
                       type="email"
                       inputMode="email"
@@ -455,7 +455,7 @@ export default function SettingsPage() {
                     <p className="font-medium flex items-center gap-2">
                       <ArrowUp className="h-4 w-4" /> Nut cuon len dau trang
                     </p>
-                    <p className="text-xs text-gray-500">Hien khi user da cuon qua 300px</p>
+                    <p className="text-xs text-gray-500">Hiện khi user đã cuộn qua 300px</p>
                   </div>
                   <Switch checked={ctaBackToTopEnabled} onCheckedChange={setCtaBackToTopEnabled} />
                 </div>
@@ -474,7 +474,7 @@ export default function SettingsPage() {
             <div className="flex items-center gap-3">
               <Button onClick={handleSaveCta} disabled={ctaSaving}>
                 <Save className="h-4 w-4 mr-2" />
-                {ctaSaving ? 'Dang luu...' : 'Luu cai dat CTA'}
+                {ctaSaving ? 'Đang lưu...' : 'Lưu cài đặt CTA'}
               </Button>
               {ctaMsg && <span className="text-sm text-gray-600">{ctaMsg}</span>}
             </div>
@@ -486,7 +486,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Quan ly Modules</CardTitle>
-              <CardDescription>Bat/tat cac module cua he thong. Module bi tat se khong hoat dong.</CardDescription>
+              <CardDescription>Bật/tat cac module cua he thong. Module bi tat se khong hoat dong.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
@@ -506,7 +506,7 @@ export default function SettingsPage() {
               <div className="mt-6">
                 <Button onClick={handleSave} disabled={saveMutation.loading}>
                   <Save className="h-4 w-4 mr-2" />
-                  {saveMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+                  {saveMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
                 </Button>
               </div>
             </CardContent>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
@@ -54,7 +54,7 @@ export function NotificationBell() {
   return (
     <Popover open={open} onOpenChange={setOpen}>
       <PopoverTrigger asChild>
-        <Button variant="ghost" size="icon" className="relative" aria-label="Thong bao">
+        <Button variant="ghost" size="icon" className="relative" aria-label="Thông báo">
           <Bell className="h-5 w-5" />
           {unreadCount > 0 && (
             <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-[10px] font-semibold flex items-center justify-center">
@@ -65,7 +65,7 @@ export function NotificationBell() {
       </PopoverTrigger>
       <PopoverContent align="end" className="w-80 p-0">
         <div className="flex items-center justify-between p-3 border-b border-gray-200">
-          <h4 className="font-semibold text-sm">Thong bao</h4>
+          <h4 className="font-semibold text-sm">Thông báo</h4>
           {unreadCount > 0 && (
             <Button
               variant="ghost"

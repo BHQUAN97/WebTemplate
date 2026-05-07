@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   PieChart,
@@ -19,17 +19,17 @@ interface OrdersStatusChartProps {
 }
 
 const LABELS: Record<string, string> = {
-  pending: 'Cho xac nhan',
-  processing: 'Dang xu ly',
-  completed: 'Hoan thanh',
-  cancelled: 'Da huy',
-  shipped: 'Dang giao',
-  delivered: 'Da giao',
-  refunded: 'Hoan tien',
+  pending: 'Chờ xác nhận',
+  processing: 'Đang xử lý',
+  completed: 'Hoàn thành',
+  cancelled: 'Đã hủy',
+  shipped: 'Đang giao',
+  delivered: 'Đã giao',
+  refunded: 'Hoàn tiền',
 };
 
 /**
- * PieChart wrapper — phan bo don hang theo status. Theme-aware.
+ * PieChart wrapper — phân bổ đơn hàng theo status. Thême-aware.
  */
 export function OrdersStatusChart({
   data,
@@ -46,7 +46,7 @@ export function OrdersStatusChart({
         className="flex items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground"
         style={{ height }}
       >
-        Chua co du lieu don hang
+        Chưa có dữ liệu đơn hàng
       </div>
     );
   }

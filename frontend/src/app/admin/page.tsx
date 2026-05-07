@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { DollarSign, ShoppingCart, Users, Package, Plus, FileText, BarChart3 } from 'lucide-react';
@@ -25,7 +25,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6 print:space-y-4">
       <PageHeader
         title="Dashboard"
-        description="Tong quan hoat dong cua he thong"
+        description="Tổng quan hoat dong cua he thong"
         actions={<PrintButton />}
       />
 
@@ -46,14 +46,14 @@ export default function AdminDashboardPage() {
             />
             <StatCard
               icon={<ShoppingCart className="h-6 w-6" />}
-              label="Don hang"
+              label="Đơn hàng"
               value={stats?.totalOrders ?? 0}
               trend={8.2}
               trendLabel="So voi thang truoc"
             />
             <StatCard
               icon={<Users className="h-6 w-6" />}
-              label="Khach hang"
+              label="Khách hang"
               value={stats?.totalUsers ?? 0}
               trend={5.1}
               trendLabel="So voi thang truoc"
@@ -83,17 +83,17 @@ export default function AdminDashboardPage() {
       </Card>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
-        {/* Don hang gan day */}
+        {/* Đơn hàng gan day */}
         <Card className="lg:col-span-2">
           <CardHeader>
-            <CardTitle>Don hang gan day</CardTitle>
+            <CardTitle>Đơn hàng gan day</CardTitle>
           </CardHeader>
           <CardContent>
             <Table>
               <TableHeader>
                 <TableRow>
                   <TableHead>Ma don</TableHead>
-                  <TableHead>Khach hang</TableHead>
+                  <TableHead>Khách hang</TableHead>
                   <TableHead className="text-right">Tong tien</TableHead>
                   <TableHead>Trang thai</TableHead>
                   <TableHead>Ngay</TableHead>
@@ -136,10 +136,10 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* San pham ban chay */}
+        {/* Sản phẩm ban chay */}
         <Card>
           <CardHeader>
-            <CardTitle>San pham ban chay</CardTitle>
+            <CardTitle>Sản phẩm ban chay</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -185,7 +185,7 @@ export default function AdminDashboardPage() {
             <Button asChild>
               <a href="/admin/products/new">
                 <Plus className="h-4 w-4 mr-2" />
-                Them san pham
+                Thêm sản phẩm
               </a>
             </Button>
             <Button variant="outline" asChild>

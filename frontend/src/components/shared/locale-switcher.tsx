@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useTransition } from 'react';
 import { useLocale, useTranslations } from 'next-intl';
@@ -33,7 +33,7 @@ export function LocaleSwitcher() {
   const handleChange = (next: LocaleCode) => {
     if (next === locale) return;
 
-    // Luu vao cookie — next-intl se doc o request tiep theo
+    // Lưu vao cookie — next-intl se doc o request tiep theo
     // eslint-disable-next-line react-hooks/immutability
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; SameSite=Lax`;
 

@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ProductsClient } from './products-client';
 import { brand } from '@/lib/config/brand';
 
@@ -6,11 +6,11 @@ import { brand } from '@/lib/config/brand';
 export const revalidate = 300;
 
 export const metadata: Metadata = {
-  title: `San pham - ${brand.name}`,
+  title: `Sản phẩm - ${brand.name}`,
   description:
-    'Kham pha bo suu tap san pham da dang voi gia tot nhat. Loc theo danh muc, gia, danh gia.',
+    'Khám pha bo suu tap san pham da dang voi gia tot nhat. Loc theo danh muc, gia, danh gia.',
   openGraph: {
-    title: `San pham - ${brand.name}`,
+    title: `Sản phẩm - ${brand.name}`,
     description: brand.description,
     url: `${brand.url}/products`,
   },

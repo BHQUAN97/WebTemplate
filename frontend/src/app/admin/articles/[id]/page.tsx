@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -21,7 +21,7 @@ import type { ApiResponse, Article } from '@/lib/types';
 const articleSchema = z.object({
   title: z.string().min(1, 'Tieu de la bat buoc').max(255, 'Toi da 255 ky tu'),
   slug: z.string().min(1, 'Slug la bat buoc'),
-  content: z.string().min(1, 'Noi dung la bat buoc'),
+  content: z.string().min(1, 'Nội dung la bat buoc'),
   excerpt: z.string().max(500, 'Tom tat toi da 500 ky tu').optional(),
   featured_image: z.string().optional().nullable(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
@@ -32,7 +32,7 @@ const articleSchema = z.object({
 
 type ArticleForm = z.infer<typeof articleSchema>;
 
-/** Chinh sua bai viet */
+/** Chỉnh sửa bai viet */
 export default function EditArticlePage() {
   const router = useRouter();
   const params = useParams();
@@ -100,15 +100,15 @@ export default function EditArticlePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Chinh sua: ${form.title || '...'}`}
+        title={`Chỉnh sửa: ${form.title || '...'}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Bai viet', href: '/admin/articles' },
-          { label: 'Chinh sua' },
+          { label: 'Bài viết', href: '/admin/articles' },
+          { label: 'Chỉnh sửa' },
         ]}
         actions={
           <Button variant="destructive" onClick={() => setShowDelete(true)}>
-            <Trash2 className="h-4 w-4 mr-2" /> Xoa
+            <Trash2 className="h-4 w-4 mr-2" /> Xóa
           </Button>
         }
       />
@@ -116,7 +116,7 @@ export default function EditArticlePage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle>Noi dung</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Nội dung</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Tieu de" error={errors.title} required>
                 <Input value={form.title} onChange={(e) => updateField('title', e.target.value)} />
@@ -124,11 +124,11 @@ export default function EditArticlePage() {
               <FormField label="Slug" error={errors.slug} required>
                 <Input value={form.slug} onChange={(e) => updateField('slug', e.target.value)} />
               </FormField>
-              <FormField label="Noi dung" error={errors.content} required>
+              <FormField label="Nội dung" error={errors.content} required>
                 <RichTextEditor
                   value={form.content}
                   onChange={(html) => updateField('content', html)}
-                  placeholder="Noi dung bai viet..."
+                  placeholder="Nội dung bai viet..."
                 />
               </FormField>
               <FormField label="Tom tat" error={errors.excerpt}>
@@ -156,7 +156,7 @@ export default function EditArticlePage() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Anh dai dien</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Ảnh dai dien</CardTitle></CardHeader>
             <CardContent>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <p className="text-gray-400 text-sm">Click de chon anh dai dien</p>
@@ -169,7 +169,7 @@ export default function EditArticlePage() {
             <CardHeader><CardTitle>Tuy chon</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Bai viet noi bat</span>
+                <span className="text-sm font-medium">Bài viết noi bat</span>
                 <Switch checked={form.is_featured} onCheckedChange={(c) => updateField('is_featured', c)} />
               </div>
             </CardContent>
@@ -178,10 +178,10 @@ export default function EditArticlePage() {
           <div className="flex flex-col gap-2">
             <Button className="w-full" disabled={updateMutation.loading} onClick={() => handleSubmit('PUBLISHED')}>
               <Save className="h-4 w-4 mr-2" />
-              {updateMutation.loading ? 'Dang luu...' : 'Xuat ban'}
+              {updateMutation.loading ? 'Đang lưu...' : 'Xuất bản'}
             </Button>
             <Button variant="outline" className="w-full" disabled={updateMutation.loading} onClick={() => handleSubmit('DRAFT')}>
-              <FileText className="h-4 w-4 mr-2" /> Luu nhap
+              <FileText className="h-4 w-4 mr-2" /> Lưu nhap
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/articles')}>
               Huy
@@ -194,10 +194,10 @@ export default function EditArticlePage() {
       <ConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
-        title="Xoa bai viet"
+        title="Xóa bai viet"
         description="Ban co chac chan muon xoa bai viet nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

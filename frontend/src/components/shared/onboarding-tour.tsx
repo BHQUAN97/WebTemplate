@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { createPortal } from 'react-dom';
@@ -14,7 +14,7 @@ export interface TourStep {
   target: string;
   /** Tieu de tooltip */
   title: string;
-  /** Noi dung mo ta */
+  /** Nội dung mo ta */
   content: string;
   /** Vi tri tooltip so voi target */
   placement?: TourPlacement;
@@ -67,7 +67,7 @@ export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTour
     setMounted(true);
   }, []);
 
-  // Kich hoat tour khi cac dieu kien san sang
+  // Kích hoạt tour khi cac dieu kien san sang
   React.useEffect(() => {
     if (ready && shouldShow && steps.length > 0) {
       setActive(true);

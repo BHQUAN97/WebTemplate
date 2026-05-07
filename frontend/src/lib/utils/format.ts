@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Format gia tien theo VND
  */
 export function formatPrice(price: number, currency = "VND"): string {
@@ -88,12 +88,12 @@ export function formatRelativeTime(date: string | Date): string {
  */
 export function formatOrderStatus(status: string): string {
   const map: Record<string, string> = {
-    PENDING: "Cho xac nhan",
+    PENDING: "Chờ xác nhận",
     CONFIRMED: "Da xac nhan",
-    PROCESSING: "Dang xu ly",
-    SHIPPED: "Dang giao hang",
-    DELIVERED: "Da giao",
-    CANCELLED: "Da huy",
+    PROCESSING: "Đang xử lý",
+    SHIPPED: "Đang giao hàng",
+    DELIVERED: "Đã giao",
+    CANCELLED: "Đã hủy",
     REFUNDED: "Da hoan tien",
     RETURNED: "Da tra hang",
   };
@@ -106,11 +106,11 @@ export function formatOrderStatus(status: string): string {
 export function formatPaymentStatus(status: string): string {
   const map: Record<string, string> = {
     PENDING: "Cho thanh toan",
-    PROCESSING: "Dang xu ly",
+    PROCESSING: "Đang xử lý",
     COMPLETED: "Da thanh toan",
     FAILED: "That bai",
     REFUNDED: "Da hoan tien",
-    CANCELLED: "Da huy",
+    CANCELLED: "Đã hủy",
   };
   return map[status] || status;
 }

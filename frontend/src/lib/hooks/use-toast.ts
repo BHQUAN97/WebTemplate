@@ -11,7 +11,7 @@ export interface Toast {
   variant: ToastVariant;
 }
 
-// Global state cho toast — chia se giua cac component
+// Global state cho toast — chia sẻ giữa các component
 let listeners: Array<(toasts: Toast[]) => void> = [];
 let toastQueue: Toast[] = [];
 let toastCounter = 0;
@@ -29,7 +29,7 @@ function addToast(
   toastQueue.push({ id, title, description, variant });
   emitChange();
 
-  // Tu dong xoa sau 5 giay
+  // Tự động xóa sau 5 giây
   setTimeout(() => {
     removeToast(id);
   }, 5000);
@@ -43,12 +43,12 @@ function removeToast(id: string) {
 }
 
 /**
- * Hook quan ly toast notifications
+ * Hook quản lý toast notifications
  */
 export function useToast() {
   const [toasts, setToasts] = useState<Toast[]>(toastQueue);
 
-  // Subscribe vao global state
+  // Subscribe vào global state
   useState(() => {
     listeners.push(setToasts);
     return () => {
@@ -67,5 +67,5 @@ export function useToast() {
   return { toasts, toast, dismiss };
 }
 
-// Export truc tiep de dung ngoai component
+// Export trực tiếp để dùng ngoài component
 export const toast = addToast;

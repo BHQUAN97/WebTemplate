@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
@@ -25,7 +25,7 @@ const MODE_CLS: Record<ChatMode, string> = {
 
 const MODE_LABELS: Record<ChatMode, string> = {
   ai: 'AI',
-  human: 'Nhan vien',
+  human: 'Nhân viên',
   hybrid: 'Ket hop',
   offline: 'Offline',
 };
@@ -117,7 +117,7 @@ export default function ChatSchedulesPage() {
       const data = Array.isArray(res) ? res : (res?.data ?? []);
       setItems(data);
     } catch (err) {
-      toast('Khong tai duoc', (err as Error).message, 'destructive');
+      toast('Không tải được', (err as Error).message, 'destructive');
     } finally {
       setLoading(false);
     }
@@ -135,7 +135,7 @@ export default function ChatSchedulesPage() {
       setDeleteId(null);
       load();
     } catch (err) {
-      toast('Xoa that bai', (err as Error).message, 'destructive');
+      toast('Xóa that bai', (err as Error).message, 'destructive');
     }
   };
 
@@ -144,7 +144,7 @@ export default function ChatSchedulesPage() {
       await adminChatApi.updateSchedule(row.id, { isActive: !row.isActive });
       load();
     } catch (err) {
-      toast('Cap nhat that bai', (err as Error).message, 'destructive');
+      toast('Cập nhật that bai', (err as Error).message, 'destructive');
     }
   };
 
@@ -199,7 +199,7 @@ export default function ChatSchedulesPage() {
       render: (row) => (
         <StatusBadge
           status={row.isActive ? 'active' : 'inactive'}
-          label={row.isActive ? 'Dang bat' : 'Tat'}
+          label={row.isActive ? 'Đang bật' : 'Tắt'}
         />
       ),
     },
@@ -207,17 +207,17 @@ export default function ChatSchedulesPage() {
 
   const actions: ActionDef<ChatSchedule>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => router.push(`/admin/chat-schedules/${row.id}/edit`),
     },
     {
-      label: 'Bat/Tat',
+      label: 'Bật/Tắt',
       icon: <Power className="h-4 w-4 mr-2" />,
       onClick: (row) => toggleActive(row),
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -237,7 +237,7 @@ export default function ChatSchedulesPage() {
         actions={
           <Button onClick={() => router.push('/admin/chat-schedules/new')}>
             <Plus className="mr-2 h-4 w-4" />
-            Them khung gio
+            Thêm khung gio
           </Button>
         }
       />
@@ -249,10 +249,10 @@ export default function ChatSchedulesPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa khung gio"
+        title="Xóa khung gio"
         description="Ban co chac muon xoa khung gio nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
       />
     </div>

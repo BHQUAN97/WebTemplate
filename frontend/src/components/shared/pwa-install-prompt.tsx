@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useState } from 'react';
 import { Button } from '@/components/ui/button';
@@ -8,8 +8,8 @@ import { Button } from '@/components/ui/button';
  *
  * Luong:
  *   - Chrome/Edge/Android: lang nghe event 'beforeinstallprompt' -> hien banner -> user
- *     bam "Cai dat" -> goi deferredPrompt.prompt()
- *   - iOS Safari: khong co beforeinstallprompt, hien hint "Share -> Them vao man hinh chinh"
+ *     bam "Cài đặt" -> goi deferredPrompt.prompt()
+ *   - iOS Safari: khong co beforeinstallprompt, hien hint "Share -> Thêm vao man hinh chinh"
  *   - Da cai (display-mode: standalone) -> khong hien
  *   - User bam "De sau" -> luu timestamp vao localStorage, an trong 7 ngay
  */

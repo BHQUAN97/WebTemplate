@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 import type { User, PaginationParams } from '@/lib/types';
 
 const API_BASE_URL =
@@ -55,7 +55,7 @@ export const usersApi = {
     if (!res.ok) {
       const err = await res
         .json()
-        .catch(() => ({ message: 'Khong the tai du lieu' }));
+        .catch(() => ({ message: 'Không thể tải dữ liệu' }));
       throw new Error(err.message || `HTTP ${res.status}`);
     }
     return res.blob();

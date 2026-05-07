@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 import type { MediaFile, PaginationParams } from '@/lib/types';
 
 const API_BASE_URL =
@@ -28,7 +28,7 @@ export const mediaApi = {
   },
 
   /**
-   * Tai ZIP chua cac file duoc chon — dung cho bulk download.
+   * Tải ZIP chua cac file duoc chon — dung cho bulk download.
    * Tra ve Blob de FE saveAs.
    */
   async downloadBulk(ids: string[]): Promise<Blob> {
@@ -49,7 +49,7 @@ export const mediaApi = {
     });
 
     if (!res.ok) {
-      const err = await res.json().catch(() => ({ message: 'Tai ZIP that bai' }));
+      const err = await res.json().catch(() => ({ message: 'Tải ZIP that bai' }));
       throw new Error(err.message || `HTTP ${res.status}`);
     }
     return res.blob();

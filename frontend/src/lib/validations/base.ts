@@ -2,7 +2,7 @@ import { z } from 'zod';
 
 /**
  * FE validation primitives — mirror BE constants.
- * Source of truth: giu dong bo voi backend/src/common/validators/constants.ts
+ * Source of truth: giữ đồng bộ với backend/src/common/validators/constants.ts
  */
 export const PATTERNS = {
   STRONG_PASSWORD: /^(?=.*[a-z])(?=.*[A-Z])(?=.*\d)(?=.*[^\w\s]).{8,}$/,
@@ -36,34 +36,34 @@ export const UNSAFE_TEXT_PATTERNS: RegExp[] = [
 ];
 
 // ============================================================
-// Messages (Tieng Viet - dong bo voi BE)
+// Messages (Tiếng Việt - đồng bộ với BE)
 // ============================================================
 export const MESSAGES = {
-  EMAIL_INVALID: 'Email khong hop le',
-  EMAIL_REQUIRED: 'Vui long nhap email',
+  EMAIL_INVALID: 'Email không hợp lệ',
+  EMAIL_REQUIRED: 'Vui lòng nhập email',
   PASSWORD_WEAK:
-    'Mat khau phai co it nhat 8 ky tu, 1 chu hoa, 1 chu thuong, 1 so, 1 ky tu dac biet',
-  PASSWORD_REQUIRED: 'Vui long nhap mat khau',
-  CONFIRM_MISMATCH: 'Mat khau xac nhan khong khop',
-  PHONE_INVALID: 'So dien thoai phai gom 10-11 chu so, bat dau bang 0',
-  ULID_INVALID: 'ID khong hop le',
+    'Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt',
+  PASSWORD_REQUIRED: 'Vui lòng nhập mật khẩu',
+  CONFIRM_MISMATCH: 'Mật khẩu xác nhận không khớp',
+  PHONE_INVALID: 'Số điện thoại phải gồm 10-11 chữ số, bắt đầu bằng 0',
+  ULID_INVALID: 'ID không hợp lệ',
   USERNAME_INVALID:
-    'Ten dang nhap phai 3-30 ky tu, chi gom chu, so va dau gach duoi',
-  PRICE_INVALID: 'Gia phai la so duong',
-  NAME_SHORT: `Ho ten phai co it nhat ${LIMITS.NAME_MIN} ky tu`,
-  NAME_LONG: `Ho ten khong duoc qua ${LIMITS.NAME_MAX} ky tu`,
-  SAFE_TEXT: 'Van ban chua ky tu khong hop le',
+    'Tên đăng nhập phải 3-30 ký tự, chỉ gồm chữ, số và dấu gạch dưới',
+  PRICE_INVALID: 'Giá phải là số dương',
+  NAME_SHORT: `Họ tên phải có ít nhất ${LIMITS.NAME_MIN} ký tự`,
+  NAME_LONG: `Họ tên không được quá ${LIMITS.NAME_MAX} ký tự`,
+  SAFE_TEXT: 'Văn bản chứa ký tự không hợp lệ',
 } as const;
 
 // ============================================================
-// Zod primitives — tai su dung trong cac schema khac
+// Zod primitives — tái sử dụng trong các schema khác
 // ============================================================
 
 export const zEmail = z
   .string({ error: MESSAGES.EMAIL_REQUIRED })
   .trim()
   .min(1, MESSAGES.EMAIL_REQUIRED)
-  .max(LIMITS.EMAIL_MAX, `Email khong duoc qua ${LIMITS.EMAIL_MAX} ky tu`)
+  .max(LIMITS.EMAIL_MAX, `Email không được quá ${LIMITS.EMAIL_MAX} ký tự`)
   .email(MESSAGES.EMAIL_INVALID);
 
 export const zStrongPassword = z
@@ -71,7 +71,7 @@ export const zStrongPassword = z
   .min(LIMITS.PASSWORD_MIN, MESSAGES.PASSWORD_WEAK)
   .max(
     LIMITS.PASSWORD_MAX,
-    `Mat khau khong duoc qua ${LIMITS.PASSWORD_MAX} ky tu`,
+    `Mật khẩu không được quá ${LIMITS.PASSWORD_MAX} ký tự`,
   )
   .regex(PATTERNS.STRONG_PASSWORD, MESSAGES.PASSWORD_WEAK);
 
@@ -80,7 +80,7 @@ export const zVietnamPhone = z
   .trim()
   .regex(PATTERNS.VIETNAM_PHONE, MESSAGES.PHONE_INVALID);
 
-/** Phone optional — cho phep empty string */
+/** Phone optional — cho phép empty string */
 export const zVietnamPhoneOptional = z
   .string()
   .trim()
@@ -120,17 +120,17 @@ export const zSafeText = z
 // ============================================================
 
 /**
- * Factory tao required string field voi message co label.
- * Usage: `zRequiredString('Ho ten')`
+ * Factory tạo required string field với message có label.
+ * Usage: `zRequiredString('Họ tên')`
  */
 export const zRequiredString = (label: string) =>
   z
-    .string({ error: `${label} la bat buoc` })
+    .string({ error: `${label} là bắt buộc` })
     .trim()
-    .min(1, `${label} la bat buoc`);
+    .min(1, `${label} là bắt buộc`);
 
 /**
- * Factory tao refine function cho confirm field.
+ * Factory tạo refine function cho confirm field.
  * Usage:
  *   schema.refine(...zConfirm('password', 'confirmPassword'))
  */

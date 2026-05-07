@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Input } from '@/components/ui/input';
@@ -16,7 +16,7 @@ export function PublicFooter() {
           <div>
             <h3 className="text-white text-lg font-bold mb-4">WebTemplate</h3>
             <p className="text-sm leading-relaxed">
-              Cung cap san pham chat luong cao voi gia tot nhat. Mua sam truc tuyen de dang, nhanh chong va an toan.
+              Cung cấp sản phẩm chất lượng cao với giá tốt nhất. Mua sắm trực tuyến dễ dàng, nhanh chóng và an toàn.
             </p>
             {/* Social icons */}
             <div className="flex gap-3 mt-4">
@@ -31,10 +31,10 @@ export function PublicFooter() {
 
           {/* Products */}
           <div>
-            <h4 className="text-white font-semibold mb-4">San pham</h4>
+            <h4 className="text-white font-semibold mb-4">Sản phẩm</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/products" className="hover:text-white transition-colors">Tat ca san pham</Link></li>
-              <li><Link href="/products?featured=true" className="hover:text-white transition-colors">San pham noi bat</Link></li>
+              <li><Link href="/products" className="hover:text-white transition-colors">Tất cả sản phẩm</Link></li>
+              <li><Link href="/products?featured=true" className="hover:text-white transition-colors">Sản phẩm noi bat</Link></li>
               <li><Link href="/products?sort=newest" className="hover:text-white transition-colors">Hang moi ve</Link></li>
               <li><Link href="/products?sort=bestselling" className="hover:text-white transition-colors">Ban chay</Link></li>
             </ul>
@@ -48,13 +48,13 @@ export function PublicFooter() {
               <li><Link href="/faq" className="hover:text-white transition-colors">Cau hoi thuong gap</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">Gioi thieu</Link></li>
               <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chinh sach doi tra</Link></li>
-              <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Dieu khoan su dung</Link></li>
+              <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
 
           {/* Newsletter */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Dang ky nhan tin</h4>
+            <h4 className="text-white font-semibold mb-4">Đăng ký nhan tin</h4>
             <p className="text-sm mb-3">
               Nhan thong tin uu dai va san pham moi nhat qua email.
             </p>
@@ -65,7 +65,7 @@ export function PublicFooter() {
                 className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
               />
               <Button type="submit" size="sm">
-                Dang ky
+                Đăng ký
               </Button>
             </form>
           </div>

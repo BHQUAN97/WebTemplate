@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { saveAs } from 'file-saver';
@@ -42,8 +42,8 @@ const FORMAT_MAP: Record<ExportFormat, 'csv' | 'xlsx' | 'pdf'> = {
 
 const REPORT_TYPES: { type: ReportType; icon: React.ReactNode; title: string; description: string }[] = [
   { type: 'sales', icon: <BarChart3 className="h-8 w-8 text-blue-500" />, title: 'Bao cao doanh thu', description: 'Doanh thu, don hang, thanh toan theo thoi gian' },
-  { type: 'products', icon: <Package className="h-8 w-8 text-green-500" />, title: 'Bao cao san pham', description: 'San pham ban chay, ton kho, loi nhuan' },
-  { type: 'customers', icon: <Users className="h-8 w-8 text-purple-500" />, title: 'Bao cao khach hang', description: 'Khach hang moi, ty le quay lai, gia tri' },
+  { type: 'products', icon: <Package className="h-8 w-8 text-green-500" />, title: 'Bao cao san pham', description: 'Sản phẩm ban chay, ton kho, loi nhuan' },
+  { type: 'customers', icon: <Users className="h-8 w-8 text-purple-500" />, title: 'Bao cao khach hang', description: 'Khách hang moi, ty le quay lai, gia tri' },
   { type: 'inventory', icon: <Warehouse className="h-8 w-8 text-orange-500" />, title: 'Bao cao ton kho', description: 'Tinh trang kho, san pham sap het, nhap hang' },
 ];
 
@@ -62,7 +62,7 @@ export default function ReportsPage() {
 
   const handleExport = async (format: ExportFormat) => {
     if (!selectedReport) {
-      toast('Vui long chon loai bao cao', undefined, 'warning');
+      toast('Vui lòng chọn loại báo cáo', undefined, 'warning');
       return;
     }
     setExportLoading(true);
@@ -148,7 +148,7 @@ export default function ReportsPage() {
                 <TableHeader>
                   <TableRow>
                     <TableHead>Ngay</TableHead>
-                    <TableHead className="text-right">Don hang</TableHead>
+                    <TableHead className="text-right">Đơn hàng</TableHead>
                     <TableHead className="text-right">Doanh thu</TableHead>
                     <TableHead className="text-right">Giam gia</TableHead>
                     <TableHead className="text-right">Thuc thu</TableHead>
@@ -176,7 +176,7 @@ export default function ReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>San pham</TableHead>
+                    <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Da ban</TableHead>
                     <TableHead className="text-right">Doanh thu</TableHead>
                     <TableHead className="text-right">Ton kho</TableHead>
@@ -203,8 +203,8 @@ export default function ReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Khach hang</TableHead>
-                    <TableHead className="text-right">Don hang</TableHead>
+                    <TableHead>Khách hang</TableHead>
+                    <TableHead className="text-right">Đơn hàng</TableHead>
                     <TableHead className="text-right">Tong chi tieu</TableHead>
                     <TableHead>Ngay tham gia</TableHead>
                   </TableRow>
@@ -230,7 +230,7 @@ export default function ReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>San pham</TableHead>
+                    <TableHead>Sản phẩm</TableHead>
                     <TableHead>SKU</TableHead>
                     <TableHead className="text-right">Ton kho</TableHead>
                     <TableHead>Trang thai</TableHead>

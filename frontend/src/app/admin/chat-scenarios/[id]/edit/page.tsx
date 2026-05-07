@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { ScenarioForm } from '@/components/admin/chat/scenario-form';
 import { FormSkeleton } from '@/components/shared/skeletons';
 import { adminChatApi, type ChatScenario, type CreateScenarioInput } from '@/lib/api/modules/admin-chat.api';
 
-/** Chinh sua kich ban chatbot */
+/** Chỉnh sửa kich ban chatbot */
 export default function EditScenarioPage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
@@ -44,11 +44,11 @@ export default function EditScenarioPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Chinh sua kich ban"
+        title="Chỉnh sửa kich ban"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Kich ban', href: '/admin/chat-scenarios' },
-          { label: scenario?.name ?? 'Chinh sua' },
+          { label: scenario?.name ?? 'Chỉnh sửa' },
         ]}
       />
       {loading ? (
@@ -57,7 +57,7 @@ export default function EditScenarioPage() {
         <ScenarioForm initial={scenario} scenarios={allScenarios} onSubmit={handleSubmit} />
       ) : (
         <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Khong tim thay kich ban
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Không tìm thấy kich ban
         </div>
       )}
     </div>

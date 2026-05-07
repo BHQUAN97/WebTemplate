@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ContactClient } from './contact-client';
 
 export const metadata: Metadata = {
   title: 'Lien he - WebTemplate',
   description:
-    'Lien he voi WebTemplate — gui yeu cau, cau hoi hoac phan hoi cua ban.',
+    'Liên hệ với WebTemplate — gửi yêu cầu, câu hỏi hoặc phản hồi của bạn.',
 };
 
 export default function ContactPage() {

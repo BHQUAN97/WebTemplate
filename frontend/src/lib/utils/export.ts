@@ -1,7 +1,7 @@
-/**
+﻿/**
  * Export / Print utilities — client-side CSV, JSON, PDF/Excel download helpers.
  *
- * Tat ca function chay tren browser (cho file download qua Blob + anchor).
+ * Tất cả function chay tren browser (cho file download qua Blob + anchor).
  * Cho cac format phuc tap (XLSX/PDF) hoac dataset lon, nen goi API backend
  * thay vi generate tai client.
  */
@@ -36,7 +36,7 @@ export function downloadFile(
   if (data instanceof Blob) {
     blob = data;
   } else if (typeof data === 'string') {
-    // Them BOM cho CSV de Excel mo dung tieng Viet
+    // Thêm BOM cho CSV de Excel mo dung tieng Viet
     const needsBom = ext === 'csv';
     const payload = needsBom ? '\uFEFF' + data : data;
     blob = new Blob([payload], { type: mimeType });
@@ -122,7 +122,7 @@ export function printElement(
   const el = document.getElementById(elementId);
   if (!el) {
     // eslint-disable-next-line no-console
-    console.warn(`[printElement] Khong tim thay #${elementId}, print toan trang.`);
+    console.warn(`[printElement] Không tìm thấy #${elementId}, print toan trang.`);
     window.print();
     return;
   }

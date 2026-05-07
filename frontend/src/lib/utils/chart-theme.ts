@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Chart theme helpers — palette tuong thich dark mode (CSS vars trong globals.css)
  * va cac formatter dung cho recharts tooltip/axis.
  */
@@ -50,7 +50,7 @@ export const CHART_AXIS_STROKE = 'hsl(var(--muted-foreground))';
 
 /**
  * Format tien VND cho tooltip/axis.
- * Khong hien ky hieu don vi neu `compact` = true (rut gon axis).
+ * Không hiện ký hiệu đơn vị nếu `compact` = true (rút gọn axis).
  */
 export function formatCurrency(value: number, compact = false): string {
   if (!Number.isFinite(value)) return '0 VND';

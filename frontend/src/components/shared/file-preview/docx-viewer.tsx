@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Loader2, Download } from 'lucide-react';
@@ -37,7 +37,7 @@ export function DocxViewer({ url, filename }: DocxViewerProps) {
         }
       } catch (err) {
         if (!cancelled) {
-          setError((err as Error).message || 'Khong the hien thi DOCX');
+          setError((err as Error).message || 'Không thể hiển thị DOCX');
           setLoading(false);
         }
       }
@@ -61,7 +61,7 @@ export function DocxViewer({ url, filename }: DocxViewerProps) {
     return (
       <div className="p-6 text-center space-y-3">
         <p className="text-red-500 text-sm">
-          Khong the hien thi DOCX: {error}
+          Không thể hiển thị DOCX: {error}
         </p>
         <a
           href={url}

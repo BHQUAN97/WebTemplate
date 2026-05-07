@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Eye, Search } from 'lucide-react';
@@ -52,7 +52,7 @@ export default function OrdersPage() {
     },
     {
       key: 'customer',
-      header: 'Khach hang',
+      header: 'Khách hang',
       render: (row) => (
         <div>
           <p className="font-medium">{row.user?.name ?? row.shipping_name}</p>
@@ -97,7 +97,7 @@ export default function OrdersPage() {
 
   const actions: ActionDef<Order>[] = [
     {
-      label: 'Xem chi tiet',
+      label: 'Xem chi tiết',
       icon: <Eye className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/orders/${row.id}`; },
     },
@@ -113,7 +113,7 @@ export default function OrdersPage() {
         title="Quan ly don hang"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Don hang' },
+          { label: 'Đơn hàng' },
         ]}
         actions={<ExportButton onExport={handleExport} />}
       />
@@ -125,13 +125,13 @@ export default function OrdersPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca trang thai</SelectItem>
-            <SelectItem value="PENDING">Cho xac nhan</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
+            <SelectItem value="PENDING">Chờ xác nhận</SelectItem>
             <SelectItem value="CONFIRMED">Da xac nhan</SelectItem>
-            <SelectItem value="PROCESSING">Dang xu ly</SelectItem>
-            <SelectItem value="SHIPPED">Dang giao</SelectItem>
-            <SelectItem value="DELIVERED">Da giao</SelectItem>
-            <SelectItem value="CANCELLED">Da huy</SelectItem>
+            <SelectItem value="PROCESSING">Đang xử lý</SelectItem>
+            <SelectItem value="SHIPPED">Đang giao</SelectItem>
+            <SelectItem value="DELIVERED">Đã giao</SelectItem>
+            <SelectItem value="CANCELLED">Đã hủy</SelectItem>
           </SelectContent>
         </Select>
         <Input

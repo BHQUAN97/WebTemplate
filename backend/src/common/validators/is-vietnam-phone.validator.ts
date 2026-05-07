@@ -6,7 +6,7 @@ import {
 import { PATTERNS } from './constants.js';
 
 /**
- * @IsVietnamPhone — kiem tra so dien thoai VN
+ * @IsVietnamPhone — kiểm tra số điện thoại VN
  * Rule: 10-11 digits, starts with 0
  */
 export function IsVietnamPhone(validationOptions?: ValidationOptions) {
@@ -22,7 +22,7 @@ export function IsVietnamPhone(validationOptions?: ValidationOptions) {
           return PATTERNS.VIETNAM_PHONE.test(value.trim());
         },
         defaultMessage(_args: ValidationArguments) {
-          return 'So dien thoai phai gom 10-11 chu so, bat dau bang 0';
+          return 'Số điện thoại phải gồm 10-11 chữ số, bắt đầu bằng 0';
         },
       },
     });

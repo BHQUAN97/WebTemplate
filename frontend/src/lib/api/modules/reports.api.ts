@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 
 export type ReportType =
   | 'sales'
@@ -66,7 +66,7 @@ export const reportsApi = {
     if (!res.ok) {
       const err = await res
         .json()
-        .catch(() => ({ message: 'Khong the tao bao cao' }));
+        .catch(() => ({ message: 'Không thể tạo báo cáo' }));
       throw new Error(err.message || `HTTP ${res.status}`);
     }
     return res.blob();

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 
@@ -50,7 +50,7 @@ export default function GlobalError({
               marginBottom: '1.5rem',
             }}
           >
-            Da co loi xay ra khi tai ung dung. Vui long thu lai sau giay lat.
+            Da co loi xay ra khi tai ung dung. Vui lòng thử lại sau giay lat.
           </p>
           {error.digest && (
             <p

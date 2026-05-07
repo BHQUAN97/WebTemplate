@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Shield, ShieldCheck, ShieldOff, Copy, Download, RefreshCw, KeyRound } from 'lucide-react';
@@ -86,7 +86,7 @@ export function TwoFactorSetup({
 
   const handleDisable = async () => {
     if (!disablePassword) {
-      setDisableError('Vui long nhap mat khau');
+      setDisableError('Vui lòng nhập mật khẩu');
       return;
     }
     const res = await disableMutation.mutate({ password: disablePassword });
@@ -103,7 +103,7 @@ export function TwoFactorSetup({
 
   const handleRegenerate = async () => {
     if (!regenPassword) {
-      setRegenError('Vui long nhap mat khau');
+      setRegenError('Vui lòng nhập mật khẩu');
       return;
     }
     const res = await regenMutation.mutate({ password: regenPassword });
@@ -128,7 +128,7 @@ export function TwoFactorSetup({
   };
 
   const downloadCodes = (codes: string[]) => {
-    const content = `# Backup codes 2FA\n# Luu giu bi mat — moi ma chi dung duoc 1 lan\n\n${codes.join('\n')}\n`;
+    const content = `# Backup codes 2FA\n# Lưu giu bi mat — moi ma chi dung duoc 1 lan\n\n${codes.join('\n')}\n`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -150,11 +150,11 @@ export function TwoFactorSetup({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Xac thuc hai yeu to (2FA)"
+        title="Xác thực hai yeu to (2FA)"
         description="Tang cuong bao mat bang ma OTP tu ung dung Authenticator"
         breadcrumbs={[
           breadcrumbRoot,
-          { label: 'Cai dat', href: settingsHref },
+          { label: 'Cài đặt', href: settingsHref },
           { label: '2FA' },
         ]}
       />
@@ -174,7 +174,7 @@ export function TwoFactorSetup({
                   <div>
                     <CardTitle>Trang thai 2FA</CardTitle>
                     <CardDescription>
-                      {is2faEnabled ? 'Dang bao ve tai khoan cua ban' : 'Chua kich hoat'}
+                      {is2faEnabled ? 'Đang bảo vệ tài khoản của bạn' : 'Chưa kích hoạt'}
                     </CardDescription>
                   </div>
                 </div>
@@ -193,10 +193,10 @@ export function TwoFactorSetup({
                   )}
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button variant="outline" onClick={() => setRegenOpen(true)}>
-                      <RefreshCw className="h-4 w-4 mr-2" /> Tao lai backup codes
+                      <RefreshCw className="h-4 w-4 mr-2" /> Tạo lai backup codes
                     </Button>
                     <Button variant="destructive" onClick={() => setDisableOpen(true)}>
-                      <ShieldOff className="h-4 w-4 mr-2" /> Tat 2FA
+                      <ShieldOff className="h-4 w-4 mr-2" /> Tắt 2FA
                     </Button>
                   </div>
                 </>
@@ -209,7 +209,7 @@ export function TwoFactorSetup({
                   {!setupData && (
                     <Button onClick={handleStartSetup} disabled={setupMutation.loading}>
                       <Shield className="h-4 w-4 mr-2" />
-                      {setupMutation.loading ? 'Dang chuan bi...' : 'Bat 2FA'}
+                      {setupMutation.loading ? 'Đang chuẩn bị...' : 'Bật 2FA'}
                     </Button>
                   )}
                 </>
@@ -270,7 +270,7 @@ export function TwoFactorSetup({
                   <div className="flex gap-2 mt-3">
                     <Button onClick={handleVerify} disabled={enableMutation.loading || verifyCode.length !== 6}>
                       <KeyRound className="h-4 w-4 mr-2" />
-                      {enableMutation.loading ? 'Dang xac minh...' : 'Xac minh va kich hoat'}
+                      {enableMutation.loading ? 'Đang xác minh...' : 'Xác minh và kích hoạt'}
                     </Button>
                     <Button variant="ghost" onClick={() => { setSetupData(null); setVerifyCode(''); }}>
                       Huy
@@ -286,8 +286,8 @@ export function TwoFactorSetup({
           <Card>
             <CardHeader><CardTitle>Loi khuyen bao mat</CardTitle></CardHeader>
             <CardContent className="text-sm text-gray-600 space-y-2">
-              <p>- Luu backup codes o noi an toan (password manager)</p>
-              <p>- Khong chia se secret voi ai</p>
+              <p>- Lưu backup codes o noi an toan (password manager)</p>
+              <p>- Không chia sẻ secret với ai</p>
               <p>- Moi backup code chi dung duoc 1 lan</p>
               <p>- Neu mat dien thoai, dung backup code de dang nhap va tat 2FA</p>
             </CardContent>
@@ -301,7 +301,7 @@ export function TwoFactorSetup({
           <DialogHeader>
             <DialogTitle>Backup codes</DialogTitle>
             <DialogDescription>
-              Luu lai ngay bay gio — <strong>chi hien 1 lan.</strong> Moi code chi dung duoc 1 lan.
+              Lưu lai ngay bay gio — <strong>chi hien 1 lan.</strong> Moi code chi dung duoc 1 lan.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
@@ -341,11 +341,11 @@ export function TwoFactorSetup({
       <Dialog open={disableOpen} onOpenChange={setDisableOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tat 2FA</DialogTitle>
-            <DialogDescription>Nhap mat khau hien tai de xac nhan</DialogDescription>
+            <DialogTitle>Tắt 2FA</DialogTitle>
+            <DialogDescription>Nhập mật khẩu hien tai de xac nhan</DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <FormField label="Mat khau hien tai" error={disableError} required>
+            <FormField label="Mật khẩu hien tai" error={disableError} required>
               <Input
                 type="password"
                 value={disablePassword}
@@ -357,7 +357,7 @@ export function TwoFactorSetup({
             <Button variant="outline" onClick={() => { setDisableOpen(false); setDisablePassword(''); setDisableError(''); }}>Huy</Button>
             <Button variant="destructive" onClick={handleDisable} disabled={disableMutation.loading}>
               <ShieldOff className="h-4 w-4 mr-2" />
-              {disableMutation.loading ? 'Dang tat...' : 'Tat 2FA'}
+              {disableMutation.loading ? 'Đang tắt...' : 'Tắt 2FA'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -367,13 +367,13 @@ export function TwoFactorSetup({
       <Dialog open={regenOpen} onOpenChange={setRegenOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tao lai backup codes</DialogTitle>
+            <DialogTitle>Tạo lai backup codes</DialogTitle>
             <DialogDescription>
-              Codes cu se bi vo hieu. Nhap mat khau de xac nhan.
+              Codes cu se bi vo hieu. Nhập mật khẩu de xac nhan.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <FormField label="Mat khau hien tai" error={regenError} required>
+            <FormField label="Mật khẩu hien tai" error={regenError} required>
               <Input
                 type="password"
                 value={regenPassword}
@@ -385,7 +385,7 @@ export function TwoFactorSetup({
             <Button variant="outline" onClick={() => { setRegenOpen(false); setRegenPassword(''); setRegenError(''); }}>Huy</Button>
             <Button onClick={handleRegenerate} disabled={regenMutation.loading}>
               <RefreshCw className="h-4 w-4 mr-2" />
-              {regenMutation.loading ? 'Dang tao...' : 'Tao moi'}
+              {regenMutation.loading ? 'Đang tạo...' : 'Tạo mới'}
             </Button>
           </DialogFooter>
         </DialogContent>

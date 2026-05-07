@@ -1,4 +1,4 @@
-/**
+﻿/**
  * Loading UI mac dinh — hien khi route segment dang stream.
  */
 export default function Loading() {
@@ -7,9 +7,9 @@ export default function Loading() {
       <div
         className="h-10 w-10 animate-spin rounded-full border-4 border-gray-200 border-t-blue-600"
         role="status"
-        aria-label="Dang tai"
+        aria-label="Đang tải"
       />
-      <p className="text-sm text-gray-500">Dang tai...</p>
+      <p className="text-sm text-gray-500">Đang tải...</p>
     </div>
   );
 }

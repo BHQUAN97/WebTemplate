@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   Dialog,
@@ -50,7 +50,7 @@ export function ConfirmDialog({
   title,
   description,
   onConfirm,
-  confirmLabel = 'Xac nhan',
+  confirmLabel = 'Xác nhận',
   cancelLabel = 'Huy',
   variant = 'danger',
   loading = false,
@@ -88,7 +88,7 @@ export function ConfirmDialog({
             }}
             disabled={loading}
           >
-            {loading ? 'Dang xu ly...' : confirmLabel}
+            {loading ? 'Đang xử lý...' : confirmLabel}
           </Button>
         </DialogFooter>
       </DialogContent>

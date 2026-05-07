@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Eye } from 'lucide-react';
@@ -16,7 +16,7 @@ import type { ApiResponse, Article } from '@/lib/types';
 const STATUS_LABELS: Record<string, string> = {
   DRAFT: 'Nhap',
   PUBLISHED: 'Da xuat ban',
-  ARCHIVED: 'Luu tru',
+  ARCHIVED: 'Lưu trữ',
 };
 
 /** Danh sach bai viet */
@@ -44,7 +44,7 @@ export default function ArticlesPage() {
   const columns: ColumnDef<Article>[] = [
     {
       key: 'featured_image',
-      header: 'Anh',
+      header: 'Ảnh',
       className: 'w-16',
       render: (row) => (
         <div className="h-12 w-16 rounded bg-gray-100 overflow-hidden">
@@ -87,12 +87,12 @@ export default function ArticlesPage() {
 
   const actions: ActionDef<Article>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/articles/${row.id}`; },
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -112,7 +112,7 @@ export default function ArticlesPage() {
         title="Quan ly bai viet"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Bai viet' },
+          { label: 'Bài viết' },
         ]}
         actions={
           <Button asChild>
@@ -130,10 +130,10 @@ export default function ArticlesPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca</SelectItem>
+            <SelectItem value="all">Tất cả</SelectItem>
             <SelectItem value="DRAFT">Nhap</SelectItem>
             <SelectItem value="PUBLISHED">Da xuat ban</SelectItem>
-            <SelectItem value="ARCHIVED">Luu tru</SelectItem>
+            <SelectItem value="ARCHIVED">Lưu trữ</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -157,10 +157,10 @@ export default function ArticlesPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa bai viet"
+        title="Xóa bai viet"
         description="Ban co chac chan muon xoa bai viet nay? Hanh dong nay khong the hoan tac."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

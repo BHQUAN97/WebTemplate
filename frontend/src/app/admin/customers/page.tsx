@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, UserPlus } from 'lucide-react';
@@ -22,7 +22,7 @@ import type { ApiResponse, User, UserRole } from '@/lib/types';
 const userSchema = z.object({
   name: z.string().min(1, 'Ten la bat buoc').max(100, 'Toi da 100 ky tu'),
   email: z.string().email('Email khong hop le'),
-  password: z.string().min(6, 'Mat khau toi thieu 6 ky tu').optional(),
+  password: z.string().min(6, 'Mật khẩu toi thieu 6 ky tu').optional(),
   phone: z.string().optional().nullable(),
   role: z.string().min(1, 'Vai tro la bat buoc'),
   is_active: z.boolean(),
@@ -108,7 +108,7 @@ export default function CustomersPage() {
 
   const actions: ActionDef<User>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => {
         setEditingId(row.id);
@@ -118,7 +118,7 @@ export default function CustomersPage() {
       },
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -159,12 +159,12 @@ export default function CustomersPage() {
         title="Quan ly khach hang"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Khach hang' },
+          { label: 'Khách hang' },
         ]}
         actions={
           <Button onClick={openCreate}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Them nguoi dung
+            Thêm nguoi dung
           </Button>
         }
       />
@@ -176,7 +176,7 @@ export default function CustomersPage() {
             <SelectValue placeholder="Vai tro" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca vai tro</SelectItem>
+            <SelectItem value="all">Tất cả vai trò</SelectItem>
             <SelectItem value="ADMIN">Admin</SelectItem>
             <SelectItem value="MANAGER">Manager</SelectItem>
             <SelectItem value="EDITOR">Editor</SelectItem>
@@ -205,16 +205,16 @@ export default function CustomersPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Chinh sua nguoi dung' : 'Them nguoi dung moi'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Chỉnh sửa người dùng' : 'Thêm người dùng mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <FormField label="Ho ten" error={errors.name} required>
+            <FormField label="Họ tên" error={errors.name} required>
               <Input value={form.name} onChange={(e) => { setForm((p) => ({ ...p, name: e.target.value })); setErrors((p) => ({ ...p, name: '' })); }} />
             </FormField>
             <FormField label="Email" error={errors.email} required>
               <Input type="email" value={form.email} onChange={(e) => { setForm((p) => ({ ...p, email: e.target.value })); setErrors((p) => ({ ...p, email: '' })); }} />
             </FormField>
-            <FormField label={editingId ? 'Mat khau moi (de trong neu khong doi)' : 'Mat khau'} error={errors.password} required={!editingId}>
+            <FormField label={editingId ? 'Mật khẩu moi (de trong neu khong doi)' : 'Mật khẩu'} error={errors.password} required={!editingId}>
               <Input type="password" value={form.password ?? ''} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
             </FormField>
             <FormField label="So dien thoai" error={errors.phone}>
@@ -239,7 +239,7 @@ export default function CustomersPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -248,10 +248,10 @@ export default function CustomersPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa nguoi dung"
+        title="Xóa nguoi dung"
         description="Ban co chac chan muon xoa nguoi dung nay? Hanh dong nay khong the hoan tac."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

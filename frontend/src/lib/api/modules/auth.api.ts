@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 import type { User } from '@/lib/types';
 
 export interface LoginResponse {
@@ -22,7 +22,7 @@ export interface LoginPayload {
 
 export const authApi = {
   /**
-   * Dang nhap. Neu BE tra error code TWO_FACTOR_REQUIRED → FE chuyen sang
+   * Đăng nhập. Neu BE tra error code TWO_FACTOR_REQUIRED → FE chuyen sang
    * trang /verify-2fa, user nhap code roi goi lai login voi totp_code.
    */
   login(payload: LoginPayload | string, password?: string) {
@@ -90,12 +90,12 @@ export const authApi = {
     return apiClient.post<null>('/auth/2fa/resend', {});
   },
 
-  /** Xac thuc email tu token gui qua email */
+  /** Xác thực email tu token gui qua email */
   verifyEmail(token: string) {
     return apiClient.post<null>('/auth/verify-email', { token });
   },
 
-  /** Gui lai email xac thuc */
+  /** Gửi lại email xác thực */
   resendVerificationEmail(email: string) {
     return apiClient.post<null>('/auth/resend-verification', { email });
   },

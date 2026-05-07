@@ -1,4 +1,4 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import {
   chatApi,
   readChatSession,
@@ -134,13 +134,13 @@ export const useChatStore = create<ChatState>((set, get) => ({
         hasMoreMessages: false,
         isLoading: false,
         hasRestored: true,
-        error: err instanceof Error ? err.message : 'Khong khoi phuc duoc phien',
+        error: err instanceof Error ? err.message : 'Không khởi phục được phiên',
       });
     }
   },
 
   /**
-   * Tao conversation moi — goi API, nhan session id, persist, nap message khoi dau.
+   * Tạo conversation moi — goi API, nhan session id, persist, nap message khoi dau.
    */
   startConversation: async (profile) => {
     if (get().isStarting) return;
@@ -166,14 +166,14 @@ export const useChatStore = create<ChatState>((set, get) => ({
     } catch (err) {
       set({
         isStarting: false,
-        error: err instanceof Error ? err.message : 'Khong tao duoc phien chat',
+        error: err instanceof Error ? err.message : 'Không tạo được phiên chat',
       });
       throw err;
     }
   },
 
   /**
-   * Xoa session — dung khi khach bam "Ket thuc chat" hoac session invalid.
+   * Xóa session — dung khi khach bam "Ket thuc chat" hoac session invalid.
    */
   resetSession: () => {
     persist(null);
@@ -192,7 +192,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
   },
 
   /**
-   * Gui tin — optimistic append, fallback REST (luc WS down thi caller truyen
+   * Gửi tin — optimistic append, fallback REST (luc WS down thi caller truyen
    * vao the hook socket; default ve day se fallback REST luon).
    */
   sendMessage: async (content) => {
@@ -204,7 +204,7 @@ export const useChatStore = create<ChatState>((set, get) => ({
       get().addMessage(msg);
     } catch (err) {
       set({
-        error: err instanceof Error ? err.message : 'Gui tin that bai',
+        error: err instanceof Error ? err.message : 'Gửi tin that bai',
       });
       throw err;
     }

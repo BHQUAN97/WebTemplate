@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Printer } from 'lucide-react';
 import type { ReactNode } from 'react';
@@ -17,7 +17,7 @@ interface PrintButtonProps extends Omit<ButtonProps, 'onClick'> {
 /**
  * Nut in trang.
  * - Co `targetId` → mo window moi chi chua element do va print
- * - Khong co `targetId` → goi window.print() toan trang
+ * - Không có `targetId` → gọi window.print() toàn trang
  */
 export function PrintButton({
   label = 'In',

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -43,7 +43,7 @@ export default function OrdersPage() {
 
   return (
     <div>
-      <h1 className="text-2xl font-bold mb-6">Don hang cua toi</h1>
+      <h1 className="text-2xl font-bold mb-6">Đơn hàng cua toi</h1>
 
       {loading ? (
         <div className="space-y-4">
@@ -105,7 +105,7 @@ export default function OrdersPage() {
           <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
           <p className="text-gray-500 text-lg mb-2">Chua co don hang nao</p>
           <Link href="/products" className="text-blue-600 hover:underline text-sm">
-            Bat dau mua sam
+            Bật dau mua sam
           </Link>
         </div>
       )}

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
 import { MessageCircle, X, Bot } from 'lucide-react';
@@ -103,12 +103,12 @@ export function ChatWidget() {
   // Header title/subtitle dung theo mode
   const headerInfo = useMemo(() => {
     if (mode === 'human' && agent?.name) {
-      return { title: agent.name, subtitle: 'Nhan vien ho tro' };
+      return { title: agent.name, subtitle: 'Nhân viên ho tro' };
     }
     if (mode === 'offline') {
-      return { title: 'Ho tro khach hang', subtitle: 'Dang ngoai gio truc' };
+      return { title: 'Hỗ trợ khách hàng', subtitle: 'Đang ngoài giờ trực' };
     }
-    return { title: 'Ho tro khach hang', subtitle: 'Tro ly AI san sang 24/7' };
+    return { title: 'Hỗ trợ khách hàng', subtitle: 'Tro ly AI san sang 24/7' };
   }, [mode, agent]);
 
   const hasSession = Boolean(conversationId);
@@ -191,7 +191,7 @@ export function ChatWidget() {
             // Chua co session → welcome form
             !hasRestored ? (
               <div className="flex flex-1 items-center justify-center bg-white dark:bg-gray-950">
-                <span className="text-sm text-gray-400">Dang tai...</span>
+                <span className="text-sm text-gray-400">Đang tải...</span>
               </div>
             ) : (
               <ChatWelcomeForm

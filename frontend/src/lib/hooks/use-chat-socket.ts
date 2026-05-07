@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useRef } from 'react';
 import { io, type Socket } from 'socket.io-client';
@@ -127,7 +127,7 @@ export function useChatSocket() {
   );
 
   /**
-   * Gui tin qua WS — tra ve true neu socket connected, false de caller fallback REST.
+   * Gửi tin qua WS — tra ve true neu socket connected, false de caller fallback REST.
    */
   const sendMessage = useCallback((content: string, type: string = 'text') => {
     const socket = socketRef.current;

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -32,7 +32,7 @@ export function BottomTabBar() {
 
   const tabs: TabItem[] = [
     { href: '/', label: 'Trang chu', icon: Home },
-    { href: '/search', label: 'Tim kiem', icon: Search },
+    { href: '/search', label: 'Tìm kiếm', icon: Search },
     {
       href: '/cart',
       label: 'Gio hang',
@@ -41,7 +41,7 @@ export function BottomTabBar() {
     },
     {
       href: hydrated && isAuthenticated ? '/dashboard' : '/login',
-      label: hydrated && isAuthenticated ? 'Tai khoan' : 'Dang nhap',
+      label: hydrated && isAuthenticated ? 'Tài khoản' : 'Đăng nhập',
       icon: User,
     },
   ];

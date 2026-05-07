@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Download, FileSpreadsheet, FileText, FileType } from 'lucide-react';
@@ -198,7 +198,7 @@ export function ExportButton({
     } catch (err) {
       const msg = (err as Error).message;
       if (format === 'pdf') {
-        toast('Khong the xuat PDF', msg, 'destructive');
+        toast('Không thể xuất PDF', msg, 'destructive');
       } else {
         toast('Xuat file that bai', msg, 'destructive');
       }
@@ -220,7 +220,7 @@ export function ExportButton({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" disabled={loading}>
           <Download className="h-4 w-4 mr-2" />
-          {loading ? 'Dang xuat...' : label}
+          {loading ? 'Đăng xuất...' : label}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

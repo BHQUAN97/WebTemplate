@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -24,7 +24,7 @@ interface Props {
 }
 
 /**
- * Chi tiet bai viet — header, content, share, author bio, related
+ * Chi tiết bai viet — header, content, share, author bio, related
  */
 export function BlogPostClient({ slug }: Props) {
   const [article, setArticle] = useState<Article | null>(null);
@@ -74,7 +74,7 @@ export function BlogPostClient({ slug }: Props) {
   if (!article) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Bai viet khong ton tai</h1>
+        <h1 className="text-2xl font-bold mb-4">Bài viết khong ton tai</h1>
         <Button asChild>
           <Link href="/blog">Quay lai Blog</Link>
         </Button>
@@ -192,7 +192,7 @@ export function BlogPostClient({ slug }: Props) {
       {/* Related articles */}
       {related.length > 0 && (
         <div>
-          <h2 className="text-xl font-bold mb-6">Bai viet lien quan</h2>
+          <h2 className="text-xl font-bold mb-6">Bài viết lien quan</h2>
           <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
             {related.map((a) => (
               <Link key={a.id} href={`/blog/${a.slug}`} className="group block">

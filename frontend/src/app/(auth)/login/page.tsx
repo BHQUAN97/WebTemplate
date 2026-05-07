@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -80,22 +80,22 @@ export default function LoginPage() {
         router.push('/verify-2fa');
         return;
       }
-      setError(err.message || 'Email hoac mat khau khong dung');
+      setError(err.message || 'Email hoặc mật khẩu không đúng');
     }
   };
 
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Dang nhap</CardTitle>
+        <CardTitle className="text-2xl">Đăng nhập</CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Chao mung ban quay tro lai
+          Chào mừng bạn quay trở lại
         </p>
       </CardHeader>
       <CardContent>
         {oauthError === 'oauth' && (
           <div className="bg-red-50 text-red-600 text-sm rounded-lg p-3 mb-4">
-            Dang nhap OAuth that bai. Vui long thu lai.
+            Đăng nhập OAuth thất bại. Vui lòng thử lại.
           </div>
         )}
 
@@ -122,20 +122,20 @@ export default function LoginPage() {
           {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mat khau
+              Mật khẩu
             </label>
             <div className="relative">
               <Input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="Nhap mat khau"
+                placeholder="Nhập mật khẩu"
                 autoComplete="current-password"
               />
               <button
                 type="button"
                 onClick={() => setShowPassword(!showPassword)}
                 className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
-                aria-label={showPassword ? 'An mat khau' : 'Hien mat khau'}
+                aria-label={showPassword ? 'Ẩn mật khẩu' : 'Hiện mật khẩu'}
               >
                 {showPassword ? (
                   <EyeOff className="h-4 w-4" />
@@ -157,13 +157,13 @@ export default function LoginPage() {
                 {...register('remember')}
                 className="rounded border-gray-300"
               />
-              Ghi nho dang nhap
+              Ghi nhớ đăng nhập
             </label>
             <Link
               href="/forgot-password"
               className="text-sm text-blue-600 hover:underline"
             >
-              Quen mat khau?
+              Quên mật khẩu?
             </Link>
           </div>
 
@@ -176,15 +176,15 @@ export default function LoginPage() {
 
           {/* Submit */}
           <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? 'Dang xu ly...' : 'Dang nhap'}
+            {isSubmitting ? 'Đang xử lý...' : 'Đăng nhập'}
           </Button>
         </form>
 
         {/* Register link */}
         <p className="text-center text-sm text-gray-500 mt-6">
-          Chua co tai khoan?{' '}
+          Chưa có tài khoản?{' '}
           <Link href="/register" className="text-blue-600 hover:underline font-medium">
-            Dang ky ngay
+            Đăng ký ngay
           </Link>
         </p>
       </CardContent>

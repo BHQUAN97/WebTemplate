@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { cn } from '@/lib/utils';
@@ -45,7 +45,7 @@ interface Props {
 export function ConversationListItem({ conversation, active, onClick }: Props) {
   const name =
     conversation.customerName?.trim() ||
-    `Khach #${conversation.id.slice(-6).toUpperCase()}`;
+    `Khách #${conversation.id.slice(-6).toUpperCase()}`;
   const preview = conversation.lastMessage ?? '(Chua co tin nhan)';
   const unread = conversation.unreadCount ?? 0;
 

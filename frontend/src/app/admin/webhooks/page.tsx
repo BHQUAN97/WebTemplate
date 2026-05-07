@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Send, Power, PowerOff, Eye } from 'lucide-react';
@@ -98,18 +98,18 @@ export default function WebhooksPage() {
       key: 'last_triggered_at',
       header: 'Lan cuoi',
       render: (row) =>
-        row.last_triggered_at ? formatDate(row.last_triggered_at) : 'Chua kich hoat',
+        row.last_triggered_at ? formatDate(row.last_triggered_at) : 'Chưa kích hoạt',
     },
   ];
 
   const actions: ActionDef<Webhook>[] = [
     {
-      label: 'Xem chi tiet',
+      label: 'Xem chi tiết',
       icon: <Eye className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/webhooks/${row.id}`; },
     },
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/webhooks/${row.id}`; },
     },
@@ -119,7 +119,7 @@ export default function WebhooksPage() {
       onClick: (row) => setTestId(row.id),
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -159,7 +159,7 @@ export default function WebhooksPage() {
           <Button asChild>
             <a href="/admin/webhooks/new">
               <Plus className="h-4 w-4 mr-2" />
-              Them webhook
+              Thêm webhook
             </a>
           </Button>
         }
@@ -184,10 +184,10 @@ export default function WebhooksPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xoa webhook"
+        title="Xóa webhook"
         description="Ban co chac chan muon xoa webhook nay? Hanh dong nay khong the hoan tac."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />
@@ -196,9 +196,9 @@ export default function WebhooksPage() {
         open={!!testId}
         onOpenChange={(o) => !o && setTestId(null)}
         title="Test webhook"
-        description="Gui 1 payload test den URL nay?"
+        description="Gửi 1 payload test den URL nay?"
         onConfirm={handleTest}
-        confirmLabel="Gui test"
+        confirmLabel="Gửi test"
         loading={testMutation.loading}
       />
     </div>

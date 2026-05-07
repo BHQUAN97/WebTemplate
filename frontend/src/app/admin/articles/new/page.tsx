@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -19,7 +19,7 @@ import { slugify } from '@/lib/utils/format';
 const articleSchema = z.object({
   title: z.string().min(1, 'Tieu de la bat buoc').max(255, 'Toi da 255 ky tu'),
   slug: z.string().min(1, 'Slug la bat buoc'),
-  content: z.string().min(1, 'Noi dung la bat buoc'),
+  content: z.string().min(1, 'Nội dung la bat buoc'),
   excerpt: z.string().max(500, 'Tom tat toi da 500 ky tu').optional(),
   featured_image: z.string().optional().nullable(),
   status: z.enum(['DRAFT', 'PUBLISHED']),
@@ -30,7 +30,7 @@ const articleSchema = z.object({
 
 type ArticleForm = z.infer<typeof articleSchema>;
 
-/** Tao bai viet moi */
+/** Tạo bai viet moi */
 export default function NewArticlePage() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,16 +72,16 @@ export default function NewArticlePage() {
         title="Viet bai moi"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Bai viet', href: '/admin/articles' },
+          { label: 'Bài viết', href: '/admin/articles' },
           { label: 'Viet bai moi' },
         ]}
       />
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* Noi dung chinh */}
+          {/* Nội dung chinh */}
           <Card>
-            <CardHeader><CardTitle>Noi dung</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Nội dung</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Tieu de" error={errors.title} required>
                 <Input
@@ -93,7 +93,7 @@ export default function NewArticlePage() {
               <FormField label="Slug" error={errors.slug} required>
                 <Input value={form.slug} onChange={(e) => updateField('slug', e.target.value)} />
               </FormField>
-              <FormField label="Noi dung" error={errors.content} required>
+              <FormField label="Nội dung" error={errors.content} required>
                 <RichTextEditor
                   value={form.content}
                   onChange={(html) => updateField('content', html)}
@@ -136,9 +136,9 @@ export default function NewArticlePage() {
 
         {/* Sidebar */}
         <div className="space-y-6">
-          {/* Anh dai dien */}
+          {/* Ảnh dai dien */}
           <Card>
-            <CardHeader><CardTitle>Anh dai dien</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Ảnh dai dien</CardTitle></CardHeader>
             <CardContent>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
                 <p className="text-gray-400 text-sm">Click de chon anh dai dien</p>
@@ -152,7 +152,7 @@ export default function NewArticlePage() {
             <CardHeader><CardTitle>Tuy chon</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Bai viet noi bat</span>
+                <span className="text-sm font-medium">Bài viết noi bat</span>
                 <Switch checked={form.is_featured} onCheckedChange={(c) => updateField('is_featured', c)} />
               </div>
             </CardContent>
@@ -166,7 +166,7 @@ export default function NewArticlePage() {
               onClick={() => handleSubmit('PUBLISHED')}
             >
               <Save className="h-4 w-4 mr-2" />
-              {createMutation.loading ? 'Dang luu...' : 'Xuat ban'}
+              {createMutation.loading ? 'Đang lưu...' : 'Xuất bản'}
             </Button>
             <Button
               variant="outline"
@@ -175,7 +175,7 @@ export default function NewArticlePage() {
               onClick={() => handleSubmit('DRAFT')}
             >
               <FileText className="h-4 w-4 mr-2" />
-              Luu nhap
+              Lưu nhap
             </Button>
             <Button
               variant="ghost"

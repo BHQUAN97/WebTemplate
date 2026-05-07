@@ -8,12 +8,12 @@ import {
 } from './base';
 
 // ============================================================
-// Auth schemas — re-use primitives tu ./base de dong bo voi BE
+// Auth schemas — re-use primitives từ ./base để đồng bộ với BE
 // ============================================================
 
 export const loginSchema = z.object({
   email: zEmail,
-  password: zRequiredString('Mat khau'),
+  password: zRequiredString('Mật khẩu'),
   remember: z.boolean().optional(),
 });
 
@@ -22,7 +22,7 @@ export const registerSchema = z
     name: zName,
     email: zEmail,
     password: zStrongPassword,
-    confirmPassword: zRequiredString('Xac nhan mat khau'),
+    confirmPassword: zRequiredString('Xác nhận mật khẩu'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: MESSAGES.CONFIRM_MISMATCH,
@@ -36,7 +36,7 @@ export const forgotPasswordSchema = z.object({
 export const resetPasswordSchema = z
   .object({
     password: zStrongPassword,
-    confirmPassword: zRequiredString('Xac nhan mat khau'),
+    confirmPassword: zRequiredString('Xác nhận mật khẩu'),
   })
   .refine((data) => data.password === data.confirmPassword, {
     message: MESSAGES.CONFIRM_MISMATCH,
@@ -45,9 +45,9 @@ export const resetPasswordSchema = z
 
 export const changePasswordSchema = z
   .object({
-    currentPassword: zRequiredString('Mat khau hien tai'),
+    currentPassword: zRequiredString('Mật khẩu hiện tại'),
     newPassword: zStrongPassword,
-    confirmNewPassword: zRequiredString('Xac nhan mat khau moi'),
+    confirmNewPassword: zRequiredString('Xác nhận mật khẩu mới'),
   })
   .refine((data) => data.newPassword === data.confirmNewPassword, {
     message: MESSAGES.CONFIRM_MISMATCH,

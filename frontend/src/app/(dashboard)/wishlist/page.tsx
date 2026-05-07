@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { Heart, ShoppingCart, Trash2 } from 'lucide-react';
@@ -46,7 +46,7 @@ export default function WishlistPage() {
   if (loading) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">San pham yeu thich</h1>
+        <h1 className="text-2xl font-bold">Sản phẩm yeu thich</h1>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
           {[1, 2, 3].map(i => (
             <Skeleton key={i} className="h-64 rounded-lg" />
@@ -59,13 +59,13 @@ export default function WishlistPage() {
   if (items.length === 0) {
     return (
       <div className="space-y-4">
-        <h1 className="text-2xl font-bold">San pham yeu thich</h1>
+        <h1 className="text-2xl font-bold">Sản phẩm yeu thich</h1>
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Heart className="h-16 w-16 text-gray-300 mb-4" />
           <h2 className="text-xl font-semibold text-gray-600 mb-2">Chua co san pham yeu thich</h2>
           <p className="text-gray-400 mb-6">Hay them san pham vao danh sach yeu thich de xem lai sau.</p>
           <Button asChild>
-            <a href="/products">Kham pha san pham</a>
+            <a href="/products">Khám pha san pham</a>
           </Button>
         </div>
       </div>
@@ -75,7 +75,7 @@ export default function WishlistPage() {
   return (
     <div className="space-y-4">
       <div className="flex items-center justify-between">
-        <h1 className="text-2xl font-bold">San pham yeu thich</h1>
+        <h1 className="text-2xl font-bold">Sản phẩm yeu thich</h1>
         <span className="text-sm text-gray-500">{items.length} san pham</span>
       </div>
 
@@ -116,7 +116,7 @@ export default function WishlistPage() {
                   disabled={!item.product.is_active}
                 >
                   <ShoppingCart className="h-4 w-4 mr-1" />
-                  Them vao gio
+                  Thêm vao gio
                 </Button>
                 <Button size="sm" variant="outline" onClick={() => removeItem(item.id)}>
                   <Trash2 className="h-4 w-4" />

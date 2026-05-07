@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -48,7 +48,7 @@ export default function DashboardPage() {
     },
     {
       icon: Heart,
-      label: 'Yeu thich',
+      label: 'Yêu thích',
       value: hydrated ? wishlistCount : 0,
       color: 'text-red-600 bg-red-100',
     },
@@ -68,7 +68,7 @@ export default function DashboardPage() {
           Xin chao, {hydrated ? user?.name : '...'}!
         </h1>
         <p className="text-gray-500">
-          Quan ly tai khoan va don hang cua ban tai day.
+          Quản lý tài khoản và đơn hàng của bạn tại đây.
         </p>
       </div>
 
@@ -92,7 +92,7 @@ export default function DashboardPage() {
       {/* Recent orders */}
       <Card className="mb-8">
         <CardHeader className="flex flex-row items-center justify-between">
-          <CardTitle>Don hang gan day</CardTitle>
+          <CardTitle>Đơn hàng gan day</CardTitle>
           <Button variant="outline" size="sm" asChild>
             <Link href="/orders">Xem tat ca</Link>
           </Button>
@@ -143,10 +143,10 @@ export default function DashboardPage() {
       {/* Quick links */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {[
-          { href: '/profile', label: 'Chinh sua ho so', icon: '👤' },
-          { href: '/orders', label: 'Don hang', icon: '📦' },
-          { href: '/wishlist', label: 'Yeu thich', icon: '❤️' },
-          { href: '/settings', label: 'Cai dat', icon: '⚙️' },
+          { href: '/profile', label: 'Chỉnh sửa hồ sơ', icon: '👤' },
+          { href: '/orders', label: 'Đơn hàng', icon: '📦' },
+          { href: '/wishlist', label: 'Yêu thích', icon: '❤️' },
+          { href: '/settings', label: 'Cài đặt', icon: '⚙️' },
         ].map((link) => (
           <Link key={link.href} href={link.href}>
             <Card className="hover:shadow-md transition-shadow">

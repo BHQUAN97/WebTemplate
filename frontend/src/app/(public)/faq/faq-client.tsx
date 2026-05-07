@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -79,7 +79,7 @@ export function FaqClient() {
         <Input
           value={search}
           onChange={(e) => setSearch(e.target.value)}
-          placeholder="Tim kiem cau hoi..."
+          placeholder="Tìm kiếm câu hỏi..."
           className="pl-10"
         />
       </div>
@@ -150,7 +150,7 @@ export function FaqClient() {
                                 'p-1.5 rounded hover:bg-red-50 transition-colors',
                                 feedback === false && 'bg-red-50 text-red-600',
                               )}
-                              aria-label="Khong huu ich"
+                              aria-label="Không hữu ích"
                             >
                               <ThumbsDown className="h-4 w-4" />
                             </button>
@@ -166,13 +166,13 @@ export function FaqClient() {
         </div>
       ) : (
         <p className="text-center text-gray-500 py-12">
-          Khong tim thay cau hoi nao
+          Không tìm thấy câu hỏi nào
         </p>
       )}
 
       {/* Contact CTA */}
       <div className="mt-12 text-center bg-gray-50 rounded-xl p-6 sm:p-8">
-        <h3 className="text-lg font-bold mb-2">Khong tim thay cau tra loi?</h3>
+        <h3 className="text-lg font-bold mb-2">Không tìm thấy câu trả lời?</h3>
         <p className="text-gray-500 text-sm mb-4">
           Lien he truc tiep voi chung toi de duoc ho tro
         </p>

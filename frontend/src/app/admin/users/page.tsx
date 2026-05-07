@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { UserPlus, Pencil, Power, PowerOff, Eye } from 'lucide-react';
@@ -67,7 +67,7 @@ export default function UsersPage() {
       ),
     },
     { key: 'email', header: 'Email', sortable: true },
-    { key: 'name', header: 'Ho ten', sortable: true },
+    { key: 'name', header: 'Họ tên', sortable: true },
     {
       key: 'role',
       header: 'Vai tro',
@@ -88,7 +88,7 @@ export default function UsersPage() {
       header: '2FA',
       render: (row) => (
         <Badge variant={row.two_factor_enabled ? 'success' : 'secondary'}>
-          {row.two_factor_enabled ? 'Bat' : 'Tat'}
+          {row.two_factor_enabled ? 'Bật' : 'Tắt'}
         </Badge>
       ),
     },
@@ -102,17 +102,17 @@ export default function UsersPage() {
 
   const actions: ActionDef<User>[] = [
     {
-      label: 'Xem chi tiet',
+      label: 'Xem chi tiết',
       icon: <Eye className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/users/${row.id}`; },
     },
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => { window.location.href = `/admin/users/${row.id}`; },
     },
     {
-      label: 'Kich hoat / Vo hieu',
+      label: 'Kích hoạt / Vo hieu',
       icon: <PowerOff className="h-4 w-4 mr-2" />,
       onClick: (row) => setToggleUser(row),
     },
@@ -132,13 +132,13 @@ export default function UsersPage() {
         description="Danh sach tat ca nguoi dung he thong"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Nguoi dung' },
+          { label: 'Người dùng' },
         ]}
         actions={
           <Button asChild>
             <a href="/admin/users/new">
               <UserPlus className="h-4 w-4 mr-2" />
-              Tao nguoi dung
+              Tạo người dùng
             </a>
           </Button>
         }
@@ -151,7 +151,7 @@ export default function UsersPage() {
             <SelectValue placeholder="Vai tro" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca vai tro</SelectItem>
+            <SelectItem value="all">Tất cả vai trò</SelectItem>
             <SelectItem value="ADMIN">Admin</SelectItem>
             <SelectItem value="MANAGER">Manager</SelectItem>
             <SelectItem value="EDITOR">Editor</SelectItem>
@@ -164,7 +164,7 @@ export default function UsersPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca trang thai</SelectItem>
+            <SelectItem value="all">Tất cả trạng thái</SelectItem>
             <SelectItem value="true">Hoat dong</SelectItem>
             <SelectItem value="false">Da khoa</SelectItem>
           </SelectContent>
@@ -190,14 +190,14 @@ export default function UsersPage() {
       <ConfirmDialog
         open={!!toggleUser}
         onOpenChange={(open) => !open && setToggleUser(null)}
-        title={toggleUser?.is_active ? 'Vo hieu hoa nguoi dung' : 'Kich hoat nguoi dung'}
+        title={toggleUser?.is_active ? 'Vô hiệu hóa nguoi dung' : 'Kích hoạt nguoi dung'}
         description={
           toggleUser?.is_active
-            ? `Nguoi dung ${toggleUser?.email} se khong the dang nhap. Tiep tuc?`
-            : `Kich hoat lai ${toggleUser?.email}?`
+            ? `Người dùng ${toggleUser?.email} se khong the dang nhap. Tiếp tục?`
+            : `Kích hoạt lai ${toggleUser?.email}?`
         }
         onConfirm={handleToggle}
-        confirmLabel={toggleUser?.is_active ? 'Vo hieu hoa' : 'Kich hoat'}
+        confirmLabel={toggleUser?.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}
         variant={toggleUser?.is_active ? 'danger' : 'info'}
         loading={toggleMutation.loading}
       />

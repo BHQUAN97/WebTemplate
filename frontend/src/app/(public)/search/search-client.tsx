@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -47,14 +47,14 @@ export function SearchClient() {
       : results.filter((r) => r.type === activeTab);
 
   const tabs = [
-    { key: 'all' as const, label: 'Tat ca' },
-    { key: 'product' as const, label: 'San pham' },
-    { key: 'article' as const, label: 'Bai viet' },
+    { key: 'all' as const, label: 'Tất cả' },
+    { key: 'product' as const, label: 'Sản phẩm' },
+    { key: 'article' as const, label: 'Bài viết' },
   ];
 
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Tim kiem</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Tìm kiếm</h1>
 
       {/* Search input */}
       <div className="relative mb-6">
@@ -135,7 +135,7 @@ export function SearchClient() {
                   <Badge
                     variant={result.type === 'product' ? 'default' : 'secondary'}
                   >
-                    {result.type === 'product' ? 'San pham' : 'Bai viet'}
+                    {result.type === 'product' ? 'Sản phẩm' : 'Bài viết'}
                   </Badge>
                   {result.category && (
                     <span className="text-xs text-gray-400">
@@ -162,7 +162,7 @@ export function SearchClient() {
         </div>
       ) : (
         <div className="text-center text-gray-500 py-16">
-          <p className="text-lg mb-2">Khong tim thay ket qua</p>
+          <p className="text-lg mb-2">Không tìm thấy kết quả</p>
           <p className="text-sm">Thu tim voi tu khoa khac</p>
         </div>
       )}

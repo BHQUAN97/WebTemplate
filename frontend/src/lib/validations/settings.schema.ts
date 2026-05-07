@@ -1,12 +1,12 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const settingSchema = z.object({
   key: z
-    .string({ error: 'Vui long nhap key' })
+    .string({ error: 'Vui lòng nhập key' })
     .min(1, 'Key khong duoc de trong')
     .max(255, 'Key khong vuot qua 255 ky tu'),
   value: z
-    .string({ error: 'Vui long nhap gia tri' })
+    .string({ error: 'Vui lòng nhập giá trị' })
     .min(1, 'Gia tri khong duoc de trong'),
   type: z.enum(['STRING', 'NUMBER', 'BOOLEAN', 'JSON']).default('STRING'),
   group: z.string().default('general'),

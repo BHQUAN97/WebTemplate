@@ -1,14 +1,14 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { LandingClient } from './landing-client';
 
 export const metadata: Metadata = {
-  title: 'WebTemplate - Mua sam truc tuyen hang dau',
+  title: 'WebTemplate - Mua sắm trực tuyến hang dau',
   description:
-    'Kham pha hang nghin san pham chat luong cao voi gia tot nhat. Giao hang nhanh, ho tro 24/7, bao dam hoan tien.',
+    'Khám phá hàng nghìn sản phẩm chất lượng cao với giá tốt nhất. Giao hàng nhanh, hỗ trợ 24/7, bảo đảm hoàn tiền.',
   openGraph: {
-    title: 'WebTemplate - Mua sam truc tuyen hang dau',
+    title: 'WebTemplate - Mua sắm trực tuyến hang dau',
     description:
-      'Kham pha hang nghin san pham chat luong cao voi gia tot nhat.',
+      'Khám phá hàng nghìn sản phẩm chất lượng cao với giá tốt nhất.',
     type: 'website',
   },
 };

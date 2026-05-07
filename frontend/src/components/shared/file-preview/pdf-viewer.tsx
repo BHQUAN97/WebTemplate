@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Document, Page, pdfjs } from 'react-pdf';
@@ -37,7 +37,7 @@ export function PdfViewer({ url }: PdfViewerProps) {
 
   const onDocumentLoadError = (err: Error) => {
     setLoading(false);
-    setError(err.message || 'Khong the tai file PDF');
+    setError(err.message || 'Không thể tải file PDF');
   };
 
   const goPrev = () => setPageNumber((p) => Math.max(1, p - 1));

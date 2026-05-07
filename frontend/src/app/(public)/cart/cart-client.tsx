@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
@@ -98,7 +98,7 @@ export function CartClient() {
           Ban chua co san pham nao trong gio hang
         </p>
         <Button asChild>
-          <Link href="/products">Tiep tuc mua sam</Link>
+          <Link href="/products">Tiếp tục mua sam</Link>
         </Button>
       </div>
     );
@@ -157,7 +157,7 @@ export function CartClient() {
                         <button
                           onClick={() => removeItem(item.product.id, item.variant?.id ?? null)}
                           className="p-1 text-gray-400 hover:text-red-500"
-                          aria-label="Xoa"
+                          aria-label="Xóa"
                         >
                           <Trash2 className="h-4 w-4" />
                         </button>
@@ -255,7 +255,7 @@ export function CartClient() {
                   size="sm"
                   disabled={promoLoading}
                 >
-                  Ap dung
+                  Áp dụng
                 </Button>
               </form>
               {errors.code && (
@@ -273,7 +273,7 @@ export function CartClient() {
                 href="/products"
                 className="block text-center text-sm text-blue-600 hover:underline"
               >
-                Tiep tuc mua sam
+                Tiếp tục mua sam
               </Link>
             </CardContent>
           </Card>

@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useState } from 'react';
 
 /**
  * Hook quan ly trang thai hoan thanh cua onboarding tour
- * Luu trang thai vao localStorage theo key truyen vao.
+ * Lưu trang thai vao localStorage theo key truyen vao.
  * @param storageKey - Khoa localStorage duy nhat cho tour nay
  */
 export function useOnboarding(storageKey: string) {

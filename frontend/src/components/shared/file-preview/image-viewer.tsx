@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { ZoomIn, ZoomOut, RotateCw } from 'lucide-react';
@@ -89,7 +89,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
           size="icon"
           onClick={rotate}
           className="text-white hover:bg-gray-800"
-          title="Xoay"
+          title="Xóay"
         >
           <RotateCw className="h-4 w-4" />
         </Button>

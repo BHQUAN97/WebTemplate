@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Send, Paperclip, MessageSquareQuote, Loader2 } from 'lucide-react';
@@ -121,7 +121,7 @@ export function MessageComposer({
 
         <Button type="button" onClick={handleSend} disabled={!canSend} className={cn(loading && 'opacity-70')}>
           {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Send className="h-4 w-4" />}
-          <span className="ml-2 hidden sm:inline">Gui</span>
+          <span className="ml-2 hidden sm:inline">Gửi</span>
         </Button>
       </div>
     </div>

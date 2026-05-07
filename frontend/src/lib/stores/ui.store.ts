@@ -1,7 +1,7 @@
-import { create } from 'zustand';
+﻿import { create } from 'zustand';
 import { persist, createJSONStorage } from 'zustand/middleware';
 
-type Theme = 'light' | 'dark';
+type Thême = 'light' | 'dark';
 /**
  * Locale dong bo voi next-intl routing (src/i18n/routing.ts).
  * Nguon chinh la cookie NEXT_LOCALE (do next-intl quan ly);
@@ -12,13 +12,13 @@ type Locale = 'vi' | 'en';
 
 interface UIState {
   sidebarOpen: boolean;
-  theme: Theme;
+  theme: Thême;
   locale: Locale;
 
   // Actions
   toggleSidebar: () => void;
   setSidebarOpen: (open: boolean) => void;
-  setTheme: (theme: Theme) => void;
+  setThême: (theme: Thême) => void;
   setLocale: (locale: Locale) => void;
 }
 
@@ -32,8 +32,8 @@ export const useUIStore = create<UIState>()(
       toggleSidebar: () =>
         set((state) => ({ sidebarOpen: !state.sidebarOpen })),
       setSidebarOpen: (open) => set({ sidebarOpen: open }),
-      setTheme: (theme) => {
-        // Cap nhat class tren <html> cho Tailwind dark mode
+      setThême: (theme) => {
+        // Cập nhật class tren <html> cho Tailwind dark mode
         if (typeof document !== 'undefined') {
           document.documentElement.classList.toggle(
             'dark',

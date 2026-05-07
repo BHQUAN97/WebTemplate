@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Send, Bell, Eye, Trash2 } from 'lucide-react';
@@ -37,7 +37,7 @@ const sendSchema = z.object({
   target_ids: z.string().optional(),
   type: z.string().min(1, 'Loai la bat buoc'),
   title: z.string().min(1, 'Tieu de la bat buoc').max(200),
-  content: z.string().min(1, 'Noi dung la bat buoc'),
+  content: z.string().min(1, 'Nội dung la bat buoc'),
   link: z.string().optional(),
 });
 
@@ -103,9 +103,9 @@ export default function AdminNotificationsPage() {
       header: 'Muc tieu',
       render: (row) => {
         const label =
-          row.target_type === 'all' ? 'Tat ca'
+          row.target_type === 'all' ? 'Tất cả'
           : row.target_type === 'tenant' ? 'Theo tenant'
-          : 'Nguoi dung cu the';
+          : 'Người dùng cu the';
         return <Badge variant="default">{label}</Badge>;
       },
     },
@@ -128,14 +128,14 @@ export default function AdminNotificationsPage() {
     },
     {
       key: 'created_at',
-      header: 'Gui luc',
+      header: 'Gửi lúc',
       render: (row) => formatDate(row.created_at),
     },
   ];
 
   const actions: ActionDef<AdminNotification>[] = [
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -188,16 +188,16 @@ export default function AdminNotificationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Thong bao he thong"
-        description="Gui thong bao den nguoi dung"
+        title="Thông báo he thong"
+        description="Gửi thong bao den nguoi dung"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Thong bao' },
+          { label: 'Thông báo' },
         ]}
         actions={
           <Button onClick={() => setSendOpen(true)}>
             <Send className="h-4 w-4 mr-2" />
-            Gui thong bao
+            Gửi thong bao
           </Button>
         }
       />
@@ -209,10 +209,10 @@ export default function AdminNotificationsPage() {
             <SelectValue placeholder="Loai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca loai</SelectItem>
+            <SelectItem value="all">Tất cả loại</SelectItem>
             <SelectItem value="SYSTEM">He thong</SelectItem>
             <SelectItem value="PROMOTION">Khuyen mai</SelectItem>
-            <SelectItem value="ORDER">Don hang</SelectItem>
+            <SelectItem value="ORDER">Đơn hàng</SelectItem>
             <SelectItem value="SECURITY">Bao mat</SelectItem>
           </SelectContent>
         </Select>
@@ -235,7 +235,7 @@ export default function AdminNotificationsPage() {
       <Dialog open={sendOpen} onOpenChange={setSendOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Gui thong bao moi</DialogTitle>
+            <DialogTitle>Gửi thong bao moi</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
             <FormField label="Doi tuong nhan" error={errors.target_type} required>
@@ -245,8 +245,8 @@ export default function AdminNotificationsPage() {
               >
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="all">Tat ca nguoi dung</SelectItem>
-                  <SelectItem value="user">Nguoi dung cu the (ID)</SelectItem>
+                  <SelectItem value="all">Tất cả người dùng</SelectItem>
+                  <SelectItem value="user">Người dùng cu the (ID)</SelectItem>
                   <SelectItem value="tenant">Theo tenant</SelectItem>
                 </SelectContent>
               </Select>
@@ -271,7 +271,7 @@ export default function AdminNotificationsPage() {
                 <SelectContent>
                   <SelectItem value="SYSTEM">He thong</SelectItem>
                   <SelectItem value="PROMOTION">Khuyen mai</SelectItem>
-                  <SelectItem value="ORDER">Don hang</SelectItem>
+                  <SelectItem value="ORDER">Đơn hàng</SelectItem>
                   <SelectItem value="SECURITY">Bao mat</SelectItem>
                 </SelectContent>
               </Select>
@@ -281,7 +281,7 @@ export default function AdminNotificationsPage() {
               <Input value={form.title} onChange={(e) => updateField('title', e.target.value)} />
             </FormField>
 
-            <FormField label="Noi dung" error={errors.content} required>
+            <FormField label="Nội dung" error={errors.content} required>
               <Textarea
                 rows={4}
                 value={form.content}
@@ -301,7 +301,7 @@ export default function AdminNotificationsPage() {
             <Button variant="outline" onClick={() => setSendOpen(false)}>Huy</Button>
             <Button onClick={handleSend} disabled={sendMutation.loading}>
               <Bell className="h-4 w-4 mr-2" />
-              {sendMutation.loading ? 'Dang gui...' : 'Gui'}
+              {sendMutation.loading ? 'Đang gửi...' : 'Gửi'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -310,10 +310,10 @@ export default function AdminNotificationsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xoa thong bao"
-        description="Xoa thong bao nay khoi he thong?"
+        title="Xóa thong bao"
+        description="Xóa thong bao nay khoi he thong?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

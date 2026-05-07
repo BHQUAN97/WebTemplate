@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 
 export interface TwoFactorSetupResponse {
   secret: string;
@@ -33,12 +33,12 @@ export const twoFactorApi = {
     });
   },
 
-  // Tat 2FA — yeu cau mat khau hien tai
+  // Tắt 2FA — yeu cau mat khau hien tai
   disable(password: string) {
     return apiClient.post<null>('/auth/2fa/disable', { password });
   },
 
-  // Tao lai bo backup codes moi — invalidate codes cu
+  // Tạo lai bo backup codes moi — invalidate codes cu
   regenerateBackupCodes(password: string) {
     return apiClient.post<{ backup_codes: string[] }>(
       '/auth/2fa/backup-codes/regenerate',

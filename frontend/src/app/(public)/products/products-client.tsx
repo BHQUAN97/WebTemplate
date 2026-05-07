@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, useCallback } from 'react';
 import { SlidersHorizontal, X } from 'lucide-react';
@@ -13,11 +13,11 @@ import { useDebounce, useMediaQuery } from '@/lib/hooks';
 import type { Product, Category } from '@/lib/types';
 
 const sortOptions = [
-  { value: 'newest', label: 'Moi nhat' },
-  { value: 'price_asc', label: 'Gia thap den cao' },
-  { value: 'price_desc', label: 'Gia cao den thap' },
-  { value: 'popular', label: 'Pho bien' },
-  { value: 'rating', label: 'Danh gia cao' },
+  { value: 'newest', label: 'Mới nhất' },
+  { value: 'price_asc', label: 'Giá thấp đến cao' },
+  { value: 'price_desc', label: 'Giá cao đến thấp' },
+  { value: 'popular', label: 'Phổ biến' },
+  { value: 'rating', label: 'Đánh giá cao' },
 ];
 
 /**
@@ -87,13 +87,13 @@ export function ProductsClient() {
     <div className="space-y-6">
       {/* Categories */}
       <div>
-        <h3 className="font-semibold text-sm mb-3">Danh muc</h3>
+        <h3 className="font-semibold text-sm mb-3">Danh mục</h3>
         <div className="space-y-2">
           <button
             onClick={() => { setSelectedCategory(''); setPage(1); }}
             className={`block text-sm w-full text-left px-2 py-1.5 rounded ${!selectedCategory ? 'bg-blue-50 text-blue-600 font-medium' : 'text-gray-600 hover:bg-gray-50'}`}
           >
-            Tat ca
+            Tất cả
           </button>
           {categories.map((cat) => (
             <button
@@ -109,7 +109,7 @@ export function ProductsClient() {
 
       {/* Price range */}
       <div>
-        <h3 className="font-semibold text-sm mb-3">Khoang gia</h3>
+        <h3 className="font-semibold text-sm mb-3">Khoảng giá</h3>
         <div className="flex gap-2 items-center">
           <Input
             type="number"
@@ -131,7 +131,7 @@ export function ProductsClient() {
 
       {/* Clear filters */}
       <Button variant="outline" size="sm" className="w-full" onClick={clearFilters}>
-        Xoa bo loc
+        Xóa bộ lọc
       </Button>
     </div>
   );
@@ -140,10 +140,10 @@ export function ProductsClient() {
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
-        <h1 className="text-2xl sm:text-3xl font-bold">San pham</h1>
+        <h1 className="text-2xl sm:text-3xl font-bold">Sản phẩm</h1>
         <div className="flex items-center gap-3">
           <Input
-            placeholder="Tim kiem san pham..."
+            placeholder="Tìm kiếm sản phẩm..."
             value={search}
             onChange={(e) => { setSearch(e.target.value); setPage(1); }}
             className="w-full sm:w-64"
@@ -164,7 +164,7 @@ export function ProductsClient() {
               variant="outline"
               size="icon"
               onClick={() => setFilterOpen(true)}
-              aria-label="Bo loc"
+              aria-label="Bộ lọc"
             >
               <SlidersHorizontal className="h-4 w-4" />
             </Button>
@@ -205,9 +205,9 @@ export function ProductsClient() {
             </>
           ) : (
             <div className="text-center py-16">
-              <p className="text-gray-500 text-lg">Khong tim thay san pham nao</p>
+              <p className="text-gray-500 text-lg">Không tìm thấy sản phẩm nào</p>
               <Button variant="outline" className="mt-4" onClick={clearFilters}>
-                Xoa bo loc
+                Xóa bộ lọc
               </Button>
             </div>
           )}
@@ -220,14 +220,14 @@ export function ProductsClient() {
           <div className="absolute inset-0 bg-black/50" onClick={() => setFilterOpen(false)} />
           <div className="absolute bottom-0 left-0 right-0 bg-white rounded-t-2xl p-6 max-h-[80vh] overflow-y-auto animate-in slide-in-from-bottom">
             <div className="flex items-center justify-between mb-4">
-              <h2 className="text-lg font-bold">Bo loc</h2>
+              <h2 className="text-lg font-bold">Bộ lọc</h2>
               <Button variant="ghost" size="icon" onClick={() => setFilterOpen(false)}>
                 <X className="h-5 w-5" />
               </Button>
             </div>
             <FilterContent />
             <Button className="w-full mt-4" onClick={() => setFilterOpen(false)}>
-              Ap dung
+              Áp dụng
             </Button>
           </div>
         </div>

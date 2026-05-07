@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useEffect, useState } from 'react';
@@ -33,7 +33,7 @@ export function Header() {
 
   const navLinks = [
     { href: '/', label: 'Trang chu' },
-    { href: '/products', label: 'San pham' },
+    { href: '/products', label: 'Sản phẩm' },
     { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'Gioi thieu' },
     { href: '/contact', label: 'Lien he' },
@@ -65,7 +65,7 @@ export function Header() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <Link href="/search">
-              <Button variant="ghost" size="icon" aria-label="Tim kiem">
+              <Button variant="ghost" size="icon" aria-label="Tìm kiếm">
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
@@ -96,21 +96,21 @@ export function Header() {
             </Link>
 
             <Link href={isAuthenticated ? '/wishlist' : '/login'} className="hidden sm:block">
-              <Button variant="ghost" size="icon" aria-label="Yeu thich">
+              <Button variant="ghost" size="icon" aria-label="Yêu thích">
                 <Heart className="h-5 w-5" />
               </Button>
             </Link>
 
             {hydrated && isAuthenticated ? (
               <Link href="/" className="hidden sm:block">
-                <Button variant="ghost" size="icon" aria-label="Tai khoan">
+                <Button variant="ghost" size="icon" aria-label="Tài khoản">
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
             ) : (
               <Link href="/login" className="hidden sm:block">
                 <Button variant="outline" size="sm">
-                  Dang nhap
+                  Đăng nhập
                 </Button>
               </Link>
             )}
@@ -148,7 +148,7 @@ export function Header() {
                   className="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg"
                   onClick={() => setMobileOpen(false)}
                 >
-                  Dang nhap
+                  Đăng nhập
                 </Link>
               )}
             </div>

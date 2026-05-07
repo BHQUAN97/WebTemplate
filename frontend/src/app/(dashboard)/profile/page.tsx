@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useRef, useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -69,11 +69,11 @@ export default function ProfilePage() {
 
     // Validate phia client (mirror BE: ~5MB, image only)
     if (!file.type.startsWith('image/')) {
-      toast('Tep khong hop le', 'Vui long chon file anh', 'destructive');
+      toast('Tệp không hợp lệ', 'Vui lòng chọn file ảnh', 'destructive');
       return;
     }
     if (file.size > 5 * 1024 * 1024) {
-      toast('Tep qua lon', 'Anh khong duoc vuot qua 5MB', 'destructive');
+      toast('Tệp quá lớn', 'Ảnh không được vượt quá 5MB', 'destructive');
       return;
     }
 
@@ -106,8 +106,8 @@ export default function ProfilePage() {
       toast('Da cap nhat anh dai dien', undefined, 'success');
     } catch (err) {
       toast(
-        'Loi khi upload',
-        (err as Error).message || 'Vui long thu lai',
+        'Lỗi khi upload',
+        (err as Error).message || 'Vui lòng thử lại',
         'destructive',
       );
     } finally {
@@ -132,8 +132,8 @@ export default function ProfilePage() {
       toast('Da xoa anh dai dien', undefined, 'success');
     } catch (err) {
       toast(
-        'Loi khi xoa anh',
-        (err as Error).message || 'Vui long thu lai',
+        'Lỗi khi xóa ảnh',
+        (err as Error).message || 'Vui lòng thử lại',
         'destructive',
       );
     } finally {
@@ -161,10 +161,10 @@ export default function ProfilePage() {
       if (user) {
         await usersApi.updateUser(user.id, data);
         updateUser(data);
-        setProfileMsg('Cap nhat ho so thanh cong!');
+        setProfileMsg('Cập nhật ho so thanh cong!');
       }
     } catch (err: any) {
-      setProfileMsg(err.message || 'Loi khi cap nhat ho so');
+      setProfileMsg(err.message || 'Lỗi khi cập nhật hồ sơ');
     }
   };
 
@@ -173,10 +173,10 @@ export default function ProfilePage() {
     setPasswordError('');
     try {
       await authApi.changePassword(data.currentPassword, data.newPassword);
-      setPasswordMsg('Doi mat khau thanh cong!');
+      setPasswordMsg('Đổi mật khẩu thành công!');
       passwordForm.reset();
     } catch (err: any) {
-      setPasswordError(err.message || 'Mat khau hien tai khong dung');
+      setPasswordError(err.message || 'Mật khẩu hiện tại không đúng');
     }
   };
 
@@ -205,7 +205,7 @@ export default function ProfilePage() {
       saveAs(blob, `my-data-${user.id}-${Date.now()}.${ext}`);
       setExportMsg('Da tai du lieu cua ban');
     } catch (err) {
-      setExportMsg((err as Error).message || 'Loi khi tai du lieu');
+      setExportMsg((err as Error).message || 'Lỗi khi tải dữ liệu');
     } finally {
       setExportLoading(false);
     }
@@ -215,7 +215,7 @@ export default function ProfilePage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Ho so</h1>
+      <h1 className="text-2xl font-bold">Hồ sơ</h1>
 
       {/* Profile form */}
       <Card>
@@ -233,7 +233,7 @@ export default function ProfilePage() {
                 {user?.avatar_url && (
                   <AvatarImage
                     src={user.avatar_url}
-                    alt={user?.name ? `Anh dai dien cua ${user.name}` : 'Anh dai dien'}
+                    alt={user?.name ? `Ảnh dai dien cua ${user.name}` : 'Ảnh dai dien'}
                   />
                 )}
                 <AvatarFallback className="text-xl font-bold bg-blue-100 text-blue-600">
@@ -250,7 +250,7 @@ export default function ProfilePage() {
                   disabled={avatarLoading || avatarDeleting}
                 >
                   <Upload className="h-4 w-4 mr-1" />
-                  {avatarLoading ? 'Dang tai len...' : 'Doi anh'}
+                  {avatarLoading ? 'Đang tải lên...' : 'Đổi ảnh'}
                 </Button>
 
                 {user?.avatar_url && (
@@ -263,11 +263,11 @@ export default function ProfilePage() {
                     className="text-red-600 border-red-300 hover:bg-red-50"
                   >
                     <X className="h-4 w-4 mr-1" />
-                    {avatarDeleting ? 'Dang xoa...' : 'Xoa anh'}
+                    {avatarDeleting ? 'Đang xóa...' : 'Xóa anh'}
                   </Button>
                 )}
 
-                {/* File input an — trigger qua button "Doi anh" */}
+                {/* File input an — trigger qua button "Đổi ảnh" */}
                 <input
                   ref={avatarInputRef}
                   type="file"
@@ -282,7 +282,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Ho ten
+                  Họ tên
                 </label>
                 <Input {...profileForm.register('name')} />
                 {profileForm.formState.errors.name && (
@@ -324,7 +324,7 @@ export default function ProfilePage() {
               type="submit"
               disabled={profileForm.formState.isSubmitting}
             >
-              {profileForm.formState.isSubmitting ? 'Dang luu...' : 'Luu thay doi'}
+              {profileForm.formState.isSubmitting ? 'Đang lưu...' : 'Lưu thay đổi'}
             </Button>
           </form>
         </CardContent>
@@ -333,7 +333,7 @@ export default function ProfilePage() {
       {/* Change password */}
       <Card>
         <CardHeader>
-          <CardTitle>Doi mat khau</CardTitle>
+          <CardTitle>Đổi mật khẩu</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -342,7 +342,7 @@ export default function ProfilePage() {
           >
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mat khau hien tai
+                Mật khẩu hien tai
               </label>
               <div className="relative">
                 <Input
@@ -367,7 +367,7 @@ export default function ProfilePage() {
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Mat khau moi
+                  Mật khẩu moi
                 </label>
                 <Input
                   {...passwordForm.register('newPassword')}
@@ -381,7 +381,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Xac nhan mat khau moi
+                  Xác nhận mật khẩu mới
                 </label>
                 <Input
                   {...passwordForm.register('confirmNewPassword')}
@@ -410,7 +410,7 @@ export default function ProfilePage() {
               type="submit"
               disabled={passwordForm.formState.isSubmitting}
             >
-              Doi mat khau
+              Đổi mật khẩu
             </Button>
           </form>
         </CardContent>
@@ -421,7 +421,7 @@ export default function ProfilePage() {
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <ShieldCheck className="h-5 w-5" />
-            Xac thuc 2 lop (2FA)
+            Xác thực 2 lớp (2FA)
           </CardTitle>
         </CardHeader>
         <CardContent>
@@ -429,15 +429,15 @@ export default function ProfilePage() {
             <div>
               <p className="text-sm text-gray-600">
                 {user?.two_factor_enabled
-                  ? 'Xac thuc 2 lop dang bat'
-                  : 'Bat xac thuc 2 lop de bao ve tai khoan'}
+                  ? 'Xác thực 2 lớp dang bat'
+                  : 'Bật xác thực 2 lớp để bảo vệ tài khoản'}
               </p>
             </div>
             <Button
               variant={user?.two_factor_enabled ? 'destructive' : 'default'}
               size="sm"
             >
-              {user?.two_factor_enabled ? 'Tat 2FA' : 'Bat 2FA'}
+              {user?.two_factor_enabled ? 'Tắt 2FA' : 'Bật 2FA'}
             </Button>
           </div>
 
@@ -472,7 +472,7 @@ export default function ProfilePage() {
             disabled={exportLoading}
           >
             <Download className="h-4 w-4 mr-2" />
-            {exportLoading ? 'Dang chuan bi...' : 'Tai du lieu cua toi'}
+            {exportLoading ? 'Đang chuẩn bị...' : 'Tải dữ liệu của tôi'}
           </Button>
           {exportMsg && (
             <p className="text-sm text-gray-600">{exportMsg}</p>
@@ -483,16 +483,16 @@ export default function ProfilePage() {
       {/* Delete account */}
       <Card className="border-red-200">
         <CardHeader>
-          <CardTitle className="text-red-600">Xoa tai khoan</CardTitle>
+          <CardTitle className="text-red-600">Xóa tài khoản</CardTitle>
         </CardHeader>
         <CardContent>
           <p className="text-sm text-gray-600 mb-4">
-            Hanh dong nay khong the hoan tac. Tat ca du lieu se bi xoa vinh vien.
+            Hành động này không thể hoàn tác. Tất cả dữ liệu sẽ bị xóa vĩnh viễn.
           </p>
           {deleteConfirm ? (
             <div className="flex gap-3">
               <Button variant="destructive" onClick={handleDeleteAccount}>
-                Xac nhan xoa
+                Xác nhận xoa
               </Button>
               <Button variant="outline" onClick={() => setDeleteConfirm(false)}>
                 Huy
@@ -505,7 +505,7 @@ export default function ProfilePage() {
               onClick={() => setDeleteConfirm(true)}
             >
               <Trash2 className="h-4 w-4 mr-1" />
-              Xoa tai khoan
+              Xóa tài khoản
             </Button>
           )}
         </CardContent>

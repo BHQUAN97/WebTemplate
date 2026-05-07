@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Shield, Globe, GitBranch } from 'lucide-react';
@@ -73,7 +73,7 @@ export default function LogsPage() {
   const auditColumns: ColumnDef<AuditLog>[] = [
     {
       key: 'user',
-      header: 'Nguoi dung',
+      header: 'Người dùng',
       render: (row) => row.user?.name ?? row.user_id,
     },
     { key: 'action', header: 'Hanh dong', sortable: true },
@@ -154,11 +154,11 @@ export default function LogsPage() {
                 <SelectValue placeholder="Hanh dong" />
               </SelectTrigger>
               <SelectContent>
-                <SelectItem value="all">Tat ca</SelectItem>
-                <SelectItem value="CREATE">Tao moi</SelectItem>
-                <SelectItem value="UPDATE">Cap nhat</SelectItem>
-                <SelectItem value="DELETE">Xoa</SelectItem>
-                <SelectItem value="LOGIN">Dang nhap</SelectItem>
+                <SelectItem value="all">Tất cả</SelectItem>
+                <SelectItem value="CREATE">Tạo mới</SelectItem>
+                <SelectItem value="UPDATE">Cập nhật</SelectItem>
+                <SelectItem value="DELETE">Xóa</SelectItem>
+                <SelectItem value="LOGIN">Đăng nhập</SelectItem>
               </SelectContent>
             </Select>
             <Input

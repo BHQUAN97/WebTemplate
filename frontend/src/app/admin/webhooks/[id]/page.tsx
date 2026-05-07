@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -44,7 +44,7 @@ const webhookSchema = z.object({
 
 type WebhookForm = z.infer<typeof webhookSchema>;
 
-/** Chi tiet / Chinh sua webhook */
+/** Chi tiết / Chỉnh sửa webhook */
 export default function WebhookDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -157,16 +157,16 @@ export default function WebhookDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={isNew ? 'Tao webhook moi' : `Webhook: ${webhook?.url ?? '...'}`}
+        title={isNew ? 'Tạo webhook mới' : `Webhook: ${webhook?.url ?? '...'}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Webhooks', href: '/admin/webhooks' },
-          { label: isNew ? 'Tao moi' : 'Chi tiet' },
+          { label: isNew ? 'Tạo mới' : 'Chi tiết' },
         ]}
         actions={
           !isNew && (
             <Button variant="destructive" onClick={() => setShowDelete(true)}>
-              <Trash2 className="h-4 w-4 mr-2" /> Xoa
+              <Trash2 className="h-4 w-4 mr-2" /> Xóa
             </Button>
           )
         }
@@ -196,7 +196,7 @@ export default function WebhookDetailPage() {
               </FormField>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-medium">Kich hoat</span>
+                <span className="text-sm font-medium">Kích hoạt</span>
                 <Switch
                   checked={form.is_active}
                   onCheckedChange={(c) => updateField('is_active', c)}
@@ -224,7 +224,7 @@ export default function WebhookDetailPage() {
                       size="icon"
                       onClick={handleRegenerate}
                       disabled={regenerateMutation.loading}
-                      title="Tao secret moi"
+                      title="Tạo secret mới"
                     >
                       <RefreshCw className="h-4 w-4" />
                     </Button>
@@ -321,7 +321,7 @@ export default function WebhookDetailPage() {
           <div className="flex flex-col gap-2">
             <Button className="w-full" disabled={saveMutation.loading} onClick={handleSubmit}>
               <Save className="h-4 w-4 mr-2" />
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/webhooks')}>
               Huy
@@ -337,10 +337,10 @@ export default function WebhookDetailPage() {
       <ConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
-        title="Xoa webhook"
+        title="Xóa webhook"
         description="Ban co chac chan muon xoa webhook nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

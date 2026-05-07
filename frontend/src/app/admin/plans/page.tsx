@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Users } from 'lucide-react';
@@ -26,8 +26,8 @@ const planSchema = z.object({
   price_monthly: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
   price_yearly: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
   max_users: z.number().min(1, 'Toi thieu 1 nguoi dung'),
-  max_products: z.number().min(0, 'Khong duoc am'),
-  max_storage_mb: z.number().min(0, 'Khong duoc am'),
+  max_products: z.number().min(0, 'Không được âm'),
+  max_storage_mb: z.number().min(0, 'Không được âm'),
   is_active: z.boolean(),
 });
 
@@ -101,7 +101,7 @@ export default function PlansPage() {
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Tao goi moi
+            Tạo goi moi
           </Button>
         }
       />
@@ -114,7 +114,7 @@ export default function PlansPage() {
         <div className="text-center py-16 text-gray-500">
           <p>Chua co goi dich vu nao</p>
           <Button className="mt-4" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" /> Tao goi dau tien
+            <Plus className="h-4 w-4 mr-2" /> Tạo goi dau tien
           </Button>
         </div>
       ) : (
@@ -126,7 +126,7 @@ export default function PlansPage() {
                   <CardTitle>{plan.name}</CardTitle>
                   <StatusBadge
                     status={plan.is_active ? 'active' : 'inactive'}
-                    label={plan.is_active ? 'Hoat dong' : 'Tat'}
+                    label={plan.is_active ? 'Hoat dong' : 'Tắt'}
                   />
                 </div>
                 {plan.description && (
@@ -143,15 +143,15 @@ export default function PlansPage() {
                 </div>
                 <div className="space-y-2 text-sm">
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Nguoi dung</span>
+                    <span className="text-gray-500">Người dùng</span>
                     <span className="font-medium">{plan.max_users}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">San pham</span>
+                    <span className="text-gray-500">Sản phẩm</span>
                     <span className="font-medium">{plan.max_products}</span>
                   </div>
                   <div className="flex justify-between">
-                    <span className="text-gray-500">Luu tru</span>
+                    <span className="text-gray-500">Lưu trữ</span>
                     <span className="font-medium">{plan.max_storage_mb}MB</span>
                   </div>
                 </div>
@@ -173,7 +173,7 @@ export default function PlansPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Chinh sua goi dich vu' : 'Tao goi dich vu moi'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Chỉnh sửa gói dịch vụ' : 'Tạo gói dịch vụ mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <FormField label="Ten goi" error={errors.name} required>
@@ -218,7 +218,7 @@ export default function PlansPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -227,10 +227,10 @@ export default function PlansPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa goi dich vu"
+        title="Xóa goi dich vu"
         description="Ban co chac chan muon xoa goi dich vu nay? Cac subscribers hien tai se bi anh huong."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

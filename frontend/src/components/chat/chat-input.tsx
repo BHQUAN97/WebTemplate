@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   useCallback,
@@ -113,13 +113,13 @@ export function ChatInput({ disabled, placeholder, onSend, onTypingChange }: Pro
           rows={1}
           maxLength={MAX_LENGTH}
           className="flex-1 resize-none rounded-2xl border border-gray-200 bg-gray-50 px-3 py-2 text-sm text-gray-900 placeholder-gray-400 focus:border-blue-500 focus:bg-white focus:outline-none focus:ring-2 focus:ring-blue-500/20 disabled:opacity-50 dark:border-gray-700 dark:bg-gray-800 dark:text-gray-100 dark:focus:bg-gray-900"
-          aria-label="Noi dung tin nhan"
+          aria-label="Nội dung tin nhan"
         />
         <button
           type="button"
           onClick={send}
           disabled={disabled || !value.trim()}
-          aria-label="Gui tin nhan"
+          aria-label="Gửi tin nhắn"
           className={cn(
             'flex h-9 w-9 shrink-0 items-center justify-center rounded-full bg-blue-600 text-white transition-colors hover:bg-blue-700 disabled:bg-gray-300 disabled:text-gray-500 dark:disabled:bg-gray-700',
           )}

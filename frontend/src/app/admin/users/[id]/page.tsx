@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -33,7 +33,7 @@ const userSchema = z.object({
 
 type UserForm = z.infer<typeof userSchema>;
 
-/** Chi tiet / Chinh sua nguoi dung */
+/** Chi tiết / Chỉnh sửa người dùng */
 export default function UserDetailPage() {
   const router = useRouter();
   const params = useParams();
@@ -137,16 +137,16 @@ export default function UserDetailPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={user?.email ?? 'Nguoi dung'}
+        title={user?.email ?? 'Người dùng'}
         description={user?.name}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Nguoi dung', href: '/admin/users' },
-          { label: user?.email ?? 'Chi tiet' },
+          { label: 'Người dùng', href: '/admin/users' },
+          { label: user?.email ?? 'Chi tiết' },
         ]}
         actions={
           <Button variant="destructive" onClick={() => setConfirm('delete')}>
-            <Trash2 className="h-4 w-4 mr-2" /> Xoa
+            <Trash2 className="h-4 w-4 mr-2" /> Xóa
           </Button>
         }
       />
@@ -160,7 +160,7 @@ export default function UserDetailPage() {
               <FormField label="Email">
                 <Input value={user?.email ?? ''} disabled readOnly />
               </FormField>
-              <FormField label="Ho ten" error={errors.name} required>
+              <FormField label="Họ tên" error={errors.name} required>
                 <Input value={form.name} onChange={(e) => updateField('name', e.target.value)} />
               </FormField>
               <FormField label="So dien thoai" error={errors.phone}>
@@ -190,7 +190,7 @@ export default function UserDetailPage() {
               </FormField>
 
               <div className="flex items-center justify-between pt-2">
-                <span className="text-sm font-medium">Kich hoat</span>
+                <span className="text-sm font-medium">Kích hoạt</span>
                 <Switch
                   checked={form.is_active}
                   onCheckedChange={(c) => updateField('is_active', c)}
@@ -213,7 +213,7 @@ export default function UserDetailPage() {
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium">Reset mat khau</p>
-                  <p className="text-xs text-gray-500">Gui email cho phep nguoi dung dat lai mat khau</p>
+                  <p className="text-xs text-gray-500">Gửi email cho phep nguoi dung dat lai mat khau</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setConfirm('reset')}>
                   <KeyRound className="h-4 w-4 mr-2" /> Reset
@@ -221,9 +221,9 @@ export default function UserDetailPage() {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium">Xac thuc hai buoc (2FA)</p>
+                  <p className="text-sm font-medium">Xác thực hai bước (2FA)</p>
                   <p className="text-xs text-gray-500">
-                    Trang thai: {user?.two_factor_enabled ? 'Dang bat' : 'Dang tat'}
+                    Trạng thái: {user?.two_factor_enabled ? 'Đang bật' : 'Đang tắt'}
                   </p>
                 </div>
                 <Button
@@ -232,13 +232,13 @@ export default function UserDetailPage() {
                   disabled={!user?.two_factor_enabled}
                   onClick={() => setConfirm('disable2fa')}
                 >
-                  <ShieldOff className="h-4 w-4 mr-2" /> Tat 2FA
+                  <ShieldOff className="h-4 w-4 mr-2" /> Tắt 2FA
                 </Button>
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
                   <p className="text-sm font-medium">Phien dang nhap</p>
-                  <p className="text-xs text-gray-500">Vo hieu hoa tat ca phien dang nhap cua user nay</p>
+                  <p className="text-xs text-gray-500">Vô hiệu hóa tat ca phien dang nhap cua user nay</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setConfirm('revokeSessions')}>
                   <LogOut className="h-4 w-4 mr-2" /> Revoke
@@ -292,7 +292,7 @@ export default function UserDetailPage() {
         {/* Sidebar */}
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Tong quan</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Tổng quan</CardTitle></CardHeader>
             <CardContent className="space-y-3 text-sm">
               <div className="flex justify-between">
                 <span className="text-gray-500">Ngay tao</span>
@@ -305,7 +305,7 @@ export default function UserDetailPage() {
               <div className="flex justify-between">
                 <span className="text-gray-500">2FA</span>
                 <Badge variant={user?.two_factor_enabled ? 'success' : 'secondary'}>
-                  {user?.two_factor_enabled ? 'Bat' : 'Tat'}
+                  {user?.two_factor_enabled ? 'Bật' : 'Tắt'}
                 </Badge>
               </div>
             </CardContent>
@@ -314,7 +314,7 @@ export default function UserDetailPage() {
           <div className="flex flex-col gap-2">
             <Button className="w-full" disabled={updateMutation.loading} onClick={handleSubmit}>
               <Save className="h-4 w-4 mr-2" />
-              {updateMutation.loading ? 'Dang luu...' : 'Luu thay doi'}
+              {updateMutation.loading ? 'Đang lưu...' : 'Lưu thay đổi'}
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/users')}>
               Huy
@@ -332,18 +332,18 @@ export default function UserDetailPage() {
         onOpenChange={(open) => !open && setConfirm(null)}
         title={
           confirm === 'reset' ? 'Reset mat khau'
-          : confirm === 'disable2fa' ? 'Tat 2FA'
-          : confirm === 'revokeSessions' ? 'Vo hieu hoa cac phien'
-          : 'Xoa nguoi dung'
+          : confirm === 'disable2fa' ? 'Tắt 2FA'
+          : confirm === 'revokeSessions' ? 'Vô hiệu hóa cac phien'
+          : 'Xóa nguoi dung'
         }
         description={
-          confirm === 'reset' ? `Gui email reset mat khau cho ${user?.email}?`
-          : confirm === 'disable2fa' ? `Tat xac thuc hai buoc cho ${user?.email}?`
-          : confirm === 'revokeSessions' ? `Vo hieu hoa tat ca phien cua ${user?.email}?`
-          : `Xoa vinh vien nguoi dung ${user?.email}? Hanh dong nay khong the hoan tac.`
+          confirm === 'reset' ? `Gửi email reset mat khau cho ${user?.email}?`
+          : confirm === 'disable2fa' ? `Tắt xác thực hai bước cho ${user?.email}?`
+          : confirm === 'revokeSessions' ? `Vô hiệu hóa tat ca phien cua ${user?.email}?`
+          : `Xóa vĩnh viễn nguoi dung ${user?.email}? Hanh dong nay khong the hoan tac.`
         }
         onConfirm={handleConfirm}
-        confirmLabel={confirm === 'delete' ? 'Xoa vinh vien' : 'Xac nhan'}
+        confirmLabel={confirm === 'delete' ? 'Xóa vĩnh viễn' : 'Xác nhận'}
         variant={confirm === 'delete' || confirm === 'disable2fa' ? 'danger' : 'info'}
         loading={
           resetPwMutation.loading ||

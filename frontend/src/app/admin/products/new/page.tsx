@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
@@ -41,7 +41,7 @@ interface VariantRow {
   attributes: string;
 }
 
-/** Tao san pham moi */
+/** Tạo san pham moi */
 export default function NewProductPage() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -122,11 +122,11 @@ export default function NewProductPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Them san pham moi"
+        title="Thêm sản phẩm moi"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'San pham', href: '/admin/products' },
-          { label: 'Them moi' },
+          { label: 'Sản phẩm', href: '/admin/products' },
+          { label: 'Thêm moi' },
         ]}
       />
 
@@ -228,13 +228,13 @@ export default function NewProductPage() {
                 <CardTitle>Bien the san pham</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addVariant}>
                   <Plus className="h-4 w-4 mr-1" />
-                  Them bien the
+                  Thêm bien the
                 </Button>
               </CardHeader>
               <CardContent>
                 {variants.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Chua co bien the nao. Nhan &quot;Them bien the&quot; de tao.
+                    Chua co bien the nao. Nhan &quot;Thêm bien the&quot; de tao.
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -312,7 +312,7 @@ export default function NewProductPage() {
             <Card>
               <CardHeader><CardTitle>To chuc</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="Danh muc" htmlFor="category_id">
+                <FormField label="Danh mục" htmlFor="category_id">
                   <Select
                     value={form.category_id ?? ''}
                     onValueChange={(val) => updateField('category_id', val || null)}
@@ -321,7 +321,7 @@ export default function NewProductPage() {
                       <SelectValue placeholder="Chon danh muc" />
                     </SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Khong co</SelectItem>
+                      <SelectItem value="none">Không có</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormField>
@@ -341,7 +341,7 @@ export default function NewProductPage() {
               <CardHeader><CardTitle>Trang thai</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Dang ban</span>
+                  <span className="text-sm font-medium">Đang bán</span>
                   <Switch
                     checked={form.is_active}
                     onCheckedChange={(checked) => updateField('is_active', checked)}
@@ -361,7 +361,7 @@ export default function NewProductPage() {
             <div className="flex flex-col gap-2">
               <Button type="submit" className="w-full" disabled={createMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {createMutation.loading ? 'Dang luu...' : 'Luu san pham'}
+                {createMutation.loading ? 'Đang lưu...' : 'Lưu sản phẩm'}
               </Button>
               <Button
                 type="button"

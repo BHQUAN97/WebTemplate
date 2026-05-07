@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useParams } from 'next/navigation';
@@ -8,7 +8,7 @@ import { ScheduleForm } from '@/components/admin/chat/schedule-form';
 import { FormSkeleton } from '@/components/shared/skeletons';
 import { adminChatApi, type ChatSchedule, type CreateScheduleInput } from '@/lib/api/modules/admin-chat.api';
 
-/** Chinh sua khung gio */
+/** Chỉnh sửa khung gio */
 export default function EditSchedulePage() {
   const params = useParams<{ id: string }>();
   const id = params?.id as string;
@@ -41,11 +41,11 @@ export default function EditSchedulePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Chinh sua khung gio"
+        title="Chỉnh sửa khung gio"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Khung gio', href: '/admin/chat-schedules' },
-          { label: schedule?.name ?? 'Chinh sua' },
+          { label: schedule?.name ?? 'Chỉnh sửa' },
         ]}
       />
       {loading ? (
@@ -54,7 +54,7 @@ export default function EditSchedulePage() {
         <ScheduleForm initial={schedule} onSubmit={handleSubmit} />
       ) : (
         <div className="flex items-center justify-center py-12 text-sm text-gray-500">
-          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Khong tim thay khung gio
+          <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Không tìm thấy khung gio
         </div>
       )}
     </div>

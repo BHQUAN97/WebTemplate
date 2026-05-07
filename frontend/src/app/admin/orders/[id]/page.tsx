@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useParams } from 'next/navigation';
@@ -19,16 +19,16 @@ import { formatPrice, formatDate, formatDateTime, formatOrderStatus, formatPayme
 import type { ApiResponse, Order, OrderStatus } from '@/lib/types';
 
 const ORDER_STATUSES: { value: string; label: string }[] = [
-  { value: 'PENDING', label: 'Cho xac nhan' },
+  { value: 'PENDING', label: 'Chờ xác nhận' },
   { value: 'CONFIRMED', label: 'Da xac nhan' },
-  { value: 'PROCESSING', label: 'Dang xu ly' },
-  { value: 'SHIPPED', label: 'Dang giao hang' },
-  { value: 'DELIVERED', label: 'Da giao' },
-  { value: 'CANCELLED', label: 'Da huy' },
+  { value: 'PROCESSING', label: 'Đang xử lý' },
+  { value: 'SHIPPED', label: 'Đang giao hàng' },
+  { value: 'DELIVERED', label: 'Đã giao' },
+  { value: 'CANCELLED', label: 'Đã hủy' },
   { value: 'REFUNDED', label: 'Da hoan tien' },
 ];
 
-/** Chi tiet don hang */
+/** Chi tiết don hang */
 export default function OrderDetailPage() {
   const params = useParams();
   const id = params.id as string;
@@ -75,7 +75,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Khong tim thay don hang</p>
+        <p className="text-gray-500">Không tìm thấy don hang</p>
       </div>
     );
   }
@@ -83,10 +83,10 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6 print:space-y-4">
       <PageHeader
-        title={`Chi tiet don hang #${order.order_number}`}
+        title={`Chi tiết don hang #${order.order_number}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Don hang', href: '/admin/orders' },
+          { label: 'Đơn hàng', href: '/admin/orders' },
           { label: order.order_number },
         ]}
         actions={
@@ -128,7 +128,7 @@ export default function OrderDetailPage() {
 
         {/* Thong tin khach hang */}
         <Card>
-          <CardHeader><CardTitle>Khach hang</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Khách hang</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-2">
             <p><span className="text-gray-500">Ten:</span> {order.user?.name ?? order.shipping_name}</p>
             <p><span className="text-gray-500">Email:</span> {order.user?.email ?? '---'}</p>
@@ -139,13 +139,13 @@ export default function OrderDetailPage() {
 
       {/* Bang san pham */}
       <Card>
-        <CardHeader><CardTitle>San pham</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Sản phẩm</CardTitle></CardHeader>
         <CardContent>
           <Table>
             <TableHeader>
               <TableRow>
-                <TableHead className="w-12">Anh</TableHead>
-                <TableHead>San pham</TableHead>
+                <TableHead className="w-12">Ảnh</TableHead>
+                <TableHead>Sản phẩm</TableHead>
                 <TableHead>Bien the</TableHead>
                 <TableHead>SKU</TableHead>
                 <TableHead className="text-right">Don gia</TableHead>
@@ -210,9 +210,9 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Dia chi giao hang */}
+        {/* Địa chỉ giao hang */}
         <Card>
-          <CardHeader><CardTitle>Dia chi giao hang</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Địa chỉ giao hang</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1">
             <p className="font-medium">{order.shipping_name}</p>
             <p>{order.shipping_phone}</p>
@@ -226,9 +226,9 @@ export default function OrderDetailPage() {
           </CardContent>
         </Card>
 
-        {/* Cap nhat trang thai */}
+        {/* Cập nhật trang thai */}
         <Card className="print:hidden">
-          <CardHeader><CardTitle>Cap nhat trang thai</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Cập nhật trang thai</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <Select value={newStatus} onValueChange={setNewStatus}>
               <SelectTrigger>
@@ -246,7 +246,7 @@ export default function OrderDetailPage() {
               onClick={handleStatusUpdate}
             >
               <Truck className="h-4 w-4 mr-2" />
-              {statusMutation.loading ? 'Dang cap nhat...' : 'Cap nhat'}
+              {statusMutation.loading ? 'Đang cập nhật...' : 'Cập nhật'}
             </Button>
 
             {order.status === 'PENDING' && (
@@ -278,7 +278,7 @@ export default function OrderDetailPage() {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 mt-2 rounded-full bg-gray-300" />
               <div>
-                <p className="font-medium text-sm">Don hang duoc tao</p>
+                <p className="font-medium text-sm">Đơn hàng duoc tao</p>
                 <p className="text-xs text-gray-500">{formatDateTime(order.created_at)}</p>
               </div>
             </div>

@@ -310,7 +310,7 @@ export class AuthService {
    * counter giua cac instance + tu expire sau 15 phut.
    */
   async validateUser(email: string, password: string): Promise<User> {
-    // Check lockout TRUOC khi so sanh password — tranh leak info + timing attack
+    // Check lockout TRƯỚC khi so sánh password — tránh leak info + timing attack
     await this.checkLockout(email);
 
     const user = await this.usersService.findByEmail(email);
@@ -323,7 +323,7 @@ export class AuthService {
       throw new UnauthorizedException('Account is disabled');
     }
 
-    // OAuth users khong co password -> neu login bang email/password, reject
+    // OAuth users không có password -> nếu login bằng email/password, reject
     if (!user.password_hash) {
       throw new UnauthorizedException(
         'Account uses social login. Please sign in with your provider.',
@@ -351,7 +351,7 @@ export class AuthService {
       );
     }
 
-    // Login thanh cong -> xoa counter
+    // Login thành công -> xóa counter
     await this.clearFailedAttempts(email);
 
     return user;
@@ -578,7 +578,7 @@ export class AuthService {
     const user = await this.usersService.findById(userId);
     if (!user.password_hash) {
       throw new BadRequestException(
-        'OAuth account khong the doi password — dang nhap qua provider',
+        'OAuth account không thể đổi password — đăng nhập qua provider',
       );
     }
     const isMatch = await comparePassword(
@@ -614,8 +614,8 @@ export class AuthService {
     dto.email = UsersService.normalizeEmail(dto.email);
     const user = await this.usersService.findByEmail(dto.email);
     if (!user) {
-      // Khong leak — tra ve thanh cong (KHONG dung early return de tranh
-      // timing attack — fake delay tuong duong voi happy path tai controller).
+      // Không leak — trả về thành công (KHÔNG dùng early return để tránh
+      // timing attack — fake delay tương đương với happy path tại controller).
       return;
     }
     // Block reset cho deleted/inactive user
@@ -623,7 +623,7 @@ export class AuthService {
       return;
     }
     if (!user.password_hash) {
-      // OAuth user -> khong the reset password
+      // OAuth user -> không thể reset password
       this.logger.warn(
         `forgotPassword: user ${user.id} is OAuth — skipping reset`,
       );

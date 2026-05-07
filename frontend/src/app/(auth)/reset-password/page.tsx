@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Link from 'next/link';
@@ -57,7 +57,7 @@ export default function ResetPasswordPage() {
         setExpired(true);
         return;
       }
-      setError(err.message || 'Co loi xay ra, vui long thu lai');
+      setError(err.message || 'Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
@@ -66,10 +66,10 @@ export default function ResetPasswordPage() {
       <Card>
         <CardContent className="p-6 text-center">
           <p className="text-red-500 mb-4">
-            Link da het han. Vui long yeu cau link moi.
+            Link đã hết hạn. Vui lòng yêu cầu link mới.
           </p>
           <Button asChild>
-            <Link href="/forgot-password">Quay ve quen mat khau</Link>
+            <Link href="/forgot-password">Quay về quên mật khẩu</Link>
           </Button>
         </CardContent>
       </Card>
@@ -79,9 +79,9 @@ export default function ResetPasswordPage() {
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Dat lai mat khau</CardTitle>
+        <CardTitle className="text-2xl">Đặt lại mật khẩu</CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Nhap mat khau moi cho tai khoan cua ban
+          Nhập mật khẩu mới cho tài khoản của bạn
         </p>
       </CardHeader>
       <CardContent>
@@ -89,20 +89,20 @@ export default function ResetPasswordPage() {
           <div className="text-center py-4">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">
-              Dat lai mat khau thanh cong!
+              Đặt lại mật khẩu thành công!
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              Ban co the dang nhap voi mat khau moi.
+              Bạn có thể đăng nhập với mật khẩu mới.
             </p>
             <Button asChild>
-              <Link href="/login">Dang nhap</Link>
+              <Link href="/login">Đăng nhập</Link>
             </Button>
           </div>
         ) : (
           <form onSubmit={handleSubmit(onSubmit)} className="space-y-4">
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Mat khau moi
+                Mật khẩu moi
               </label>
               <div className="relative">
                 <Input
@@ -126,7 +126,7 @@ export default function ResetPasswordPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Xac nhan mat khau
+                Xác nhận mat khau
               </label>
               <Input
                 {...register('confirmPassword')}
@@ -153,7 +153,7 @@ export default function ResetPasswordPage() {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Dang xu ly...' : 'Dat lai mat khau'}
+              {isSubmitting ? 'Đang xử lý...' : 'Đặt lại mật khẩu'}
             </Button>
           </form>
         )}

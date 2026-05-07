@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import Link from 'next/link';
@@ -48,11 +48,11 @@ export default function RegisterPage() {
 
     const levels = [
       { label: '', color: '' },
-      { label: 'Yeu', color: 'bg-red-500' },
-      { label: 'Trung binh', color: 'bg-orange-500' },
-      { label: 'Kha', color: 'bg-yellow-500' },
-      { label: 'Manh', color: 'bg-green-500' },
-      { label: 'Rat manh', color: 'bg-green-600' },
+      { label: 'Yếu', color: 'bg-red-500' },
+      { label: 'Trung bình', color: 'bg-orange-500' },
+      { label: 'Khá', color: 'bg-yellow-500' },
+      { label: 'Mạnh', color: 'bg-green-500' },
+      { label: 'Rất mạnh', color: 'bg-green-600' },
     ];
     return { score, ...levels[score] };
   }, [password]);
@@ -68,16 +68,16 @@ export default function RegisterPage() {
       setAuth(res.user, res.accessToken);
       router.push('/');
     } catch (err: any) {
-      setError(err.message || 'Dang ky that bai, vui long thu lai');
+      setError(err.message || 'Đăng ký thất bại, vui lòng thử lại');
     }
   };
 
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Dang ky</CardTitle>
+        <CardTitle className="text-2xl">Đăng ký</CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Tao tai khoan moi de bat dau mua sam
+          Tạo tài khoản mới để bắt đầu mua sắm
         </p>
       </CardHeader>
       <CardContent>
@@ -88,11 +88,11 @@ export default function RegisterPage() {
           {/* Name */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Ho ten
+              Họ tên
             </label>
             <Input
               {...register('name')}
-              placeholder="Nhap ho ten"
+              placeholder="Nhập họ tên"
               autoComplete="name"
             />
             {errors.name && (
@@ -119,13 +119,13 @@ export default function RegisterPage() {
           {/* Password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Mat khau
+              Mật khẩu
             </label>
             <div className="relative">
               <Input
                 {...register('password')}
                 type={showPassword ? 'text' : 'password'}
-                placeholder="8+ ky tu, hoa/thuong/so/dac biet"
+                placeholder="8+ ký tự, hoa/thường/số/đặc biệt"
                 autoComplete="new-password"
               />
               <button
@@ -167,7 +167,7 @@ export default function RegisterPage() {
           {/* Confirm password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Xac nhan mat khau
+              Xác nhận mat khau
             </label>
             <Input
               {...register('confirmPassword')}
@@ -190,13 +190,13 @@ export default function RegisterPage() {
               className="rounded border-gray-300 mt-0.5"
             />
             <span className="text-sm text-gray-600">
-              Toi dong y voi{' '}
+              Tôi đồng ý với{' '}
               <Link href="/dieu-khoan" className="text-blue-600 hover:underline">
-                Dieu khoan su dung
+                Điều khoản sử dụng
               </Link>{' '}
               va{' '}
               <Link href="/chinh-sach" className="text-blue-600 hover:underline">
-                Chinh sach bao mat
+                Chính sách bảo mật
               </Link>
             </span>
           </label>
@@ -211,14 +211,14 @@ export default function RegisterPage() {
           )}
 
           <Button type="submit" className="w-full" size="lg" disabled={isSubmitting}>
-            {isSubmitting ? 'Dang xu ly...' : 'Dang ky'}
+            {isSubmitting ? 'Đang xử lý...' : 'Đăng ký'}
           </Button>
         </form>
 
         <p className="text-center text-sm text-gray-500 mt-6">
-          Da co tai khoan?{' '}
+          Đã có tài khoản?{' '}
           <Link href="/login" className="text-blue-600 hover:underline font-medium">
-            Dang nhap
+            Đăng nhập
           </Link>
         </p>
       </CardContent>

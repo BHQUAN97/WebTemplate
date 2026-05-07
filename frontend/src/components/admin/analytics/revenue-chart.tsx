@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   LineChart,
@@ -76,13 +76,13 @@ export function RevenueChart({
               const n = Number(value) || 0;
               return name === 'revenue'
                 ? [formatCurrency(n), 'Doanh thu']
-                : [n.toLocaleString('vi-VN'), 'Don hang'];
+                : [n.toLocaleString('vi-VN'), 'Đơn hàng'];
             }}
             labelStyle={{ color: 'hsl(var(--popover-foreground))' }}
           />
           <Legend
             wrapperStyle={{ fontSize: 12, color: 'hsl(var(--muted-foreground))' }}
-            formatter={(v: string) => (v === 'revenue' ? 'Doanh thu' : 'Don hang')}
+            formatter={(v: string) => (v === 'revenue' ? 'Doanh thu' : 'Đơn hàng')}
           />
           <Line
             type="monotone"

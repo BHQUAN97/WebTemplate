@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+﻿import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface ProductCardSkeletonProps {
@@ -17,7 +17,7 @@ export function ProductCardSkeleton({ className }: ProductCardSkeletonProps) {
         className,
       )}
     >
-      {/* Anh san pham — ty le 16:9 */}
+      {/* Ảnh san pham — ty le 16:9 */}
       <Skeleton className="aspect-[16/9] w-full rounded-md" />
 
       {/* Title — 2 dong */}

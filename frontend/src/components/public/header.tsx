@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { useState } from 'react';
 import { ShoppingCart, User, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ThemeToggle } from '@/components/shared/theme-toggle';
+import { ThêmeToggle } from '@/components/shared/theme-toggle';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
@@ -18,7 +18,7 @@ export function PublicHeader() {
 
   const navLinks = [
     { href: '/', label: 'Trang chu' },
-    { href: '/products', label: 'San pham' },
+    { href: '/products', label: 'Sản phẩm' },
     { href: '/blog', label: 'Blog' },
     { href: '/about', label: 'Gioi thieu' },
     { href: '/contact', label: 'Lien he' },
@@ -50,12 +50,12 @@ export function PublicHeader() {
           {/* Actions */}
           <div className="flex items-center gap-2">
             <Link href="/search">
-              <Button variant="ghost" size="icon" aria-label="Tim kiem">
+              <Button variant="ghost" size="icon" aria-label="Tìm kiếm">
                 <Search className="h-5 w-5" />
               </Button>
             </Link>
 
-            <ThemeToggle />
+            <ThêmeToggle />
 
             <Link href="/cart" className="relative">
               <Button variant="ghost" size="icon" aria-label="Gio hang">
@@ -70,17 +70,17 @@ export function PublicHeader() {
 
             {isAuthenticated ? (
               <Link href="/dashboard" className="hidden sm:block">
-                <Button variant="ghost" size="icon" aria-label="Tai khoan">
+                <Button variant="ghost" size="icon" aria-label="Tài khoản">
                   <User className="h-5 w-5" />
                 </Button>
               </Link>
             ) : (
               <div className="hidden sm:flex items-center gap-2">
                 <Link href="/login">
-                  <Button variant="outline" size="sm">Dang nhap</Button>
+                  <Button variant="outline" size="sm">Đăng nhập</Button>
                 </Link>
                 <Link href="/register">
-                  <Button size="sm">Dang ky</Button>
+                  <Button size="sm">Đăng ký</Button>
                 </Link>
               </div>
             )}
@@ -115,10 +115,10 @@ export function PublicHeader() {
               {!isAuthenticated && (
                 <>
                   <Link href="/login" className="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg" onClick={() => setMobileOpen(false)}>
-                    Dang nhap
+                    Đăng nhập
                   </Link>
                   <Link href="/register" className="px-3 py-2 text-sm font-medium text-blue-600 hover:bg-blue-50 rounded-lg" onClick={() => setMobileOpen(false)}>
-                    Dang ky
+                    Đăng ký
                   </Link>
                 </>
               )}

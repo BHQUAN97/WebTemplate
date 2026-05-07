@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Upload, X, Image as ImageIcon } from 'lucide-react';
@@ -56,7 +56,7 @@ export function ImageUpload({
       return;
     }
 
-    // Tao preview
+    // Tạo preview
     const newPreviews = files.map((f) => URL.createObjectURL(f));
     setPreviews((prev) => [...prev, ...newPreviews]);
     onChange?.(files);

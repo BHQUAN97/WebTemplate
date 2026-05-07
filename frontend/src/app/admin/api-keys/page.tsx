@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, KeyRound, Ban, RefreshCw, Trash2, Copy, Check } from 'lucide-react';
@@ -135,12 +135,12 @@ export default function ApiKeysPage() {
       hidden: (row) => !row.is_active,
     },
     {
-      label: 'Tao lai',
+      label: 'Tạo lai',
       icon: <RefreshCw className="h-4 w-4 mr-2" />,
       onClick: (row) => setRegenerateId(row.id),
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -218,7 +218,7 @@ export default function ApiKeysPage() {
         actions={
           <Button onClick={() => setCreateOpen(true)}>
             <Plus className="h-4 w-4 mr-2" />
-            Tao API key
+            Tạo API key
           </Button>
         }
       />
@@ -240,7 +240,7 @@ export default function ApiKeysPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tao API key moi</DialogTitle>
+            <DialogTitle>Tạo API key moi</DialogTitle>
             <DialogDescription>Key chi hien thi 1 lan sau khi tao — hay luu lai ngay</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
@@ -276,7 +276,7 @@ export default function ApiKeysPage() {
             <Button variant="outline" onClick={() => setCreateOpen(false)}>Huy</Button>
             <Button onClick={handleCreate} disabled={createMutation.loading}>
               <KeyRound className="h-4 w-4 mr-2" />
-              {createMutation.loading ? 'Dang tao...' : 'Tao key'}
+              {createMutation.loading ? 'Đang tạo...' : 'Tạo key'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -288,7 +288,7 @@ export default function ApiKeysPage() {
           <DialogHeader>
             <DialogTitle>API key da duoc tao</DialogTitle>
             <DialogDescription>
-              <strong>Luu y:</strong> Key chi hien thi 1 lan. Copy va luu lai ngay bay gio.
+              <strong>Lưu y:</strong> Key chi hien thi 1 lan. Copy va luu lai ngay bay gio.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
@@ -314,7 +314,7 @@ export default function ApiKeysPage() {
         open={!!revokeId}
         onOpenChange={(o) => !o && setRevokeId(null)}
         title="Thu hoi API key"
-        description="Key se bi vo hieu hoa ngay lap tuc. Tiep tuc?"
+        description="Key se bi vo hieu hoa ngay lap tuc. Tiếp tục?"
         onConfirm={handleRevoke}
         confirmLabel="Thu hoi"
         variant="danger"
@@ -324,10 +324,10 @@ export default function ApiKeysPage() {
       <ConfirmDialog
         open={!!regenerateId}
         onOpenChange={(o) => !o && setRegenerateId(null)}
-        title="Tao lai API key"
+        title="Tạo lai API key"
         description="Key cu se bi vo hieu. Key moi chi hien thi 1 lan."
         onConfirm={handleRegenerate}
-        confirmLabel="Tao lai"
+        confirmLabel="Tạo lai"
         variant="warning"
         loading={regenerateMutation.loading}
       />
@@ -335,10 +335,10 @@ export default function ApiKeysPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xoa API key"
-        description="Xoa vinh vien key nay?"
+        title="Xóa API key"
+        description="Xóa vĩnh viễn key nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Search, X } from 'lucide-react';
@@ -20,7 +20,7 @@ interface SearchInputProps {
 export function SearchInput({
   value: controlledValue,
   onSearch,
-  placeholder = 'Tim kiem...',
+  placeholder = 'Tìm kiếm...',
   delay = 400,
   className,
 }: SearchInputProps) {

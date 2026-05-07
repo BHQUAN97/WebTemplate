@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname } from 'next/navigation';
@@ -42,18 +42,18 @@ const navGroups: NavGroup[] = [
   {
     title: 'E-Commerce',
     items: [
-      { label: 'San pham', href: '/admin/products', icon: <Package className="h-4 w-4" /> },
-      { label: 'Danh muc', href: '/admin/categories', icon: <FolderTree className="h-4 w-4" /> },
-      { label: 'Don hang', href: '/admin/orders', icon: <ShoppingCart className="h-4 w-4" /> },
+      { label: 'Sản phẩm', href: '/admin/products', icon: <Package className="h-4 w-4" /> },
+      { label: 'Danh mục', href: '/admin/categories', icon: <FolderTree className="h-4 w-4" /> },
+      { label: 'Đơn hàng', href: '/admin/orders', icon: <ShoppingCart className="h-4 w-4" /> },
       { label: 'Kho hang', href: '/admin/inventory', icon: <Warehouse className="h-4 w-4" /> },
       { label: 'Khuyen mai', href: '/admin/promotions', icon: <Tags className="h-4 w-4" /> },
-      { label: 'Danh gia', href: '/admin/reviews', icon: <Star className="h-4 w-4" /> },
+      { label: 'Đánh giá', href: '/admin/reviews', icon: <Star className="h-4 w-4" /> },
     ],
   },
   {
     title: 'CMS',
     items: [
-      { label: 'Bai viet', href: '/admin/articles', icon: <FileText className="h-4 w-4" /> },
+      { label: 'Bài viết', href: '/admin/articles', icon: <FileText className="h-4 w-4" /> },
       { label: 'Trang', href: '/admin/pages', icon: <File className="h-4 w-4" /> },
       { label: 'Navigation', href: '/admin/navigation', icon: <Navigation className="h-4 w-4" /> },
     ],
@@ -70,7 +70,7 @@ const navGroups: NavGroup[] = [
     title: 'Quan ly',
     items: [
       {
-        label: 'Nguoi dung',
+        label: 'Người dùng',
         href: '/admin/users',
         icon: <Users className="h-4 w-4" />,
         requiredRole: UserRole.ADMIN,
@@ -84,7 +84,7 @@ const navGroups: NavGroup[] = [
     title: 'He thong',
     items: [
       {
-        label: 'Cai dat',
+        label: 'Cài đặt',
         href: '/admin/settings',
         icon: <Settings className="h-4 w-4" />,
         requiredRole: UserRole.ADMIN,

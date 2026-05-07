@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import Image from 'next/image';
@@ -21,8 +21,8 @@ type Step = 'shipping' | 'payment' | 'review';
 type PaymentMethod = 'cod' | 'bank_transfer' | 'vnpay' | 'momo';
 
 const paymentMethods = [
-  { id: 'cod' as const, label: 'Thanh toan khi nhan hang (COD)', icon: Banknote },
-  { id: 'bank_transfer' as const, label: 'Chuyen khoan ngan hang', icon: CreditCard },
+  { id: 'cod' as const, label: 'Thanh toán khi nhận hàng (COD)', icon: Banknote },
+  { id: 'bank_transfer' as const, label: 'Chuyển khoản ngân hàng', icon: CreditCard },
   { id: 'vnpay' as const, label: 'VNPay', icon: CreditCard },
   { id: 'momo' as const, label: 'MoMo', icon: Smartphone },
 ];
@@ -58,7 +58,7 @@ export function CheckoutClient() {
   const steps: { key: Step; label: string }[] = [
     { key: 'shipping', label: 'Giao hang' },
     { key: 'payment', label: 'Thanh toan' },
-    { key: 'review', label: 'Xac nhan' },
+    { key: 'review', label: 'Xác nhận' },
   ];
 
   const onShippingSubmit = (data: ShippingFormData) => {
@@ -123,7 +123,7 @@ export function CheckoutClient() {
       setOrderSuccess(true);
       clearCart();
     } catch (err: any) {
-      setSubmitError(err.message || 'Dat hang that bai, vui long thu lai');
+      setSubmitError(err.message || 'Đặt hàng that bai, vui long thu lai');
     } finally {
       setSubmitting(false);
     }
@@ -136,7 +136,7 @@ export function CheckoutClient() {
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <h1 className="text-2xl font-bold mb-4">Gio hang trong</h1>
         <Button asChild>
-          <Link href="/products">Tiep tuc mua sam</Link>
+          <Link href="/products">Tiếp tục mua sam</Link>
         </Button>
       </div>
     );
@@ -147,7 +147,7 @@ export function CheckoutClient() {
     return (
       <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Dat hang thanh cong!</h1>
+        <h1 className="text-2xl font-bold mb-2">Đặt hàng thanh cong!</h1>
         <p className="text-gray-500 mb-2">
           Ma don hang: <span className="font-semibold text-gray-900">{orderNumber}</span>
         </p>
@@ -159,7 +159,7 @@ export function CheckoutClient() {
             <Link href="/orders">Xem don hang</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/products">Tiep tuc mua sam</Link>
+            <Link href="/products">Tiếp tục mua sam</Link>
           </Button>
         </div>
       </div>
@@ -210,9 +210,9 @@ export function CheckoutClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ho ten nguoi nhan *
+                    Họ tên nguoi nhan *
                   </label>
-                  <Input {...register('name')} placeholder="Nhap ho ten" />
+                  <Input {...register('name')} placeholder="Nhập họ tên" />
                   {errors.name && (
                     <p className="text-red-500 text-xs mt-1">{errors.name.message}</p>
                   )}
@@ -236,7 +236,7 @@ export function CheckoutClient() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Dia chi *
+                  Địa chỉ *
                 </label>
                 <Input {...register('address')} placeholder="So nha, duong" />
                 {errors.address && (
@@ -258,7 +258,7 @@ export function CheckoutClient() {
                   <label className="block text-sm font-medium text-gray-700 mb-1">
                     Quan/Huyen *
                   </label>
-                  <Input {...register('district')} placeholder="Chon quan/huyen" />
+                  <Input {...register('district')} placeholder="Chọn quận/huyện" />
                   {errors.district && (
                     <p className="text-red-500 text-xs mt-1">{errors.district.message}</p>
                   )}
@@ -280,7 +280,7 @@ export function CheckoutClient() {
                 className="w-full sm:w-auto"
                 disabled={isSubmitting}
               >
-                {isSubmitting ? 'Dang xu ly...' : 'Tiep tuc'}
+                {isSubmitting ? 'Đang xử lý...' : 'Tiếp tục'}
               </Button>
             </form>
           )}
@@ -311,7 +311,7 @@ export function CheckoutClient() {
                 <Button variant="outline" onClick={() => setStep('shipping')}>
                   Quay lai
                 </Button>
-                <Button onClick={onPaymentSelect}>Tiep tuc</Button>
+                <Button onClick={onPaymentSelect}>Tiếp tục</Button>
               </div>
             </div>
           )}
@@ -319,13 +319,13 @@ export function CheckoutClient() {
           {/* Review step */}
           {step === 'review' && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Xac nhan don hang</h2>
+              <h2 className="text-lg font-bold mb-4">Xác nhận don hang</h2>
 
               {/* Shipping info */}
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">Dia chi giao hang</h3>
+                    <h3 className="font-semibold text-sm">Địa chỉ giao hang</h3>
                     <button
                       onClick={() => setStep('shipping')}
                       className="text-xs text-blue-600 hover:underline"
@@ -364,7 +364,7 @@ export function CheckoutClient() {
               <Card className="mb-6">
                 <CardContent className="p-4">
                   <h3 className="font-semibold text-sm mb-3">
-                    San pham ({items.length})
+                    Sản phẩm ({items.length})
                   </h3>
                   <div className="space-y-3">
                     {items.map((item) => (
@@ -416,7 +416,7 @@ export function CheckoutClient() {
                   onClick={onPlaceOrder}
                   disabled={submitting}
                 >
-                  {submitting ? 'Dang xu ly...' : 'Dat hang'}
+                  {submitting ? 'Đang xử lý...' : 'Đặt hàng'}
                 </Button>
               </div>
             </div>

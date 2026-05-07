@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Loader2 } from 'lucide-react';
@@ -35,7 +35,7 @@ export function AdminMessageList({ messages, loading }: Props) {
   if (messages.length === 0) {
     return (
       <div className="flex flex-1 items-center justify-center">
-        <EmptyState title="Chua co tin nhan" description="Bat dau cuoc tro chuyen bang cach gui tin nhan." />
+        <EmptyState title="Chua co tin nhan" description="Bật dau cuoc tro chuyen bang cach gui tin nhan." />
       </div>
     );
   }

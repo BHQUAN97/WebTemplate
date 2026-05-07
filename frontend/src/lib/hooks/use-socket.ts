@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useRef, useCallback } from 'react';
 import { io, type Socket } from 'socket.io-client';
@@ -53,7 +53,7 @@ export function useSocket(userId?: string) {
   );
 
   /**
-   * Gui event len server
+   * Gửi event len server
    */
   const emit = useCallback(
     // eslint-disable-next-line @typescript-eslint/no-explicit-any

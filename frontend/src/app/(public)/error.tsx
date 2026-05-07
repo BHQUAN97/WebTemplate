@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -20,7 +20,7 @@ export default function PublicError({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12 text-center">
       <h1 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-        Khong the tai trang
+        Không thể tải trang
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
         Xin loi, da co loi xay ra khi tai noi dung. Ban co the thu lai.

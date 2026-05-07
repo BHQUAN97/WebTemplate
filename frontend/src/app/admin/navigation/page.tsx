@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useMemo } from 'react';
 import { Plus, Pencil, Trash2, ChevronUp, ChevronDown, Link as LinkIcon } from 'lucide-react';
@@ -163,7 +163,7 @@ export default function NavigationPage() {
         actions={
           activeGroup && (
             <Button onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" /> Them muc
+              <Plus className="h-4 w-4 mr-2" /> Thêm muc
             </Button>
           )
         }
@@ -174,7 +174,7 @@ export default function NavigationPage() {
       ) : groups.length === 0 ? (
         <Card>
           <CardContent className="p-8 text-center text-gray-500">
-            Chua co navigation group nao. Vui long tao o backend seed.
+            Chưa có navigation group nào. Vui lòng tạo ở backend seed.
           </CardContent>
         </Card>
       ) : (
@@ -230,7 +230,7 @@ export default function NavigationPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Chinh sua muc menu' : 'Them muc menu'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Chỉnh sửa mục menu' : 'Thêm mục menu'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <FormField label="Nhan" error={errors.label} required>
@@ -258,9 +258,9 @@ export default function NavigationPage() {
                 value={form.parent_id ?? 'none'}
                 onValueChange={(v) => setForm((p) => ({ ...p, parent_id: v === 'none' ? null : v }))}
               >
-                <SelectTrigger><SelectValue placeholder="Khong co" /></SelectTrigger>
+                <SelectTrigger><SelectValue placeholder="Không có" /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="none">Khong co (muc chinh)</SelectItem>
+                  <SelectItem value="none">Không có (mục chính)</SelectItem>
                   {topLevelItems
                     .filter((i) => i.id !== editingId)
                     .map((i) => (
@@ -294,7 +294,7 @@ export default function NavigationPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -303,10 +303,10 @@ export default function NavigationPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xoa muc menu"
-        description="Xoa muc nay? Cac muc con cung se bi xoa."
+        title="Xóa muc menu"
+        description="Xóa muc nay? Cac muc con cung se bi xoa."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

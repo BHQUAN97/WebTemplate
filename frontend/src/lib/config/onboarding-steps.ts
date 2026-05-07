@@ -1,4 +1,4 @@
-import type { TourStep } from '@/components/shared/onboarding-tour';
+﻿import type { TourStep } from '@/components/shared/onboarding-tour';
 
 /**
  * Tour intro dashboard cho user moi — 5 buoc
@@ -14,14 +14,14 @@ export const dashboardTourSteps: TourStep[] = [
   {
     target: '[aria-label*="command"], [aria-label*="Command"], [aria-label*="Tim"]',
     placement: 'bottom',
-    title: 'Tim kiem nhanh',
+    title: 'Tìm kiếm nhanh',
     content:
       'Bam bieu tuong tim kiem hoac phim Ctrl+K de mo command palette — truy cap nhanh moi trang va san pham.',
   },
   {
-    target: '[data-tour="notification-bell"], [aria-label*="notification"], [aria-label*="Thong bao"]',
+    target: '[data-tour="notification-bell"], [aria-label*="notification"], [aria-label*="Thông báo"]',
     placement: 'bottom',
-    title: 'Thong bao',
+    title: 'Thông báo',
     content:
       'Chuong thong bao hien don hang moi, tin nhan va cap nhat quan trong. Bam vao de xem chi tiet.',
   },
@@ -33,7 +33,7 @@ export const dashboardTourSteps: TourStep[] = [
       'Ban co the chuyen qua lai giua che do sang, toi hoac theo he thong tuy thich.',
   },
   {
-    target: '[data-tour="profile-menu"], [aria-label*="profile"], [aria-label*="Tai khoan"]',
+    target: '[data-tour="profile-menu"], [aria-label*="profile"], [aria-label*="Tài khoản"]',
     placement: 'bottom',
     title: 'Menu tai khoan',
     content:
@@ -50,7 +50,7 @@ export const adminTourSteps: TourStep[] = [
     placement: 'right',
     title: 'Thanh dieu huong admin',
     content:
-      'Tat ca cac module quan ly (don hang, san pham, khach hang, cai dat...) nam o sidebar nay.',
+      'Tất cả cac module quan ly (don hang, san pham, khach hang, cai dat...) nam o sidebar nay.',
   },
   {
     target: '[data-tour="admin-stats"], .grid:has(> [class*="stat"]), main .grid',
@@ -62,9 +62,9 @@ export const adminTourSteps: TourStep[] = [
   {
     target: '[href*="/admin/products"], [data-tour="products-section"]',
     placement: 'right',
-    title: 'Quan ly san pham',
+    title: 'Quản lý sản phẩm',
     content:
-      'Them moi, sua, xoa va quan ly ton kho san pham tai muc nay.',
+      'Thêm moi, sua, xoa va quan ly ton kho san pham tai muc nay.',
   },
   {
     target: '[data-tour="quick-actions"], .print\\:hidden:last-child',
@@ -82,7 +82,7 @@ export const checkoutTourSteps: TourStep[] = [
   {
     target: '[data-tour="checkout-shipping"], form[name*="shipping"], [aria-label*="shipping"]',
     placement: 'right',
-    title: 'Dia chi giao hang',
+    title: 'Địa chỉ giao hang',
     content:
       'Nhap day du dia chi va so dien thoai de don hang duoc giao chinh xac.',
   },
@@ -96,7 +96,7 @@ export const checkoutTourSteps: TourStep[] = [
   {
     target: '[data-tour="checkout-confirm"], button[type="submit"]',
     placement: 'top',
-    title: 'Xac nhan don hang',
+    title: 'Xác nhận don hang',
     content:
       'Kiem tra lai thong tin va bam xac nhan de hoan tat. Ban se nhan email xac nhan ngay sau do.',
   },

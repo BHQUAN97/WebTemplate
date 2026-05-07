@@ -1,4 +1,4 @@
-import Link from 'next/link';
+﻿import Link from 'next/link';
 
 /**
  * Footer chinh — links, info, copyright
@@ -12,7 +12,7 @@ export function Footer() {
           <div>
             <h3 className="text-white text-lg font-bold mb-4">WebTemplate</h3>
             <p className="text-sm leading-relaxed">
-              Cung cap san pham chat luong cao voi gia tot nhat. Mua sam truc tuyen de dang, nhanh chong va an toan.
+              Cung cấp sản phẩm chất lượng cao với giá tốt nhất. Mua sắm trực tuyến dễ dàng, nhanh chóng và an toàn.
             </p>
           </div>
 
@@ -20,7 +20,7 @@ export function Footer() {
           <div>
             <h4 className="text-white font-semibold mb-4">Lien ket</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/products" className="hover:text-white transition-colors">San pham</Link></li>
+              <li><Link href="/products" className="hover:text-white transition-colors">Sản phẩm</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
               <li><Link href="/about" className="hover:text-white transition-colors">Gioi thieu</Link></li>
               <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
@@ -34,7 +34,7 @@ export function Footer() {
               <li><Link href="/contact" className="hover:text-white transition-colors">Lien he</Link></li>
               <li><Link href="/faq" className="hover:text-white transition-colors">Cau hoi thuong gap</Link></li>
               <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chinh sach doi tra</Link></li>
-              <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Dieu khoan su dung</Link></li>
+              <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
 

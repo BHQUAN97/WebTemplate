@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -45,7 +45,7 @@ export default function ForgotPasswordPage() {
       setSubmitted(true);
       setCooldown(RESEND_COOLDOWN_SEC);
     } catch (err: any) {
-      setError(err.message || 'Co loi xay ra, vui long thu lai');
+      setError(err.message || 'Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
@@ -56,16 +56,16 @@ export default function ForgotPasswordPage() {
       await authApi.forgotPassword(submittedEmail);
       setCooldown(RESEND_COOLDOWN_SEC);
     } catch (err: any) {
-      setError(err.message || 'Co loi xay ra, vui long thu lai');
+      setError(err.message || 'Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
   return (
     <Card>
       <CardHeader className="text-center">
-        <CardTitle className="text-2xl">Quen mat khau</CardTitle>
+        <CardTitle className="text-2xl">Quên mật khẩu</CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Nhap email de nhan link dat lai mat khau
+          Nhập email để nhận link đặt lại mật khẩu
         </p>
       </CardHeader>
       <CardContent>
@@ -74,9 +74,9 @@ export default function ForgotPasswordPage() {
             <Mail className="h-12 w-12 text-blue-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">Kiem tra email</h3>
             <p className="text-sm text-gray-500 mb-6">
-              Chung toi da gui link dat lai mat khau den{' '}
+              Chúng tôi đã gửi link đặt lại mật khẩu đến{' '}
               <span className="font-medium text-gray-700">{submittedEmail}</span>.
-              Vui long kiem tra hop thu (ke ca thu muc spam).
+              Vui lòng kiểm tra hộp thư (kể cả thư mục spam).
             </p>
 
             {error && (
@@ -93,13 +93,13 @@ export default function ForgotPasswordPage() {
                 disabled={cooldown > 0}
               >
                 {cooldown > 0
-                  ? `Gui lai sau ${cooldown}s`
-                  : 'Gui lai email'}
+                  ? `Gửi lai sau ${cooldown}s`
+                  : 'Gửi lại email'}
               </Button>
               <Button variant="ghost" asChild className="w-full">
                 <Link href="/login">
                   <ArrowLeft className="h-4 w-4 mr-1" />
-                  Quay lai dang nhap
+                  Quay lại đăng nhập
                 </Link>
               </Button>
             </div>
@@ -133,7 +133,7 @@ export default function ForgotPasswordPage() {
               size="lg"
               disabled={isSubmitting}
             >
-              {isSubmitting ? 'Dang gui...' : 'Gui email'}
+              {isSubmitting ? 'Đang gửi...' : 'Gửi email'}
             </Button>
 
             <p className="text-center">
@@ -142,7 +142,7 @@ export default function ForgotPasswordPage() {
                 className="text-sm text-blue-600 hover:underline"
               >
                 <ArrowLeft className="h-3 w-3 inline mr-1" />
-                Quay lai dang nhap
+                Quay lại đăng nhập
               </Link>
             </p>
           </form>

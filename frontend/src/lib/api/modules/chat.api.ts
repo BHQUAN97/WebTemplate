@@ -1,4 +1,4 @@
-import { apiClient } from '../client';
+﻿import { apiClient } from '../client';
 import type {
   ChatConversation,
   ChatMessage,
@@ -99,7 +99,7 @@ export const chatApi = {
   },
 
   /**
-   * Gui message qua REST — fallback khi WebSocket down.
+   * Gửi message qua REST — fallback khi WebSocket down.
    */
   sendMessage(id: string, content: string, type: string = 'text') {
     return apiClient.request<ChatMessage>(

@@ -11,7 +11,7 @@ import { hashPassword } from '../../common/utils/hash.js';
 import { AuthService } from '../auth/auth.service.js';
 
 /**
- * Users service — quan ly nguoi dung, extends BaseService de co san CRUD + pagination.
+ * Users service — quản lý người dùng, extends BaseService để có sẵn CRUD + pagination.
  */
 @Injectable()
 export class UsersService extends BaseService<User> {

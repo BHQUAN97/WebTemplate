@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Image from 'next/image';
@@ -29,7 +29,7 @@ interface Props {
 }
 
 /**
- * Chi tiet san pham — gallery, info, variants, tabs (description/reviews/faq)
+ * Chi tiết san pham — gallery, info, variants, tabs (description/reviews/faq)
  */
 export function ProductDetailClient({ slug }: Props) {
   const [product, setProduct] = useState<Product | null>(null);
@@ -99,7 +99,7 @@ export function ProductDetailClient({ slug }: Props) {
   if (!product) {
     return (
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">San pham khong ton tai</h1>
+        <h1 className="text-2xl font-bold mb-4">Sản phẩm khong ton tai</h1>
         <Button asChild>
           <Link href="/products">Quay lai</Link>
         </Button>
@@ -144,7 +144,7 @@ export function ProductDetailClient({ slug }: Props) {
       {/* Breadcrumb */}
       <div className="flex items-center gap-2 text-sm text-gray-500 mb-6">
         <Link href="/products" className="hover:text-blue-600 flex items-center gap-1">
-          <ChevronLeft className="h-4 w-4" /> San pham
+          <ChevronLeft className="h-4 w-4" /> Sản phẩm
         </Link>
         <span>/</span>
         <span className="text-gray-900 truncate">{product.name}</span>
@@ -282,7 +282,7 @@ export function ProductDetailClient({ slug }: Props) {
 
             <Button size="lg" className="flex-1" onClick={handleAddToCart}>
               <ShoppingCart className="h-5 w-5 mr-2" />
-              Them vao gio hang
+              Thêm vao gio hang
             </Button>
 
             <Button
@@ -290,7 +290,7 @@ export function ProductDetailClient({ slug }: Props) {
               size="icon"
               className="h-12 w-12"
               onClick={handleToggleWishlist}
-              aria-label="Yeu thich"
+              aria-label="Yêu thích"
             >
               <Heart
                 className={`h-5 w-5 ${isInWishlist ? 'fill-red-500 text-red-500' : ''}`}
@@ -303,7 +303,7 @@ export function ProductDetailClient({ slug }: Props) {
             {product.sku && <p>SKU: <span className="text-gray-900">{product.sku}</span></p>}
             {product.category && (
               <p>
-                Danh muc:{' '}
+                Danh mục:{' '}
                 <Link href={`/products?category=${product.category.slug}`} className="text-blue-600 hover:underline">
                   {product.category.name}
                 </Link>
@@ -319,7 +319,7 @@ export function ProductDetailClient({ slug }: Props) {
         <div className="flex border-b border-gray-200 gap-4 sm:gap-8 overflow-x-auto">
           {[
             { key: 'description', label: 'Mo ta' },
-            { key: 'reviews', label: `Danh gia (${reviews.length})` },
+            { key: 'reviews', label: `Đánh giá (${reviews.length})` },
             { key: 'faq', label: 'Cau hoi' },
           ].map((tab) => (
             <button
@@ -353,7 +353,7 @@ export function ProductDetailClient({ slug }: Props) {
                       <div className="flex items-start justify-between mb-2">
                         <div>
                           <p className="font-medium text-sm">
-                            {review.user?.name ?? 'Khach hang'}
+                            {review.user?.name ?? 'Khách hang'}
                           </p>
                           <StarRating rating={review.rating} size="sm" />
                         </div>
@@ -389,7 +389,7 @@ export function ProductDetailClient({ slug }: Props) {
       {/* Related products */}
       {related.length > 0 && (
         <div className="mt-12">
-          <h2 className="text-xl sm:text-2xl font-bold mb-6">San pham lien quan</h2>
+          <h2 className="text-xl sm:text-2xl font-bold mb-6">Sản phẩm lien quan</h2>
           <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 sm:gap-6">
             {related.map((p) => (
               <ProductCard key={p.id} product={p} />

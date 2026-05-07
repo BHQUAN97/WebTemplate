@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useForm } from 'react-hook-form';
@@ -12,10 +12,10 @@ import { contactSchema, type ContactFormData } from '@/lib/validations';
 import { contactsApi } from '@/lib/api/modules/contacts.api';
 
 const contactInfo = [
-  { icon: MapPin, label: 'Dia chi', value: '123 Nguyen Hue, Q1, TP.HCM' },
-  { icon: Phone, label: 'Dien thoai', value: '0900 123 456' },
+  { icon: MapPin, label: 'Địa chỉ', value: '123 Nguyen Hue, Q1, TP.HCM' },
+  { icon: Phone, label: 'Điện thoại', value: '0900 123 456' },
   { icon: Mail, label: 'Email', value: 'info@webtemplate.vn' },
-  { icon: Clock, label: 'Gio lam viec', value: 'T2 - T7: 8:00 - 18:00' },
+  { icon: Clock, label: 'Giờ làm việc', value: 'T2 - T7: 8:00 - 18:00' },
 ];
 
 /**
@@ -41,7 +41,7 @@ export function ContactClient() {
       setSubmitted(true);
       reset();
     } catch (err: any) {
-      setError(err.message || 'Co loi xay ra, vui long thu lai');
+      setError(err.message || 'Có lỗi xảy ra, vui lòng thử lại');
     }
   };
 
@@ -60,13 +60,13 @@ export function ContactClient() {
               <CardContent className="p-0">
                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                 <h2 className="text-xl font-bold mb-2">
-                  Gui thanh cong!
+                  Gửi thanh cong!
                 </h2>
                 <p className="text-gray-500 mb-4">
                   Cam on ban da lien he. Chung toi se phan hoi trong vong 24h.
                 </p>
                 <Button variant="outline" onClick={() => setSubmitted(false)}>
-                  Gui tin nhan khac
+                  Gửi tin nhắn khac
                 </Button>
               </CardContent>
             </Card>
@@ -75,11 +75,11 @@ export function ContactClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Ho ten *
+                    Họ tên *
                   </label>
                   <Input
                     {...register('name')}
-                    placeholder="Nhap ho ten"
+                    placeholder="Nhập họ tên"
                     autoComplete="name"
                   />
                   {errors.name && (
@@ -121,9 +121,9 @@ export function ContactClient() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Chu de *
+                    Chủ đề *
                   </label>
-                  <Input {...register('subject')} placeholder="Nhap chu de" />
+                  <Input {...register('subject')} placeholder="Nhập chủ đề" />
                   {errors.subject && (
                     <p className="text-red-500 text-xs mt-1">{errors.subject.message}</p>
                   )}
@@ -132,11 +132,11 @@ export function ContactClient() {
 
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  Noi dung *
+                  Nội dung *
                 </label>
                 <Textarea
                   {...register('message')}
-                  placeholder="Nhap noi dung tin nhan..."
+                  placeholder="Nhập nội dung tin nhắn..."
                   rows={5}
                 />
                 {errors.message && (
@@ -151,7 +151,7 @@ export function ContactClient() {
               )}
 
               <Button type="submit" disabled={isSubmitting} size="lg">
-                {isSubmitting ? 'Dang gui...' : 'Gui tin nhan'}
+                {isSubmitting ? 'Đang gửi...' : 'Gửi tin nhắn'}
               </Button>
             </form>
           )}

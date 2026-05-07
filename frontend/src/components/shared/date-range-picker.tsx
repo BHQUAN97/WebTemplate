@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Calendar as CalendarIcon } from 'lucide-react';
@@ -70,7 +70,7 @@ export function DateRangePicker({
             />
           </div>
           <Button size="sm" className="w-full" onClick={handleApply}>
-            Ap dung
+            Áp dụng
           </Button>
         </div>
       </PopoverContent>

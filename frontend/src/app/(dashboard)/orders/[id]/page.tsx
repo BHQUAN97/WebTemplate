@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect, use } from 'react';
 import Link from 'next/link';
@@ -14,7 +14,7 @@ import type { Order } from '@/lib/types';
 import { cn } from '@/lib/utils';
 
 /**
- * Chi tiet don hang — items, shipping, payment, status timeline, cancel
+ * Chi tiết don hang — items, shipping, payment, status timeline, cancel
  */
 export default function OrderDetailPage({
   params,
@@ -46,7 +46,7 @@ export default function OrderDetailPage({
     if (!order) return;
     setCancelling(true);
     try {
-      await ordersApi.cancelOrder(order.id, 'Khach hang yeu cau huy');
+      await ordersApi.cancelOrder(order.id, 'Khách hang yeu cau huy');
       setOrder({ ...order, status: 'CANCELLED' as any });
       setCancelConfirm(false);
     } catch {
@@ -69,7 +69,7 @@ export default function OrderDetailPage({
   if (!order) {
     return (
       <div className="text-center py-16">
-        <h1 className="text-xl font-bold mb-4">Don hang khong ton tai</h1>
+        <h1 className="text-xl font-bold mb-4">Đơn hàng khong ton tai</h1>
         <Button asChild>
           <Link href="/orders">Quay lai</Link>
         </Button>
@@ -82,11 +82,11 @@ export default function OrderDetailPage({
 
   // Status timeline
   const timelineSteps = [
-    { status: 'PENDING', label: 'Dat hang', icon: Package },
-    { status: 'CONFIRMED', label: 'Xac nhan', icon: CheckCircle },
+    { status: 'PENDING', label: 'Đặt hàng', icon: Package },
+    { status: 'CONFIRMED', label: 'Xác nhận', icon: CheckCircle },
     { status: 'PROCESSING', label: 'Xu ly', icon: Package },
     { status: 'SHIPPED', label: 'Giao hang', icon: Truck },
-    { status: 'DELIVERED', label: 'Hoan thanh', icon: CheckCircle },
+    { status: 'DELIVERED', label: 'Hoàn thành', icon: CheckCircle },
   ];
 
   const statusOrder = ['PENDING', 'CONFIRMED', 'PROCESSING', 'SHIPPED', 'DELIVERED'];
@@ -99,14 +99,14 @@ export default function OrderDetailPage({
         href="/orders"
         className="inline-flex items-center gap-1 text-sm text-gray-500 hover:text-blue-600 mb-4"
       >
-        <ChevronLeft className="h-4 w-4" /> Don hang
+        <ChevronLeft className="h-4 w-4" /> Đơn hàng
       </Link>
 
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-6">
         <div>
           <h1 className="text-xl sm:text-2xl font-bold">
-            Don hang #{order.order_number}
+            Đơn hàng #{order.order_number}
           </h1>
           <p className="text-sm text-gray-500">
             Dat ngay {formatDate(order.created_at)}
@@ -162,7 +162,7 @@ export default function OrderDetailPage({
         <div className="lg:col-span-2">
           <Card>
             <CardHeader>
-              <CardTitle>San pham ({order.items?.length ?? 0})</CardTitle>
+              <CardTitle>Sản phẩm ({order.items?.length ?? 0})</CardTitle>
             </CardHeader>
             <CardContent className="space-y-4">
               {order.items?.map((item) => (
@@ -205,7 +205,7 @@ export default function OrderDetailPage({
           {/* Shipping */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Dia chi giao hang</CardTitle>
+              <CardTitle className="text-sm">Địa chỉ giao hang</CardTitle>
             </CardHeader>
             <CardContent className="text-sm text-gray-600">
               <p className="font-medium text-gray-900">
@@ -265,7 +265,7 @@ export default function OrderDetailPage({
                       onClick={handleCancel}
                       disabled={cancelling}
                     >
-                      {cancelling ? 'Dang huy...' : 'Xac nhan huy'}
+                      {cancelling ? 'Đang hủy...' : 'Xác nhận hủy'}
                     </Button>
                     <Button
                       variant="outline"

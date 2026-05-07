@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Suspense } from 'react';
 import Link from 'next/link';
@@ -49,7 +49,7 @@ function PaymentResultContent() {
           )}
           {orderInfo && (
             <div className="flex justify-between">
-              <span className="text-gray-500">Noi dung</span>
+              <span className="text-gray-500">Nội dung</span>
               <span className="font-medium text-gray-900 text-right ml-2">
                 {orderInfo}
               </span>
@@ -62,7 +62,7 @@ function PaymentResultContent() {
             <Link href="/orders">Xem don hang</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/products">Tiep tuc mua sam</Link>
+            <Link href="/products">Tiếp tục mua sam</Link>
           </Button>
         </div>
       </div>
@@ -74,7 +74,7 @@ function PaymentResultContent() {
       <XCircle className="h-16 w-16 text-red-500 mx-auto mb-4" />
       <h1 className="text-2xl font-bold mb-2">Thanh toan that bai</h1>
       <p className="text-gray-500 mb-6">
-        Giao dich khong duoc hoan tat. Vui long thu lai hoac chon phuong thuc
+        Giao dich khong duoc hoan tat. Vui lòng thử lại hoac chon phuong thuc
         khac.
       </p>
 

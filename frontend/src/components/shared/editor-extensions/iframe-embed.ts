@@ -1,4 +1,4 @@
-import { Node, mergeAttributes } from '@tiptap/core';
+﻿import { Node, mergeAttributes } from '@tiptap/core';
 
 export interface IframeEmbedOptions {
   /** Class ap dung len wrapper cua iframe (responsive) */
@@ -7,7 +7,7 @@ export interface IframeEmbedOptions {
 
 /**
  * Danh sach domain duoc phep embed iframe.
- * Bat buoc de chong XSS khi user dan URL la.
+ * Bật buoc de chong XSS khi user dan URL la.
  */
 const ALLOWED_DOMAINS = [
   'docs.google.com',

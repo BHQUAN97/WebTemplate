@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, type FormEvent } from 'react';
 import { MessageCircle } from 'lucide-react';
@@ -17,7 +17,7 @@ interface Props {
 
 /**
  * Form chao hoi lan dau — khach co the dien ten/email/phone optional,
- * chi tin nhan dau la bat buoc. "Bat dau chat" de di cho ba kenh cua hang.
+ * chi tin nhan dau la bat buoc. "Bắt đầu chat" de di cho ba kenh cua hang.
  */
 export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props) {
   const [name, setName] = useState('');
@@ -53,7 +53,7 @@ export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props)
         type="text"
         value={name}
         onChange={(e) => setName(e.target.value)}
-        placeholder="Ho ten"
+        placeholder="Họ tên"
         autoComplete="name"
         className="rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"
       />
@@ -96,7 +96,7 @@ export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props)
           disabled={!message.trim() || isSubmitting}
           className="inline-flex h-10 items-center justify-center rounded-lg bg-blue-600 text-sm font-medium text-white transition-colors hover:bg-blue-700 disabled:opacity-50"
         >
-          {isSubmitting ? 'Dang mo phien...' : 'Bat dau chat'}
+          {isSubmitting ? 'Đang mở phiên...' : 'Bắt đầu chat'}
         </button>
         <button
           type="button"

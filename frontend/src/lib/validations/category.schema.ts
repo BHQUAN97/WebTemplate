@@ -1,8 +1,8 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createCategorySchema = z.object({
   name: z
-    .string({ error: 'Vui long nhap ten danh muc' })
+    .string({ error: 'Vui lòng nhập tên danh mục' })
     .min(1, 'Ten danh muc khong duoc de trong')
     .max(255, 'Ten danh muc khong vuot qua 255 ky tu'),
   slug: z.string().optional(),

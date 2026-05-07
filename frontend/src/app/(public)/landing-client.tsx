@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import Link from 'next/link';
@@ -25,14 +25,14 @@ import { categoriesApi } from '@/lib/api/modules/categories.api';
 import type { Product, Category } from '@/lib/types';
 
 const features = [
-  { icon: Truck, title: 'Mien phi van chuyen', desc: 'Cho don hang tu 500K' },
-  { icon: Headphones, title: 'Ho tro 24/7', desc: 'Luon san sang giup ban' },
-  { icon: RotateCcw, title: 'Hoan tien 30 ngay', desc: 'Bao dam hai long' },
-  { icon: ShieldCheck, title: 'Thanh toan an toan', desc: 'Bao mat tuyet doi' },
+  { icon: Truck, title: 'Miễn phí vận chuyển', desc: 'Cho đơn hàng từ 500K' },
+  { icon: Headphones, title: 'Hỗ trợ 24/7', desc: 'Luôn sẵn sàng giúp bạn' },
+  { icon: RotateCcw, title: 'Hoàn tiền 30 ngày', desc: 'Bảo đảm hài lòng' },
+  { icon: ShieldCheck, title: 'Thanh toán an toàn', desc: 'Bảo mật tuyệt đối' },
 ];
 
 const testimonials = [
-  { name: 'Nguyen Van A', rating: 5, text: 'San pham chat luong, giao hang nhanh. Rat hai long voi dich vu.' },
+  { name: 'Nguyen Van A', rating: 5, text: 'Sản phẩm chat luong, giao hang nhanh. Rat hai long voi dich vu.' },
   { name: 'Tran Thi B', rating: 5, text: 'Gia ca hop ly, nhan vien tu van nhiet tinh. Se quay lai mua hang.' },
   { name: 'Le Van C', rating: 4, text: 'Dong goi can than, san pham dung mo ta. Toi se gioi thieu cho ban be.' },
   { name: 'Pham Thi D', rating: 5, text: 'Dich vu khach hang tuyet voi, xu ly doi tra nhanh chong.' },
@@ -95,12 +95,12 @@ export function LandingClient() {
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-12 items-center">
             <div>
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">
-                Mua sam truc tuyen
+                Mua sắm trực tuyến
                 <br />
                 <span className="text-blue-200">De dang & Nhanh chong</span>
               </h1>
               <p className="text-lg text-blue-100 mb-8 max-w-lg">
-                Kham pha hang nghin san pham chat luong cao voi gia tot nhat.
+                Khám phá hàng nghìn sản phẩm chất lượng cao với giá tốt nhất.
                 Giao hang nhanh, ho tro 24/7.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
@@ -109,7 +109,7 @@ export function LandingClient() {
                   className="bg-white text-blue-600 hover:bg-blue-50"
                   asChild
                 >
-                  <Link href="/products">Mua sam ngay</Link>
+                  <Link href="/products">Mua sắm ngay</Link>
                 </Button>
                 <Button
                   size="lg"
@@ -155,7 +155,7 @@ export function LandingClient() {
       <section className="py-12 sm:py-16 bg-gray-50">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <div className="flex items-center justify-between mb-8">
-            <h2 className="text-2xl sm:text-3xl font-bold">San pham noi bat</h2>
+            <h2 className="text-2xl sm:text-3xl font-bold">Sản phẩm noi bat</h2>
             <Link
               href="/products"
               className="text-sm text-blue-600 hover:underline"
@@ -192,7 +192,7 @@ export function LandingClient() {
       <section className="py-12 sm:py-16 bg-white">
         <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
           <h2 className="text-2xl sm:text-3xl font-bold mb-8 text-center">
-            Danh muc san pham
+            Danh mục sản phẩm
           </h2>
           {loading ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
@@ -235,7 +235,7 @@ export function LandingClient() {
       <section className="py-12 sm:py-16 bg-gray-50">
         <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-8">
-            Khach hang noi gi
+            Khách hang noi gi
           </h2>
 
           <div className="relative">
@@ -278,15 +278,15 @@ export function LandingClient() {
           <div className="grid grid-cols-2 sm:grid-cols-3 gap-8 text-center">
             <div>
               <p className="text-3xl sm:text-4xl font-bold">1000+</p>
-              <p className="text-blue-200 mt-1">San pham</p>
+              <p className="text-blue-200 mt-1">Sản phẩm</p>
             </div>
             <div>
               <p className="text-3xl sm:text-4xl font-bold">5000+</p>
-              <p className="text-blue-200 mt-1">Khach hang</p>
+              <p className="text-blue-200 mt-1">Khách hang</p>
             </div>
             <div className="col-span-2 sm:col-span-1">
               <p className="text-3xl sm:text-4xl font-bold">50+</p>
-              <p className="text-blue-200 mt-1">Danh muc</p>
+              <p className="text-blue-200 mt-1">Danh mục</p>
             </div>
           </div>
         </div>
@@ -296,7 +296,7 @@ export function LandingClient() {
       <section className="py-12 sm:py-16 bg-white">
         <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
           <h2 className="text-2xl sm:text-3xl font-bold mb-4">
-            Dang ky nhan tin
+            Đăng ký nhan tin
           </h2>
           <p className="text-gray-500 mb-6">
             Nhan thong tin khuyen mai va san pham moi nhat qua email
@@ -324,7 +324,7 @@ export function LandingClient() {
                 )}
               </div>
               <Button type="submit" disabled={isSubmitting}>
-                Dang ky
+                Đăng ký
               </Button>
             </form>
           )}

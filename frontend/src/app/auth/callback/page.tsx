@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { Suspense, useEffect } from 'react';
 import { useRouter, useSearchParams } from 'next/navigation';
@@ -46,7 +46,7 @@ function CallbackInner() {
 
   return (
     <div className="min-h-screen grid place-items-center text-sm text-gray-500">
-      Dang dang nhap...
+      Đang đăng nhập...
     </div>
   );
 }
@@ -56,7 +56,7 @@ export default function AuthCallbackPage() {
     <Suspense
       fallback={
         <div className="min-h-screen grid place-items-center text-sm text-gray-500">
-          Dang dang nhap...
+          Đang đăng nhập...
         </div>
       }
     >

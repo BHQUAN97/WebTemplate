@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { memo } from 'react';
 import Link from 'next/link';
@@ -58,7 +58,7 @@ function ChatMessageItemBase({ message, showSender, onQuickReply }: Props) {
     : 'bg-gray-100 text-gray-900 rounded-2xl rounded-bl-sm dark:bg-gray-800 dark:text-gray-100';
 
   const senderLabel = !isUser && showSender
-    ? message.sender?.name || (role === 'ai' ? 'Tro ly AI' : 'Nhan vien')
+    ? message.sender?.name || (role === 'ai' ? 'Tro ly AI' : 'Nhân viên')
     : null;
 
   return (
@@ -110,9 +110,9 @@ function ChatMessageItemBase({ message, showSender, onQuickReply }: Props) {
       {/* Order card */}
       {message.type === 'order_card' && message.metadata?.order && (
         <div className="max-w-[80%] rounded-xl border border-gray-200 bg-white p-3 text-sm shadow-sm dark:border-gray-700 dark:bg-gray-800">
-          <p className="font-medium">Don hang #{message.metadata.order.code}</p>
+          <p className="font-medium">Đơn hàng #{message.metadata.order.code}</p>
           <p className="text-xs text-gray-500 dark:text-gray-400">
-            Trang thai: {message.metadata.order.status}
+            Trạng thái: {message.metadata.order.status}
           </p>
           <p className="mt-1 font-semibold text-blue-600 dark:text-blue-400">
             {formatPrice(message.metadata.order.total)}

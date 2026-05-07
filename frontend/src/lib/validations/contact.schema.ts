@@ -2,26 +2,26 @@ import { z } from 'zod';
 
 export const contactSchema = z.object({
   name: z
-    .string({ error: 'Vui long nhap ho ten' })
-    .min(1, 'Vui long nhap ho ten')
-    .max(100, 'Ho ten khong vuot qua 100 ky tu'),
+    .string({ error: 'Vui lòng nhập họ tên' })
+    .min(1, 'Vui lòng nhập họ tên')
+    .max(100, 'Họ tên không vượt quá 100 ký tự'),
   email: z
-    .string({ error: 'Vui long nhap email' })
-    .min(1, 'Vui long nhap email')
-    .email('Email khong hop le'),
+    .string({ error: 'Vui lòng nhập email' })
+    .min(1, 'Vui lòng nhập email')
+    .email('Email không hợp lệ'),
   phone: z
     .string()
-    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'So dien thoai khong hop le')
+    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'Số điện thoại không hợp lệ')
     .optional()
     .or(z.literal('')),
   subject: z
-    .string({ error: 'Vui long nhap chu de' })
-    .min(1, 'Vui long nhap chu de')
-    .max(255, 'Chu de khong vuot qua 255 ky tu'),
+    .string({ error: 'Vui lòng nhập chủ đề' })
+    .min(1, 'Vui lòng nhập chủ đề')
+    .max(255, 'Chủ đề không vượt quá 255 ký tự'),
   message: z
-    .string({ error: 'Vui long nhap noi dung' })
-    .min(10, 'Noi dung phai co it nhat 10 ky tu')
-    .max(5000, 'Noi dung khong vuot qua 5000 ky tu'),
+    .string({ error: 'Vui lòng nhập nội dung' })
+    .min(10, 'Nội dung phải có ít nhất 10 ký tự')
+    .max(5000, 'Nội dung không vượt quá 5000 ký tự'),
 });
 
 export type ContactFormValues = z.infer<typeof contactSchema>;

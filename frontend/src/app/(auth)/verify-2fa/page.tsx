@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useRef, useEffect } from 'react';
 import Link from 'next/link';
@@ -96,11 +96,11 @@ export default function Verify2faPage() {
 
   const handleSubmit = async (fullCode: string) => {
     if (fullCode.length !== 6) {
-      setError('Vui long nhap du 6 chu so');
+      setError('Vui lòng nhập đủ 6 chữ số');
       return;
     }
     if (!pending) {
-      setError('Phien dang nhap het han. Vui long dang nhap lai.');
+      setError('Phiên đăng nhập hết hạn. Vui lòng đăng nhập lại.');
       return;
     }
 
@@ -123,7 +123,7 @@ export default function Verify2faPage() {
       }
       router.push(pending.redirect || '/');
     } catch (err: any) {
-      setError(err.message || 'Ma xac thuc khong dung');
+      setError(err.message || 'Mã xác thực không đúng');
       setCode(Array(6).fill(''));
       inputRefs.current[0]?.focus();
     } finally {
@@ -146,9 +146,9 @@ export default function Verify2faPage() {
     <Card>
       <CardHeader className="text-center">
         <ShieldCheck className="h-12 w-12 text-blue-500 mx-auto mb-2" />
-        <CardTitle className="text-2xl">Xac thuc 2 lop</CardTitle>
+        <CardTitle className="text-2xl">Xác thực 2 lớp</CardTitle>
         <p className="text-sm text-gray-500 mt-1">
-          Nhap ma 6 chu so tu ung dung xac thuc cua ban
+          Nhập mã 6 chữ số từ ứng dụng xác thực của bạn
         </p>
       </CardHeader>
       <CardContent>
@@ -182,27 +182,27 @@ export default function Verify2faPage() {
           disabled={submitting || code.join('').length < 6}
           onClick={() => handleSubmit(code.join(''))}
         >
-          {submitting ? 'Dang xac thuc...' : 'Xac thuc'}
+          {submitting ? 'Đang xác thực...' : 'Xác thực'}
         </Button>
 
         <div className="text-center mt-4">
           {resendCooldown > 0 ? (
             <p className="text-sm text-gray-400">
-              Gui lai ma sau {resendCooldown}s
+              Gửi lai ma sau {resendCooldown}s
             </p>
           ) : (
             <button
               onClick={handleResend}
               className="text-sm text-blue-600 hover:underline"
             >
-              Gui lai ma xac thuc
+              Gửi lại mã xác thực
             </button>
           )}
         </div>
 
         <p className="text-center text-sm text-gray-500 mt-4">
           <Link href="/login" className="text-blue-600 hover:underline">
-            Quay lai dang nhap
+            Quay lại đăng nhập
           </Link>
         </p>
       </CardContent>

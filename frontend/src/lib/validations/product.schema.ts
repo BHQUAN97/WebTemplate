@@ -1,8 +1,8 @@
-import { z } from 'zod';
+﻿import { z } from 'zod';
 
 export const createProductSchema = z.object({
   name: z
-    .string({ error: 'Vui long nhap ten san pham' })
+    .string({ error: 'Vui lòng nhập tên sản phẩm' })
     .min(1, 'Ten san pham khong duoc de trong')
     .max(255, 'Ten san pham khong vuot qua 255 ky tu'),
   slug: z.string().optional(),
@@ -13,7 +13,7 @@ export const createProductSchema = z.object({
     .optional(),
   sku: z.string().max(100, 'Ma SKU khong vuot qua 100 ky tu').optional(),
   price: z
-    .number({ error: 'Vui long nhap gia san pham' })
+    .number({ error: 'Vui lòng nhập giá sản phẩm' })
     .min(0, 'Gia san pham khong duoc am'),
   compare_at_price: z
     .number()
@@ -26,7 +26,7 @@ export const createProductSchema = z.object({
     .optional()
     .nullable(),
   quantity: z
-    .number({ error: 'Vui long nhap so luong' })
+    .number({ error: 'Vui lòng nhập số lượng' })
     .int('So luong phai la so nguyen')
     .min(0, 'So luong khong duoc am'),
   category_id: z.string().optional().nullable(),

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Image from 'next/image';
 import Link from 'next/link';
@@ -63,7 +63,7 @@ export function ProductCard({ product }: ProductCardProps) {
           <button
             onClick={handleToggleWishlist}
             className="absolute top-2 right-2 p-2 rounded-full bg-white/80 hover:bg-white transition-colors"
-            aria-label="Yeu thich"
+            aria-label="Yêu thích"
           >
             <Heart
               className={`h-4 w-4 ${isInWishlist ? 'fill-red-500 text-red-500' : 'text-gray-600'}`}
@@ -102,7 +102,7 @@ export function ProductCard({ product }: ProductCardProps) {
             onClick={handleAddToCart}
           >
             <ShoppingCart className="h-4 w-4 mr-1" />
-            Them vao gio
+            Thêm vao gio
           </Button>
         </div>
       </div>

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
@@ -38,7 +38,7 @@ const DAYS = [
 
 const MODE_OPTIONS: Array<{ value: ChatMode; label: string }> = [
   { value: 'ai', label: 'AI tu dong' },
-  { value: 'human', label: 'Nhan vien' },
+  { value: 'human', label: 'Nhân viên' },
   { value: 'hybrid', label: 'Ket hop' },
   { value: 'offline', label: 'Offline' },
 ];
@@ -116,11 +116,11 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
     try {
       const res = await onSubmit(parsed.data);
       if (res) {
-        toast('Luu thanh cong', undefined, 'success');
+        toast('Lưu thành công', undefined, 'success');
         router.push('/admin/chat-schedules');
       }
     } catch (err) {
-      toast('Luu that bai', (err as Error).message, 'destructive');
+      toast('Lưu that bai', (err as Error).message, 'destructive');
     } finally {
       setSubmitting(false);
     }
@@ -166,7 +166,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
                   T2-T6
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => update('daysOfWeek', [0, 1, 2, 3, 4, 5, 6])}>
-                  Tat ca
+                  Tất cả
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => update('daysOfWeek', [0, 6])}>
                   Cuoi tuan
@@ -224,7 +224,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
             <FormField
               label="Tin nhan mac dinh"
               error={errors.fallbackMessage}
-              description="Hien khi khong co nhan vien online (neu mode = offline)"
+              description="Hiện khi không có nhân viên online (nếu mode = offline)"
             >
               <Textarea
                 rows={3}
@@ -254,7 +254,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
             </FormField>
             <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800">
               <div>
-                <p className="text-sm font-medium">Kich hoat</p>
+                <p className="text-sm font-medium">Kích hoạt</p>
                 <p className="text-xs text-gray-500">Khung gio co hieu luc</p>
               </div>
               <Switch checked={values.isActive} onCheckedChange={(c) => update('isActive', c)} />
@@ -265,7 +265,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
         <div className="flex flex-col gap-2">
           <Button onClick={handleSubmit} disabled={submitting} className="w-full">
             {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Luu
+            Lưu
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/chat-schedules')}>
             Huy

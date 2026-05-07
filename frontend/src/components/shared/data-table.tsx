@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { ArrowUpDown, ArrowUp, ArrowDown, Search, MoreHorizontal, Loader2 } from 'lucide-react';
@@ -69,7 +69,7 @@ export function DataTable<T extends { id: string }>({
   onPageChange,
   search,
   onSearch,
-  searchPlaceholder = 'Tim kiem...',
+  searchPlaceholder = 'Tìm kiếm...',
   sort,
   order,
   onSort,
@@ -202,7 +202,7 @@ export function DataTable<T extends { id: string }>({
                   colSpan={columns.length + (bulkActions ? 1 : 0) + (actions ? 1 : 0)}
                   className="h-24 text-center text-gray-500"
                 >
-                  Khong co du lieu
+                  Không có dữ liệu
                 </TableCell>
               </TableRow>
             ) : (

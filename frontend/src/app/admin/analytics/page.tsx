@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import dynamic from 'next/dynamic';
@@ -184,14 +184,14 @@ export default function AnalyticsPage() {
           />
           <StatCard
             icon={<ShoppingCart className="h-6 w-6" />}
-            label="Don hang moi"
+            label="Đơn hàng moi"
             value={formatNumber(overview.orders)}
             trend={overview.ordersDelta}
             trendLabel="So voi ky truoc"
           />
           <StatCard
             icon={<UserPlus className="h-6 w-6" />}
-            label="Khach hang moi"
+            label="Khách hang moi"
             value={formatNumber(overview.newCustomers)}
             trend={overview.customersDelta}
             trendLabel="So voi ky truoc"
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Don hang theo trang thai</CardTitle>
+            <CardTitle>Đơn hàng theo trang thai</CardTitle>
           </CardHeader>
           <CardContent>
             <OrdersStatusChart data={statuses} loading={loading} />

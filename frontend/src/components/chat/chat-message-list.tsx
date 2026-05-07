@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useMemo, useRef } from 'react';
 import { ChatMessageItem } from './chat-message-item';
@@ -104,7 +104,7 @@ export function ChatMessageList({
       {hasMore && (
         <div className="flex justify-center">
           {isLoadingMore ? (
-            <span className="text-xs text-gray-400">Dang tai...</span>
+            <span className="text-xs text-gray-400">Đang tải...</span>
           ) : (
             <button
               type="button"

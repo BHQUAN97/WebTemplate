@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
@@ -30,9 +30,9 @@ export const scenarioSchema = z.object({
   name: z.string().min(2, 'Toi thieu 2 ky tu').max(100, 'Toi da 100 ky tu'),
   description: z.string().max(500).optional(),
   triggerType: z.enum(['keyword', 'intent', 'event', 'fallback', 'schedule']),
-  triggerValue: z.string().min(1, 'Khong duoc bo trong'),
+  triggerValue: z.string().min(1, 'Không được bỏ trống'),
   conditionsJson: z.string().optional(),
-  response: z.string().min(1, 'Noi dung phan hoi bat buoc').max(4000, 'Toi da 4000 ky tu'),
+  response: z.string().min(1, 'Nội dung phan hoi bat buoc').max(4000, 'Toi da 4000 ky tu'),
   responseType: z.enum(['text', 'template', 'quick_reply', 'product', 'order']),
   followUpScenarioId: z.string().optional(),
   delayMs: z.coerce.number().int().min(0).max(300000).default(0),
@@ -46,7 +46,7 @@ const TRIGGER_OPTIONS: Array<{ value: ScenarioTriggerType; label: string; hint: 
   { value: 'keyword', label: 'Tu khoa', hint: 'Danh sach tu khoa ngan cach bang dau phay' },
   { value: 'intent', label: 'Intent (y dinh)', hint: 'Ma intent do AI phan loai' },
   { value: 'event', label: 'Su kien', hint: 'Ten event (vd: cart.abandoned)' },
-  { value: 'fallback', label: 'Fallback', hint: 'Khong can trigger value' },
+  { value: 'fallback', label: 'Fallback', hint: 'Không cần trigger value' },
   { value: 'schedule', label: 'Theo lich', hint: 'Cron hoac khung gio' },
 ];
 
@@ -63,7 +63,7 @@ function renderPreview(template: string): string {
   const mock: Record<string, string> = {
     customer_name: 'Nguyen Van A',
     order_code: 'DH-123456',
-    product_name: 'San pham mau',
+    product_name: 'Sản phẩm mau',
     shop_name: 'Cua hang cua ban',
   };
   return template.replace(/\{\{\s*([a-zA-Z_][a-zA-Z0-9_]*)\s*\}\}/g, (_, k) => mock[k] ?? `{{${k}}}`);
@@ -146,11 +146,11 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
       };
       const res = await onSubmit(body);
       if (res) {
-        toast('Luu thanh cong', undefined, 'success');
+        toast('Lưu thành công', undefined, 'success');
         router.push('/admin/chat-scenarios');
       }
     } catch (err) {
-      toast('Luu that bai', (err as Error).message, 'destructive');
+      toast('Lưu that bai', (err as Error).message, 'destructive');
     } finally {
       setSubmitting(false);
     }
@@ -267,7 +267,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
               </Select>
             </FormField>
             <FormField
-              label="Noi dung phan hoi"
+              label="Nội dung phan hoi"
               error={errors.response}
               description="Ho tro bien {{customer_name}}, {{order_code}}, {{product_name}}..."
               required
@@ -303,10 +303,10 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
                 onValueChange={(v) => update('followUpScenarioId', v === '__none__' ? '' : v)}
               >
                 <SelectTrigger>
-                  <SelectValue placeholder="-- Khong --" />
+                  <SelectValue placeholder="-- Không --" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="__none__">-- Khong --</SelectItem>
+                  <SelectItem value="__none__">-- Không --</SelectItem>
                   {scenarios
                     .filter((s) => s.id !== initial?.id)
                     .map((s) => (
@@ -337,7 +337,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
             </FormField>
             <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800">
               <div>
-                <p className="text-sm font-medium">Kich hoat</p>
+                <p className="text-sm font-medium">Kích hoạt</p>
                 <p className="text-xs text-gray-500">Cho phep scenario chay</p>
               </div>
               <Switch checked={values.isActive} onCheckedChange={(c) => update('isActive', c)} />
@@ -348,7 +348,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
         <div className="flex flex-col gap-2">
           <Button onClick={handleSubmit} disabled={submitting} className="w-full">
             {submitting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Save className="mr-2 h-4 w-4" />}
-            Luu
+            Lưu
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/chat-scenarios')}>
             Huy

@@ -6,7 +6,7 @@ import {
 import { LIMITS, PATTERNS } from './constants.js';
 
 /**
- * @IsStrongPassword — kiem tra do manh mat khau
+ * @IsStrongPassword — kiểm tra độ mạnh mật khẩu
  * Rule: min 8 chars, 1 uppercase, 1 lowercase, 1 number, 1 special char
  */
 export function IsStrongPassword(validationOptions?: ValidationOptions) {
@@ -23,7 +23,7 @@ export function IsStrongPassword(validationOptions?: ValidationOptions) {
           return PATTERNS.STRONG_PASSWORD.test(value);
         },
         defaultMessage(_args: ValidationArguments) {
-          return 'Mat khau phai co it nhat 8 ky tu, 1 chu hoa, 1 chu thuong, 1 so, 1 ky tu dac biet';
+          return 'Mật khẩu phải có ít nhất 8 ký tự, 1 chữ hoa, 1 chữ thường, 1 số, 1 ký tự đặc biệt';
         },
       },
     });

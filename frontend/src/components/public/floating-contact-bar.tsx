@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect, useState } from 'react';
 import { Phone, Mail, MessageCircle, ArrowUp } from 'lucide-react';
@@ -96,7 +96,7 @@ export function FloatingContactBar() {
       {cta.email.enabled && cta.email.address && (
         <a
           href={`mailto:${cta.email.address}`}
-          aria-label="Gui email"
+          aria-label="Gửi email"
           className="h-12 w-12 rounded-full bg-gray-700 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
         >
           <Mail className="h-5 w-5" />

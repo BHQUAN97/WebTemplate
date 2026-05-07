@@ -2,7 +2,7 @@ import { NextResponse } from 'next/server';
 import type { NextRequest } from 'next/server';
 import { routing } from './i18n/routing';
 
-/** Route yeu cau dang nhap */
+/** Route yêu cầu đăng nhập */
 const PROTECTED_ROUTES = [
   '/dashboard',
   '/profile',
@@ -10,7 +10,7 @@ const PROTECTED_ROUTES = [
   '/admin',
 ];
 
-/** Route auth cong khai — da dang nhap thi redirect ve / */
+/** Route auth công khai — đã đăng nhập thì redirect về / */
 const PUBLIC_AUTH_ROUTES = [
   '/login',
   '/register',
@@ -21,7 +21,7 @@ const PUBLIC_AUTH_ROUTES = [
 ];
 
 /**
- * Khop path voi 1 danh sach route, ho tro ca ban co prefix locale.
+ * Khớp path với 1 danh sách route, hỗ trợ cả bản có prefix locale.
  */
 function matchRoute(pathname: string, routes: string[]): boolean {
   return routes.some(
@@ -39,18 +39,18 @@ function matchRoute(pathname: string, routes: string[]): boolean {
 }
 
 /**
- * Proxy (Next.js 16 — thay the middleware)
- * Auth gate: /admin, /dashboard, /profile, /settings yeu cau cookie refreshToken.
- * Da login → redirect khoi trang auth.
+ * Proxy (Next.js 16 — thay thế middleware)
+ * Auth gate: /admin, /dashboard, /profile, /settings yêu cầu cookie refreshToken.
+ * Đã login → redirect khỏi trang auth.
  *
- * Locale handling: xu ly client-side qua next-intl provider (KHONG dung middleware
- * rewrite vi cau truc app/ khong dung [locale] segment — middleware se gay 404 tat
- * ca route trong (auth)/(public)/(dashboard)).
+ * Locale handling: xử lý client-side qua next-intl provider (KHÔNG dùng middleware
+ * rewrite vì cấu trúc app/ không dùng [locale] segment — middleware sẽ gây 404 tất
+ * cả route trong (auth)/(public)/(dashboard)).
  */
 export function proxy(request: NextRequest) {
   const { pathname } = request.nextUrl;
 
-  // Uu tien refreshToken (HttpOnly cookie BE set), fallback access_token cu
+  // Ưu tiên refreshToken (HttpOnly cookie BE set), fallback access_token cũ
   const hasSession =
     !!request.cookies.get('refreshToken')?.value ||
     !!request.cookies.get('access_token')?.value ||
@@ -73,7 +73,7 @@ export function proxy(request: NextRequest) {
 }
 
 export const config = {
-  // Match tat ca tru static files va api
+  // Match tất cả trừ static files và api
   matcher: [
     '/((?!api|_next/static|_next/image|favicon.ico|sitemap.xml|robots.txt).*)',
   ],

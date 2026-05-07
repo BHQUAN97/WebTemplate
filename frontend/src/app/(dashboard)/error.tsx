@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -20,10 +20,10 @@ export default function DashboardError({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12 text-center">
       <h1 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-        Khong the tai du lieu
+        Không thể tải dữ liệu
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Co loi khi tai thong tin tai khoan cua ban. Vui long thu lai.
+        Co loi khi tai thong tin tai khoan cua ban. Vui lòng thử lại.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">

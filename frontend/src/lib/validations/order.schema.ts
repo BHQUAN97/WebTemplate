@@ -4,39 +4,39 @@ export const createOrderSchema = z.object({
   items: z
     .array(
       z.object({
-        product_id: z.string().min(1, 'Vui long chon san pham'),
+        product_id: z.string().min(1, 'Vui lòng chọn sản phẩm'),
         variant_id: z.string().optional(),
         quantity: z
           .number()
-          .int('So luong phai la so nguyen')
-          .min(1, 'So luong toi thieu la 1'),
+          .int('Số lượng phải là số nguyên')
+          .min(1, 'Số lượng tối thiểu là 1'),
       }),
     )
-    .min(1, 'Gio hang khong duoc trong'),
+    .min(1, 'Giỏ hàng không được trống'),
   shipping_name: z
-    .string({ error: 'Vui long nhap ten nguoi nhan' })
-    .min(1, 'Vui long nhap ten nguoi nhan')
-    .max(100, 'Ten khong vuot qua 100 ky tu'),
+    .string({ error: 'Vui lòng nhập tên người nhận' })
+    .min(1, 'Vui lòng nhập tên người nhận')
+    .max(100, 'Tên không vượt quá 100 ký tự'),
   shipping_phone: z
-    .string({ error: 'Vui long nhap so dien thoai' })
-    .min(1, 'Vui long nhap so dien thoai')
-    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'So dien thoai khong hop le'),
+    .string({ error: 'Vui lòng nhập số điện thoại' })
+    .min(1, 'Vui lòng nhập số điện thoại')
+    .regex(/^(0[3|5|7|8|9])\d{8}$/, 'Số điện thoại không hợp lệ'),
   shipping_address: z
-    .string({ error: 'Vui long nhap dia chi' })
-    .min(1, 'Vui long nhap dia chi giao hang'),
+    .string({ error: 'Vui lòng nhập địa chỉ' })
+    .min(1, 'Vui lòng nhập địa chỉ giao hàng'),
   shipping_city: z
-    .string({ error: 'Vui long chon tinh/thanh pho' })
-    .min(1, 'Vui long chon tinh/thanh pho'),
+    .string({ error: 'Vui lòng chọn tỉnh/thành phố' })
+    .min(1, 'Vui lòng chọn tỉnh/thành phố'),
   shipping_district: z
-    .string({ error: 'Vui long chon quan/huyen' })
-    .min(1, 'Vui long chon quan/huyen'),
+    .string({ error: 'Vui lòng chọn quận/huyện' })
+    .min(1, 'Vui lòng chọn quận/huyện'),
   shipping_ward: z
-    .string({ error: 'Vui long chon phuong/xa' })
-    .min(1, 'Vui long chon phuong/xa'),
-  note: z.string().max(500, 'Ghi chu khong vuot qua 500 ky tu').optional(),
+    .string({ error: 'Vui lòng chọn phường/xã' })
+    .min(1, 'Vui lòng chọn phường/xã'),
+  note: z.string().max(500, 'Ghi chú không vượt quá 500 ký tự').optional(),
   payment_method: z
-    .string({ error: 'Vui long chon phuong thuc thanh toan' })
-    .min(1, 'Vui long chon phuong thuc thanh toan'),
+    .string({ error: 'Vui lòng chọn phương thức thanh toán' })
+    .min(1, 'Vui lòng chọn phương thức thanh toán'),
 });
 
 export type CreateOrderFormValues = z.infer<typeof createOrderSchema>;

@@ -40,6 +40,10 @@ coverage/
 *.swp
 *.swo
 
+# AI tools
+.claude/
+.orcai/
+
 # OS
 .DS_Store
 Thumbs.db

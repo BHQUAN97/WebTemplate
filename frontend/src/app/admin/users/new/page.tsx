@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
@@ -17,7 +17,7 @@ const userSchema = z.object({
   email: z.string().email('Email khong hop le'),
   password: z
     .string()
-    .min(8, 'Mat khau toi thieu 8 ky tu')
+    .min(8, 'Mật khẩu toi thieu 8 ky tu')
     .regex(/[A-Z]/, 'Can it nhat 1 chu hoa')
     .regex(/[0-9]/, 'Can it nhat 1 so')
     .regex(/[^a-zA-Z0-9]/, 'Can it nhat 1 ky tu dac biet'),
@@ -33,7 +33,7 @@ const userSchema = z.object({
 
 type UserForm = z.infer<typeof userSchema>;
 
-/** Tao nguoi dung moi */
+/** Tạo người dùng moi */
 export default function NewUserPage() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -72,11 +72,11 @@ export default function NewUserPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Tao nguoi dung moi"
+        title="Tạo người dùng moi"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Nguoi dung', href: '/admin/users' },
-          { label: 'Tao moi' },
+          { label: 'Người dùng', href: '/admin/users' },
+          { label: 'Tạo mới' },
         ]}
       />
 
@@ -93,14 +93,14 @@ export default function NewUserPage() {
                   placeholder="user@example.com"
                 />
               </FormField>
-              <FormField label="Mat khau" error={errors.password} required description="Toi thieu 8 ky tu, gom chu hoa, so, ky tu dac biet">
+              <FormField label="Mật khẩu" error={errors.password} required description="Toi thieu 8 ky tu, gom chu hoa, so, ky tu dac biet">
                 <Input
                   type="password"
                   value={form.password}
                   onChange={(e) => updateField('password', e.target.value)}
                 />
               </FormField>
-              <FormField label="Ho ten" error={errors.name} required>
+              <FormField label="Họ tên" error={errors.name} required>
                 <Input
                   value={form.name}
                   onChange={(e) => updateField('name', e.target.value)}
@@ -133,7 +133,7 @@ export default function NewUserPage() {
                 </Select>
               </FormField>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Kich hoat</span>
+                <span className="text-sm font-medium">Kích hoạt</span>
                 <Switch
                   checked={form.is_active}
                   onCheckedChange={(c) => updateField('is_active', c)}
@@ -145,7 +145,7 @@ export default function NewUserPage() {
           <div className="flex flex-col gap-2">
             <Button className="w-full" disabled={createMutation.loading} onClick={handleSubmit}>
               <UserPlus className="h-4 w-4 mr-2" />
-              {createMutation.loading ? 'Dang tao...' : 'Tao nguoi dung'}
+              {createMutation.loading ? 'Đang tạo...' : 'Tạo người dùng'}
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/users')}>
               Huy

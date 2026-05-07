@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import dynamic from 'next/dynamic';
@@ -113,7 +113,7 @@ export function FilePreviewModal({
     return (
       <div className="flex flex-col items-center justify-center p-16 text-center">
         <FileQuestion className="h-16 w-16 text-gray-300 mb-3" />
-        <p className="text-gray-600 mb-4">Khong ho tro preview loai file nay</p>
+        <p className="text-gray-600 mb-4">Không hỗ trợ preview loại file này</p>
         <Button asChild>
           <a
             href={file.url}

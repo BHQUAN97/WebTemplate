@@ -45,7 +45,7 @@ export class TwoFactorService {
   }
 
   /**
-   * Lay encryption key tu env. Throw neu thieu — khong co fallback insecure.
+   * Lấy encryption key từ env. Throw nếu thiếu — không có fallback insecure.
    */
   private getEncryptionKey(): string {
     const key =
@@ -77,9 +77,9 @@ export class TwoFactorService {
    * Buoc 1: sinh secret moi + QR code. Luu encrypted secret nhung
    * CHUA set two_factor_enabled = true (se enable sau khi verify).
    *
-   * Yeu cau xac nhan password (step-up auth) — chong attacker chiem
-   * session ngan han khoi tao 2FA cua minh tren account nan nhan
-   * (pre-empt 2FA hijack). OAuth-only user (khong co password) bi block.
+   * Yêu cầu xác nhận password (step-up auth) — chống attacker chiếm
+   * session ngắn hạn khởi tạo 2FA của mình trên account nạn nhân
+   * (pre-empt 2FA hijack). OAuth-only user (không có password) bị block.
    */
   async generateSecret(
     userId: string,
@@ -88,10 +88,10 @@ export class TwoFactorService {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
 
-    // OAuth-only user: khong co password local -> khong the verify -> block
+    // OAuth-only user: không có password local -> không thể verify -> block
     if (!user.password_hash) {
       throw new BadRequestException(
-        'Tai khoan OAuth khong the bat 2FA bang password — vui long set password truoc',
+        'Tài khoản OAuth không thể bật 2FA bằng password — vui lòng set password trước',
       );
     }
     const ok = await comparePassword(currentPassword, user.password_hash);
@@ -136,13 +136,13 @@ export class TwoFactorService {
     if (!user) throw new NotFoundException('User not found');
     if (!user.two_factor_secret) {
       throw new BadRequestException(
-        'Ban phai goi /auth/2fa/setup truoc khi enable',
+        'Bạn phải gọi /auth/2fa/setup trước khi enable',
       );
     }
 
     const ok = await this.verifyCode(user, code);
     if (!ok) {
-      throw new BadRequestException('Ma 2FA khong hop le');
+      throw new BadRequestException('Mã 2FA không hợp lệ');
     }
 
     await this.userRepo.update(userId, {
@@ -247,21 +247,21 @@ export class TwoFactorService {
     const user = await this.userRepo.findOneBy({ id: userId });
     if (!user) throw new NotFoundException('User not found');
     if (!user.password_hash) {
-      // User OAuth khong co password -> khong the disable bang password
+      // User OAuth không có password -> không thể disable bằng password
       throw new BadRequestException(
-        'Tai khoan OAuth khong the tat 2FA bang password',
+        'Tài khoản OAuth không thể tắt 2FA bằng password',
       );
     }
     const ok = await comparePassword(currentPassword, user.password_hash);
-    if (!ok) throw new UnauthorizedException('Mat khau khong dung');
+    if (!ok) throw new UnauthorizedException('Mật khẩu không đúng');
 
-    // Step-up: phai verify TOTP/backup code TRUOC khi cho phep tat
+    // Step-up: phải verify TOTP/backup code TRƯỚC khi cho phép tắt
     if (!user.two_factor_secret || !user.two_factor_enabled) {
-      throw new BadRequestException('2FA chua duoc bat tren tai khoan nay');
+      throw new BadRequestException('2FA chưa được bật trên tài khoản này');
     }
     const totpOk = await this.verifyCode(user, totpCode);
     if (!totpOk) {
-      throw new UnauthorizedException('Ma 2FA khong hop le');
+      throw new UnauthorizedException('Mã 2FA không hợp lệ');
     }
 
     await this.userRepo.update(userId, {
@@ -315,11 +315,11 @@ export class TwoFactorService {
     if (!user) throw new NotFoundException('User not found');
     if (!user.password_hash) {
       throw new BadRequestException(
-        'Tai khoan OAuth khong the regenerate backup codes bang password',
+        'Tài khoản OAuth không thể regenerate backup codes bằng password',
       );
     }
     const ok = await comparePassword(currentPassword, user.password_hash);
-    if (!ok) throw new UnauthorizedException('Mat khau khong dung');
+    if (!ok) throw new UnauthorizedException('Mật khẩu không đúng');
 
     return this.generateBackupCodes(userId);
   }

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
@@ -39,7 +39,7 @@ export default function ChatScenariosPage() {
       const data = Array.isArray(res) ? res : (res?.data ?? []);
       setItems(data);
     } catch (err) {
-      toast('Khong tai duoc', (err as Error).message, 'destructive');
+      toast('Không tải được', (err as Error).message, 'destructive');
     } finally {
       setLoading(false);
     }
@@ -57,7 +57,7 @@ export default function ChatScenariosPage() {
       setDeleteId(null);
       load();
     } catch (err) {
-      toast('Xoa that bai', (err as Error).message, 'destructive');
+      toast('Xóa that bai', (err as Error).message, 'destructive');
     }
   };
 
@@ -66,7 +66,7 @@ export default function ChatScenariosPage() {
       await adminChatApi.updateScenario(row.id, { isActive: !row.isActive });
       load();
     } catch (err) {
-      toast('Cap nhat that bai', (err as Error).message, 'destructive');
+      toast('Cập nhật that bai', (err as Error).message, 'destructive');
     }
   };
 
@@ -119,7 +119,7 @@ export default function ChatScenariosPage() {
       render: (row) => (
         <StatusBadge
           status={row.isActive ? 'active' : 'inactive'}
-          label={row.isActive ? 'Dang bat' : 'Tat'}
+          label={row.isActive ? 'Đang bật' : 'Tắt'}
         />
       ),
     },
@@ -127,17 +127,17 @@ export default function ChatScenariosPage() {
 
   const actions: ActionDef<ChatScenario>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => router.push(`/admin/chat-scenarios/${row.id}/edit`),
     },
     {
-      label: 'Bat/Tat',
+      label: 'Bật/Tắt',
       icon: <Power className="h-4 w-4 mr-2" />,
       onClick: (row) => toggleActive(row),
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -157,7 +157,7 @@ export default function ChatScenariosPage() {
         actions={
           <Button onClick={() => router.push('/admin/chat-scenarios/new')}>
             <Plus className="mr-2 h-4 w-4" />
-            Tao kich ban
+            Tạo kich ban
           </Button>
         }
       />
@@ -168,7 +168,7 @@ export default function ChatScenariosPage() {
             <SelectValue placeholder="Loai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca loai</SelectItem>
+            <SelectItem value="all">Tất cả loại</SelectItem>
             {Object.entries(TRIGGER_LABELS).map(([v, label]) => (
               <SelectItem key={v} value={v}>
                 {label}
@@ -182,9 +182,9 @@ export default function ChatScenariosPage() {
             <SelectValue placeholder="Trang thai" />
           </SelectTrigger>
           <SelectContent>
-            <SelectItem value="all">Tat ca</SelectItem>
-            <SelectItem value="true">Dang bat</SelectItem>
-            <SelectItem value="false">Tat</SelectItem>
+            <SelectItem value="all">Tất cả</SelectItem>
+            <SelectItem value="true">Đang bật</SelectItem>
+            <SelectItem value="false">Tắt</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -199,10 +199,10 @@ export default function ChatScenariosPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa kich ban"
+        title="Xóa kich ban"
         description="Ban co chac muon xoa kich ban nay? Hanh dong khong the hoan tac."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
       />
     </div>

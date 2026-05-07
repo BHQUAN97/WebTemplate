@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { ProductDetailClient } from './product-detail-client';
 import { productsApi } from '@/lib/api/modules/products.api';
 import { brand } from '@/lib/config/brand';
@@ -37,7 +37,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
       const description =
         product.short_description ??
         product.description?.slice(0, 160) ??
-        `Chi tiet san pham ${product.name}`;
+        `Chi tiết san pham ${product.name}`;
       return {
         title,
         description,
@@ -55,7 +55,7 @@ export async function generateMetadata({ params }: Props): Promise<Metadata> {
 
   return {
     title: `${slug.replace(/-/g, ' ')} - ${brand.name}`,
-    description: 'Xem chi tiet san pham tai ' + brand.name,
+    description: 'Xem chi tiết san pham tai ' + brand.name,
   };
 }
 

@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { brand } from '@/lib/config/brand';
 import type { Article, Product } from '@/lib/types';
 
@@ -6,7 +6,7 @@ import type { Article, Product } from '@/lib/types';
  * JSON-LD structured data helpers.
  *
  * Dung de inject Schema.org markup vao trang — cai thien SEO rich results.
- * Tat ca helper deu tra ve plain object; component <JsonLd /> chiu trach nhiem render.
+ * Tất cả helper deu tra ve plain object; component <JsonLd /> chiu trach nhiem render.
  */
 
 // Kieu du lieu chung cho JSON-LD payload

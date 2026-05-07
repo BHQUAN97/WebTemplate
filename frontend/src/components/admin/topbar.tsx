@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { Search, LogOut, Settings, User as UserIcon } from 'lucide-react';
@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { ThemeToggle } from '@/components/shared/theme-toggle';
+import { ThêmeToggle } from '@/components/shared/theme-toggle';
 import { NotificationBell } from '@/components/shared/notification-bell';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useUIStore } from '@/lib/stores/ui.store';
@@ -44,12 +44,12 @@ export function AdminTopbar() {
       {/* Search */}
       <div className="relative hidden sm:block w-full max-w-sm">
         <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-gray-400" />
-        <Input placeholder="Tim kiem..." className="pl-9" />
+        <Input placeholder="Tìm kiếm..." className="pl-9" />
       </div>
 
       {/* Right side */}
       <div className="flex items-center gap-2 ml-auto">
-        <ThemeToggle />
+        <ThêmeToggle />
 
         {/* Notifications bell voi dropdown */}
         <NotificationBell />
@@ -76,13 +76,13 @@ export function AdminTopbar() {
             <DropdownMenuItem asChild>
               <Link href="/admin/profile" className="flex items-center gap-2">
                 <UserIcon className="h-4 w-4" />
-                Ho so
+                Hồ sơ
               </Link>
             </DropdownMenuItem>
             <DropdownMenuItem asChild>
               <Link href="/admin/settings" className="flex items-center gap-2">
                 <Settings className="h-4 w-4" />
-                Cai dat
+                Cài đặt
               </Link>
             </DropdownMenuItem>
             <DropdownMenuSeparator />
@@ -91,7 +91,7 @@ export function AdminTopbar() {
               className="text-red-600 focus:text-red-600"
             >
               <LogOut className="h-4 w-4 mr-2" />
-              Dang xuat
+              Đăng xuất
             </DropdownMenuItem>
           </DropdownMenuContent>
         </DropdownMenu>

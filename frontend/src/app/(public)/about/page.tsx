@@ -1,4 +1,4 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import Link from 'next/link';
 import { Target, Eye, Heart, Users } from 'lucide-react';
 import { Button } from '@/components/ui/button';
@@ -41,7 +41,7 @@ export default function AboutPage() {
         <h2 className="text-2xl font-bold mb-6">Cau chuyen cua chung toi</h2>
         <div className="prose prose-sm sm:prose max-w-none text-gray-600">
           <p>
-            Bat dau tu nam 2020 voi chi 2 thanh vien, WebTemplate da phat trien
+            Bật dau tu nam 2020 voi chi 2 thanh vien, WebTemplate da phat trien
             thanh mot nen tang thuong mai dien tu hang dau. Chung toi tin rang
             moi nguoi deu xung dang co duoc san pham chat luong voi gia ca hop ly.
           </p>

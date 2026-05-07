@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Plus, Pencil, Trash2, Tag } from 'lucide-react';
@@ -26,9 +26,9 @@ const promotionSchema = z.object({
   description: z.string().optional(),
   discount_type: z.enum(['PERCENTAGE', 'FIXED'], { error: 'Chon loai giam gia' }),
   discount_value: z.number({ error: 'Gia tri phai la so' }).min(0, 'Gia tri khong duoc am'),
-  min_order_amount: z.number().min(0, 'Khong duoc am').optional().nullable(),
-  max_discount: z.number().min(0, 'Khong duoc am').optional().nullable(),
-  usage_limit: z.number().min(0, 'Khong duoc am').optional().nullable(),
+  min_order_amount: z.number().min(0, 'Không được âm').optional().nullable(),
+  max_discount: z.number().min(0, 'Không được âm').optional().nullable(),
+  usage_limit: z.number().min(0, 'Không được âm').optional().nullable(),
   start_date: z.string().min(1, 'Ngay bat dau la bat buoc'),
   end_date: z.string().min(1, 'Ngay ket thuc la bat buoc'),
   is_active: z.boolean(),
@@ -65,12 +65,12 @@ export default function PromotionsPage() {
 
   // Tinh trang thai khuyen mai
   const getPromoStatus = (promo: Promotion): { status: string; label: string } => {
-    if (!promo.is_active) return { status: 'inactive', label: 'Tat' };
+    if (!promo.is_active) return { status: 'inactive', label: 'Tắt' };
     const now = new Date();
     if (new Date(promo.start_date) > now) return { status: 'PENDING', label: 'Chua bat dau' };
     if (new Date(promo.end_date) < now) return { status: 'CLOSED', label: 'Het han' };
     if (promo.usage_limit && promo.used_count >= promo.usage_limit) return { status: 'CLOSED', label: 'Het luot' };
-    return { status: 'active', label: 'Dang hoat dong' };
+    return { status: 'active', label: 'Đang hoạt động' };
   };
 
   const columns: ColumnDef<Promotion>[] = [
@@ -127,7 +127,7 @@ export default function PromotionsPage() {
 
   const actions: ActionDef<Promotion>[] = [
     {
-      label: 'Chinh sua',
+      label: 'Chỉnh sửa',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => {
         setEditingId(row.id);
@@ -144,7 +144,7 @@ export default function PromotionsPage() {
       },
     },
     {
-      label: 'Xoa',
+      label: 'Xóa',
       icon: <Trash2 className="h-4 w-4 mr-2" />,
       variant: 'destructive',
       onClick: (row) => setDeleteId(row.id),
@@ -192,7 +192,7 @@ export default function PromotionsPage() {
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Tao ma giam gia
+            Tạo ma giam gia
           </Button>
         }
       />
@@ -217,7 +217,7 @@ export default function PromotionsPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Chinh sua khuyen mai' : 'Tao ma giam gia moi'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Chỉnh sửa khuyến mãi' : 'Tạo mã giảm giá mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
@@ -251,15 +251,15 @@ export default function PromotionsPage() {
               </FormField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Don hang toi thieu" error={errors.min_order_amount}>
+              <FormField label="Đơn hàng toi thieu" error={errors.min_order_amount}>
                 <Input type="number" value={form.min_order_amount ?? ''} onChange={(e) => setForm((p) => ({ ...p, min_order_amount: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0" />
               </FormField>
               <FormField label="Giam toi da" error={errors.max_discount}>
-                <Input type="number" value={form.max_discount ?? ''} onChange={(e) => setForm((p) => ({ ...p, max_discount: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="Khong gioi han" />
+                <Input type="number" value={form.max_discount ?? ''} onChange={(e) => setForm((p) => ({ ...p, max_discount: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="Không giới hạn" />
               </FormField>
             </div>
             <FormField label="Gioi han luot dung" error={errors.usage_limit}>
-              <Input type="number" value={form.usage_limit ?? ''} onChange={(e) => setForm((p) => ({ ...p, usage_limit: e.target.value ? parseInt(e.target.value) : null }))} placeholder="Khong gioi han" />
+              <Input type="number" value={form.usage_limit ?? ''} onChange={(e) => setForm((p) => ({ ...p, usage_limit: e.target.value ? parseInt(e.target.value) : null }))} placeholder="Không giới hạn" />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
               <FormField label="Ngay bat dau" error={errors.start_date} required>
@@ -270,14 +270,14 @@ export default function PromotionsPage() {
               </FormField>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Kich hoat</span>
+              <span className="text-sm font-medium">Kích hoạt</span>
               <Switch checked={form.is_active} onCheckedChange={(c) => setForm((p) => ({ ...p, is_active: c }))} />
             </div>
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -286,10 +286,10 @@ export default function PromotionsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa khuyen mai"
+        title="Xóa khuyen mai"
         description="Ban co chac chan muon xoa ma khuyen mai nay?"
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import type { Editor } from '@tiptap/react';
@@ -70,7 +70,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
   const handleSubmitModal = () => {
     const trimmed = url.trim();
     if (!trimmed) {
-      setUrlError('Vui long nhap URL');
+      setUrlError('Vui lòng nhập URL');
       return;
     }
 

@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { ChatWidget } from './chat-widget';
 
 interface Props {
   /**
-   * Tat widget tren cac layout khong can (vd: admin, dashboard noi bo).
+   * Tắt widget tren cac layout khong can (vd: admin, dashboard noi bo).
    */
   disabled?: boolean;
 }

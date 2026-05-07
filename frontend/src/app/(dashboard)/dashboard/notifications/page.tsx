@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
@@ -123,7 +123,7 @@ export default function NotificationsPage() {
       setItems(list);
     } catch (err) {
       const msg =
-        err instanceof ApiError ? err.message : 'Khong tai duoc thong bao';
+        err instanceof ApiError ? err.message : 'Không tải được thong bao';
       toast('Loi', msg, 'destructive');
       setItems([]);
     } finally {
@@ -163,7 +163,7 @@ export default function NotificationsPage() {
         prev.map((n) => (n.id === id ? { ...n, is_read: false } : n)),
       );
       const msg =
-        err instanceof ApiError ? err.message : 'Khong the danh dau da doc';
+        err instanceof ApiError ? err.message : 'Không thể đánh dấu đã đọc';
       toast('Loi', msg, 'destructive');
     }
   };
@@ -216,7 +216,7 @@ export default function NotificationsPage() {
     } catch (err) {
       // Rollback va reload de dong bo
       setItems(snapshot);
-      const msg = err instanceof ApiError ? err.message : 'Khong the xoa';
+      const msg = err instanceof ApiError ? err.message : 'Không thể xóa';
       toast('Loi', msg, 'destructive');
       await load();
     } finally {
@@ -232,7 +232,7 @@ export default function NotificationsPage() {
       <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
         <div className="space-y-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl font-bold sm:text-3xl">Thong bao</h1>
+            <h1 className="text-2xl font-bold sm:text-3xl">Thông báo</h1>
             {unreadCount > 0 && (
               <Badge variant="destructive" className="h-6 rounded-full px-2 text-xs">
                 {unreadCount} chua doc
@@ -240,7 +240,7 @@ export default function NotificationsPage() {
             )}
           </div>
           <p className="text-sm text-muted-foreground">
-            Tat ca thong bao cua ban o day. Click de xem chi tiet.
+            Tất cả thông báo của bạn ở đây. Click để xem chi tiết.
           </p>
         </div>
 
@@ -269,7 +269,7 @@ export default function NotificationsPage() {
             ) : (
               <Trash2 className="mr-2 h-4 w-4" />
             )}
-            Xoa da doc
+            Xóa da doc
           </Button>
         </div>
       </div>
@@ -278,7 +278,7 @@ export default function NotificationsPage() {
       <Tabs value={filter} onValueChange={(v) => setFilter(v as Filter)}>
         <TabsList>
           <TabsTrigger value="all">
-            Tat ca
+            Tất cả
             <span className="ml-1.5 text-xs text-muted-foreground">
               {items.length}
             </span>
@@ -310,10 +310,10 @@ export default function NotificationsPage() {
           icon={<Inbox className="h-12 w-12" />}
           title={
             filter === 'unread'
-              ? 'Khong co thong bao chua doc'
+              ? 'Không có thong bao chua doc'
               : filter === 'read'
-                ? 'Chua co thong bao da doc'
-                : 'Chua co thong bao nao'
+                ? 'Chưa có thông báo đã đọc'
+                : 'Chưa có thông báo nào'
           }
           description="Khi co thong bao moi, ho se xuat hien tai day."
         />

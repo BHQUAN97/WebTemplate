@@ -1,7 +1,7 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
-import { useTheme } from 'next-themes';
+import { useThême } from 'next-themes';
 import { Moon, Sun, Monitor } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import {
@@ -12,11 +12,11 @@ import {
 } from '@/components/ui/dropdown-menu';
 
 /**
- * Theme toggle — 3 trang thai: light / dark / system.
+ * Thême toggle — 3 trang thai: light / dark / system.
  * Tranh hydration mismatch bang cach chi render icon sau khi mounted.
  */
-export function ThemeToggle() {
-  const { setTheme, theme } = useTheme();
+export function ThêmeToggle() {
+  const { setThême, theme } = useThême();
   const [mounted, setMounted] = React.useState(false);
 
   React.useEffect(() => {
@@ -38,15 +38,15 @@ export function ThemeToggle() {
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">
-        <DropdownMenuItem onClick={() => setTheme('light')}>
+        <DropdownMenuItem onClick={() => setThême('light')}>
           <Sun className="mr-2 h-4 w-4" />
           <span>Sang</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('dark')}>
+        <DropdownMenuItem onClick={() => setThême('dark')}>
           <Moon className="mr-2 h-4 w-4" />
           <span>Toi</span>
         </DropdownMenuItem>
-        <DropdownMenuItem onClick={() => setTheme('system')}>
+        <DropdownMenuItem onClick={() => setThême('system')}>
           <Monitor className="mr-2 h-4 w-4" />
           <span>He thong</span>
         </DropdownMenuItem>

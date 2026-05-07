@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import Link from 'next/link';
 import { usePathname, useRouter } from 'next/navigation';
@@ -20,11 +20,11 @@ import { authApi } from '@/lib/api/modules/auth.api';
 import { cn } from '@/lib/utils';
 
 const sidebarLinks = [
-  { href: '/dashboard', icon: LayoutDashboard, label: 'Tong quan' },
-  { href: '/profile', icon: User, label: 'Ho so' },
-  { href: '/orders', icon: ShoppingBag, label: 'Don hang' },
-  { href: '/wishlist', icon: Heart, label: 'Yeu thich' },
-  { href: '/settings', icon: Settings, label: 'Cai dat' },
+  { href: '/dashboard', icon: LayoutDashboard, label: 'Tổng quan' },
+  { href: '/profile', icon: User, label: 'Hồ sơ' },
+  { href: '/orders', icon: ShoppingBag, label: 'Đơn hàng' },
+  { href: '/wishlist', icon: Heart, label: 'Yêu thích' },
+  { href: '/settings', icon: Settings, label: 'Cài đặt' },
 ];
 
 /**
@@ -131,7 +131,7 @@ export default function DashboardLayout({
                 className="flex items-center gap-3 px-3 py-2.5 rounded-lg text-sm font-medium text-destructive hover:bg-destructive/10 w-full transition-colors focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring"
               >
                 <LogOut className="h-5 w-5" />
-                Dang xuat
+                Đăng xuất
               </button>
             </div>
           </div>

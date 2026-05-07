@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState } from 'react';
 import { Bell, Globe, Moon, Sun, Download, Trash2 } from 'lucide-react';
@@ -8,7 +8,7 @@ import { Switch } from '@/components/ui/switch';
 import { Label } from '@/components/ui/label';
 
 export default function DashboardSettingsPage() {
-  const [theme, setTheme] = useState<'light' | 'dark'>('light');
+  const [theme, setThême] = useState<'light' | 'dark'>('light');
   const [locale, setLocale] = useState('vi');
   const [notifications, setNotifications] = useState({
     orderUpdates: true,
@@ -31,26 +31,26 @@ export default function DashboardSettingsPage() {
 
   const handleExportData = () => {
     // TODO: trigger data export via API
-    alert('Yeu cau xuat du lieu da duoc gui. Ban se nhan email khi hoan tat.');
+    alert('Yếu cau xuat du lieu da duoc gui. Ban se nhan email khi hoan tat.');
   };
 
   return (
     <div className="space-y-6">
-      <h1 className="text-2xl font-bold">Cai dat</h1>
+      <h1 className="text-2xl font-bold">Cài đặt</h1>
 
-      {/* Thong bao */}
+      {/* Thông báo */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <Bell className="h-5 w-5" />
-            Thong bao
+            Thông báo
           </CardTitle>
           <CardDescription>Quan ly cach ban nhan thong bao</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label>Cap nhat don hang</Label>
+              <Label>Cập nhật don hang</Label>
               <p className="text-sm text-gray-500">Nhan thong bao khi don hang thay doi trang thai</p>
             </div>
             <Switch
@@ -115,7 +115,7 @@ export default function DashboardSettingsPage() {
             </div>
             <Switch
               checked={theme === 'dark'}
-              onCheckedChange={(checked) => setTheme(checked ? 'dark' : 'light')}
+              onCheckedChange={(checked) => setThême(checked ? 'dark' : 'light')}
             />
           </div>
         </CardContent>
@@ -170,12 +170,12 @@ export default function DashboardSettingsPage() {
           <div className="border-t pt-4">
             <div className="flex items-center justify-between">
               <div>
-                <Label className="text-red-600">Xoa tai khoan</Label>
-                <p className="text-sm text-gray-500">Xoa vinh vien tai khoan va toan bo du lieu</p>
+                <Label className="text-red-600">Xóa tài khoản</Label>
+                <p className="text-sm text-gray-500">Xóa vĩnh viễn tai khoan va toan bo du lieu</p>
               </div>
               <Button variant="destructive" size="sm">
                 <Trash2 className="h-4 w-4 mr-1" />
-                Xoa tai khoan
+                Xóa tài khoản
               </Button>
             </div>
           </div>
@@ -184,7 +184,7 @@ export default function DashboardSettingsPage() {
 
       <div className="flex justify-end">
         <Button onClick={handleSave} disabled={saving}>
-          {saving ? 'Dang luu...' : 'Luu cai dat'}
+          {saving ? 'Đang lưu...' : 'Lưu cài đặt'}
         </Button>
       </div>
     </div>

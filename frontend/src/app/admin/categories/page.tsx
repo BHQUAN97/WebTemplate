@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import React, { useState } from 'react';
 import { Plus, Pencil, Trash2 } from 'lucide-react';
@@ -34,8 +34,8 @@ const categorySchema = z.object({
 type CategoryForm = z.infer<typeof categorySchema>;
 
 const TYPES = [
-  { value: 'product', label: 'San pham' },
-  { value: 'article', label: 'Bai viet' },
+  { value: 'product', label: 'Sản phẩm' },
+  { value: 'article', label: 'Bài viết' },
   { value: 'faq', label: 'FAQ' },
   { value: 'general', label: 'Chung' },
 ];
@@ -136,12 +136,12 @@ export default function CategoriesPage() {
         title="Quan ly danh muc"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Danh muc' },
+          { label: 'Danh mục' },
         ]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Them danh muc
+            Thêm danh muc
           </Button>
         }
       />
@@ -193,7 +193,7 @@ export default function CategoriesPage() {
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
-            <DialogTitle>{editingId ? 'Chinh sua danh muc' : 'Them danh muc moi'}</DialogTitle>
+            <DialogTitle>{editingId ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <FormField label="Ten danh muc" error={errors.name} required>
@@ -224,11 +224,11 @@ export default function CategoriesPage() {
                   </SelectContent>
                 </Select>
               </FormField>
-              <FormField label="Danh muc cha">
+              <FormField label="Danh mục cha">
                 <Select value={form.parent_id ?? 'none'} onValueChange={(val) => setForm((p) => ({ ...p, parent_id: val === 'none' ? null : val }))}>
-                  <SelectTrigger><SelectValue placeholder="Khong co" /></SelectTrigger>
+                  <SelectTrigger><SelectValue placeholder="Không có" /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="none">Khong co</SelectItem>
+                    <SelectItem value="none">Không có</SelectItem>
                     {categories.map((c) => <SelectItem key={c.id} value={c.id}>{c.name}</SelectItem>)}
                   </SelectContent>
                 </Select>
@@ -245,7 +245,7 @@ export default function CategoriesPage() {
           <DialogFooter>
             <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
-              {saveMutation.loading ? 'Dang luu...' : 'Luu'}
+              {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -254,10 +254,10 @@ export default function CategoriesPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xoa danh muc"
+        title="Xóa danh muc"
         description="Ban co chac chan muon xoa danh muc nay? Cac danh muc con cung se bi anh huong."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

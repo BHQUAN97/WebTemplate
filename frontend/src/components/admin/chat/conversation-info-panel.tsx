@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Mail, Phone, Globe, Monitor, MapPin, Tag } from 'lucide-react';
@@ -23,7 +23,7 @@ export function ConversationInfoPanel({
         </h3>
         <div className="space-y-2 text-sm">
           <p className="font-medium">
-            {conversation.customerName ?? `Khach #${conversation.id.slice(-6).toUpperCase()}`}
+            {conversation.customerName ?? `Khách #${conversation.id.slice(-6).toUpperCase()}`}
           </p>
           {conversation.customerEmail && (
             <p className="flex items-center gap-2 text-gray-600 dark:text-gray-300">
@@ -92,11 +92,11 @@ export function ConversationInfoPanel({
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Thoi gian</h3>
         <dl className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <dt className="text-gray-500">Tao luc</dt>
+            <dt className="text-gray-500">Tạo luc</dt>
             <dd>{new Date(conversation.createdAt).toLocaleString('vi-VN')}</dd>
           </div>
           <div className="flex justify-between">
-            <dt className="text-gray-500">Cap nhat</dt>
+            <dt className="text-gray-500">Cập nhật</dt>
             <dd>{new Date(conversation.updatedAt).toLocaleString('vi-VN')}</dd>
           </div>
           {conversation.closedAt && (
@@ -113,7 +113,7 @@ export function ConversationInfoPanel({
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Phan hoi</h3>
           <p className="text-sm text-gray-700 dark:text-gray-200">{conversation.feedback}</p>
           {conversation.rating != null && (
-            <p className="mt-1 text-xs text-yellow-600">Danh gia: {conversation.rating}/5</p>
+            <p className="mt-1 text-xs text-yellow-600">Đánh giá: {conversation.rating}/5</p>
           )}
         </section>
       )}

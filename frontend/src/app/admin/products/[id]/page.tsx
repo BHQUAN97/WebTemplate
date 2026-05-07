@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useState, useEffect } from 'react';
 import { useRouter, useParams } from 'next/navigation';
@@ -44,7 +44,7 @@ interface VariantRow {
   attributes: string;
 }
 
-/** Chinh sua san pham */
+/** Chỉnh sửa san pham */
 export default function EditProductPage() {
   const router = useRouter();
   const params = useParams();
@@ -162,16 +162,16 @@ export default function EditProductPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title={`Chinh sua: ${form.name || '...'}`}
+        title={`Chỉnh sửa: ${form.name || '...'}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'San pham', href: '/admin/products' },
-          { label: 'Chinh sua' },
+          { label: 'Sản phẩm', href: '/admin/products' },
+          { label: 'Chỉnh sửa' },
         ]}
         actions={
           <Button variant="destructive" onClick={() => setShowDelete(true)}>
             <Trash2 className="h-4 w-4 mr-2" />
-            Xoa
+            Xóa
           </Button>
         }
       />
@@ -242,7 +242,7 @@ export default function EditProductPage() {
               <CardHeader className="flex flex-row items-center justify-between">
                 <CardTitle>Bien the san pham</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-                  <Plus className="h-4 w-4 mr-1" /> Them bien the
+                  <Plus className="h-4 w-4 mr-1" /> Thêm bien the
                 </Button>
               </CardHeader>
               <CardContent>
@@ -295,11 +295,11 @@ export default function EditProductPage() {
             <Card>
               <CardHeader><CardTitle>To chuc</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="Danh muc">
+                <FormField label="Danh mục">
                   <Select value={form.category_id ?? ''} onValueChange={(val) => updateField('category_id', val || null)}>
                     <SelectTrigger><SelectValue placeholder="Chon danh muc" /></SelectTrigger>
                     <SelectContent>
-                      <SelectItem value="none">Khong co</SelectItem>
+                      <SelectItem value="none">Không có</SelectItem>
                     </SelectContent>
                   </Select>
                 </FormField>
@@ -313,7 +313,7 @@ export default function EditProductPage() {
               <CardHeader><CardTitle>Trang thai</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Dang ban</span>
+                  <span className="text-sm font-medium">Đang bán</span>
                   <Switch checked={form.is_active} onCheckedChange={(c) => updateField('is_active', c)} />
                 </div>
                 <div className="flex items-center justify-between">
@@ -326,7 +326,7 @@ export default function EditProductPage() {
             <div className="flex flex-col gap-2">
               <Button type="submit" className="w-full" disabled={updateMutation.loading}>
                 <Save className="h-4 w-4 mr-2" />
-                {updateMutation.loading ? 'Dang luu...' : 'Cap nhat'}
+                {updateMutation.loading ? 'Đang lưu...' : 'Cập nhật'}
               </Button>
               <Button type="button" variant="outline" className="w-full" onClick={() => router.push('/admin/products')}>
                 <X className="h-4 w-4 mr-2" /> Huy
@@ -341,10 +341,10 @@ export default function EditProductPage() {
       <ConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
-        title="Xoa san pham"
-        description="Ban co chac chan muon xoa san pham nay? Hanh dong nay khong the hoan tac."
+        title="Xóa sản phẩm"
+        description="Bạn có chắc chắn muốn xóa sản phẩm này? Hành động này không thể hoàn tác."
         onConfirm={handleDelete}
-        confirmLabel="Xoa"
+        confirmLabel="Xóa"
         variant="danger"
         loading={deleteMutation.loading}
       />

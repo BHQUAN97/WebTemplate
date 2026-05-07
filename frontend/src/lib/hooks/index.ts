@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   useState,
@@ -135,10 +135,10 @@ export function getOrderStatusInfo(status: string): {
   const map: Record<string, { label: string; color: string }> = {
     PENDING: { label: 'Cho xu ly', color: 'bg-yellow-100 text-yellow-800' },
     CONFIRMED: { label: 'Da xac nhan', color: 'bg-blue-100 text-blue-800' },
-    PROCESSING: { label: 'Dang xu ly', color: 'bg-indigo-100 text-indigo-800' },
-    SHIPPED: { label: 'Dang giao', color: 'bg-purple-100 text-purple-800' },
-    DELIVERED: { label: 'Da giao', color: 'bg-green-100 text-green-800' },
-    CANCELLED: { label: 'Da huy', color: 'bg-red-100 text-red-800' },
+    PROCESSING: { label: 'Đang xử lý', color: 'bg-indigo-100 text-indigo-800' },
+    SHIPPED: { label: 'Đang giao', color: 'bg-purple-100 text-purple-800' },
+    DELIVERED: { label: 'Đã giao', color: 'bg-green-100 text-green-800' },
+    CANCELLED: { label: 'Đã hủy', color: 'bg-red-100 text-red-800' },
     REFUNDED: { label: 'Da hoan tien', color: 'bg-gray-100 text-gray-800' },
     RETURNED: { label: 'Da tra hang', color: 'bg-orange-100 text-orange-800' },
   };
