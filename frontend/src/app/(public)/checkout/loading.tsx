@@ -1,5 +1,5 @@
-/**
- * Skeleton fallback cho trang thanh toan — Next.js auto-Suspense
+﻿/**
+ * Skeleton fallback cho trang Thanh toán — Next.js auto-Suspense
  */
 export default function Loading() {
   return (

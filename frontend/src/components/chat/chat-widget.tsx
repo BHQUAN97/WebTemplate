@@ -103,7 +103,7 @@ export function ChatWidget() {
   // Header title/subtitle dung theo mode
   const headerInfo = useMemo(() => {
     if (mode === 'human' && agent?.name) {
-      return { title: agent.name, subtitle: 'Nhân viên ho tro' };
+      return { title: agent.name, subtitle: 'Nhân viên Hỗ trợ' };
     }
     if (mode === 'offline') {
       return { title: 'Hỗ trợ khách hàng', subtitle: 'Đang ngoài giờ trực' };
@@ -120,7 +120,7 @@ export function ChatWidget() {
         <button
           type="button"
           onClick={openWidget}
-          aria-label="Mo hop chat ho tro"
+          aria-label="Mo hop chat Hỗ trợ"
           className="fixed bottom-4 right-4 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-blue-600 text-white shadow-lg transition-transform hover:scale-105 hover:bg-blue-700 active:scale-95 print:hidden"
           style={{
             bottom: 'calc(env(safe-area-inset-bottom, 0px) + 1rem)',
@@ -141,7 +141,7 @@ export function ChatWidget() {
           ref={panelRef}
           role="dialog"
           aria-modal="false"
-          aria-label="Hop chat ho tro"
+          aria-label="Hop chat Hỗ trợ"
           tabIndex={-1}
           className={cn(
             'fixed z-50 flex flex-col overflow-hidden bg-white shadow-2xl outline-none dark:bg-gray-950 print:hidden',
@@ -200,7 +200,7 @@ export function ChatWidget() {
                 onStart={(profile) => startConversation(profile)}
                 onSkip={() =>
                   startConversation({
-                    initialMessage: 'Xin chao, toi can ho tro.',
+                    initialMessage: 'Xin chao, toi can Hỗ trợ.',
                   })
                 }
               />
@@ -230,7 +230,7 @@ export function ChatWidget() {
               )}
 
               <ChatInput
-                placeholder="Nhap tin nhan..."
+                placeholder="Nháp tin nhan..."
                 onSend={handleSend}
                 onTypingChange={sendTyping}
               />

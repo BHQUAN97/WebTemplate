@@ -17,7 +17,7 @@ import { useToast } from '@/lib/hooks/use-toast';
 import { formatDate } from '@/lib/utils/format';
 import type { ApiResponse, Review } from '@/lib/types';
 
-/** Quan ly danh gia (admin) */
+/** Quản lý Đánh giá (admin) */
 export default function AdminReviewsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
@@ -77,7 +77,7 @@ export default function AdminReviewsPage() {
     },
     {
       key: 'user',
-      header: 'Nguoi viet',
+      header: 'Người viết',
       render: (row) => row.user?.name ?? row.user?.email ?? '---',
     },
     {
@@ -107,16 +107,16 @@ export default function AdminReviewsPage() {
     },
     {
       key: 'is_approved',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <Badge variant={row.is_approved ? 'success' : 'warning'}>
-          {row.is_approved ? 'Da duyet' : 'Cho duyet'}
+          {row.is_approved ? 'Đã duyệt' : 'Chờ duyệt'}
         </Badge>
       ),
     },
     {
       key: 'created_at',
-      header: 'Ngay tao',
+      header: 'Ngày tạo',
       sortable: true,
       render: (row) => formatDate(row.created_at),
     },
@@ -124,19 +124,19 @@ export default function AdminReviewsPage() {
 
   const actions: ActionDef<Review>[] = [
     {
-      label: 'Duyet',
+      label: 'Duyệt',
       icon: <Check className="h-4 w-4 mr-2" />,
       onClick: (row) => setApproveId(row.id),
       hidden: (row) => row.is_approved,
     },
     {
-      label: 'Tu choi',
+      label: 'Từ chối',
       icon: <X className="h-4 w-4 mr-2" />,
       onClick: (row) => setRejectId(row.id),
       hidden: (row) => !row.is_approved,
     },
     {
-      label: 'Tra loi',
+      label: 'Trả lời',
       icon: <MessageSquare className="h-4 w-4 mr-2" />,
       onClick: (row) => {
         setReplyReview(row);
@@ -155,7 +155,7 @@ export default function AdminReviewsPage() {
     await approveMutation.mutate();
     setApproveId(null);
     refetch();
-    toast('Da duyet danh gia', undefined, 'success');
+    toast('Đã duyệt đánh giá', undefined, 'success');
   };
 
   const handleReject = async () => {
@@ -174,7 +174,7 @@ export default function AdminReviewsPage() {
     if (!replyText.trim()) return;
     const res = await replyMutation.mutate({ content: replyText });
     if (res) {
-      toast('Da gui phan hoi', undefined, 'success');
+      toast('Đã gửi phản hồi', undefined, 'success');
       setReplyReview(null);
       setReplyText('');
       refetch();
@@ -184,8 +184,8 @@ export default function AdminReviewsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly danh gia"
-        description="Duyet va phan hoi danh gia tu khach hang"
+        title="Quản lý đánh giá"
+        description="Duyệt và phản hồi đánh giá từ khách hàng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Đánh giá' },
@@ -196,19 +196,19 @@ export default function AdminReviewsPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value="pending">Cho duyet</SelectItem>
-            <SelectItem value="approved">Da duyet</SelectItem>
-            <SelectItem value="rejected">Tu choi</SelectItem>
+            <SelectItem value="pending">Chờ duyệt</SelectItem>
+            <SelectItem value="approved">Đã duyệt</SelectItem>
+            <SelectItem value="rejected">Từ chối</SelectItem>
           </SelectContent>
         </Select>
 
         <Select value={ratingFilter} onValueChange={setRatingFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="So sao" />
+            <SelectValue placeholder="Số sao" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả sao</SelectItem>
@@ -230,35 +230,35 @@ export default function AdminReviewsPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo san pham, user..."
+        searchPlaceholder="Tìm theo sản phẩm, user..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
         actions={actions}
       />
 
-      {/* Dialog phan hoi */}
+      {/* Dialog Phản hồi */}
       <Dialog open={!!replyReview} onOpenChange={(o) => !o && setReplyReview(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Phan hoi danh gia</DialogTitle>
+            <DialogTitle>Phản hồi đánh giá</DialogTitle>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="bg-gray-50 p-3 rounded text-sm">
               <p className="font-medium">{replyReview?.title ?? `${replyReview?.rating} sao`}</p>
               <p className="text-gray-600 mt-1">{replyReview?.comment ?? '---'}</p>
             </div>
-            <FormField label="Nội dung phan hoi" required>
+            <FormField label="Nội dung phản hồi" required>
               <Textarea
                 rows={4}
                 value={replyText}
                 onChange={(e) => setReplyText(e.target.value)}
-                placeholder="Nhap noi dung phan hoi..."
+                placeholder="Nhập nội dung phản hồi..."
               />
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setReplyReview(null)}>Huy</Button>
+            <Button variant="outline" onClick={() => setReplyReview(null)}>Huỷ</Button>
             <Button onClick={handleReply} disabled={replyMutation.loading || !replyText.trim()}>
               {replyMutation.loading ? 'Đang gửi...' : 'Gửi phản hồi'}
             </Button>
@@ -269,8 +269,8 @@ export default function AdminReviewsPage() {
       <ConfirmDialog
         open={!!approveId}
         onOpenChange={(o) => !o && setApproveId(null)}
-        title="Duyet danh gia"
-        description="Cho phep hien thi danh gia nay cho moi nguoi xem?"
+        title="Duyet Đánh giá"
+        description="Cho phep hien thi Đánh giá nay cho moi nguoi xem?"
         onConfirm={handleApprove}
         confirmLabel="Duyet"
         variant="info"
@@ -280,10 +280,10 @@ export default function AdminReviewsPage() {
       <ConfirmDialog
         open={!!rejectId}
         onOpenChange={(o) => !o && setRejectId(null)}
-        title="Tu choi danh gia"
-        description="An danh gia nay khoi cong khai?"
+        title="Từ chối Đánh giá"
+        description="An Đánh giá nay khoi cong khai?"
         onConfirm={handleReject}
-        confirmLabel="Tu choi"
+        confirmLabel="Từ chối"
         variant="warning"
         loading={rejectMutation.loading}
       />
@@ -291,8 +291,8 @@ export default function AdminReviewsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xóa danh gia"
-        description="Xóa vĩnh viễn danh gia nay?"
+        title="Xóa Đánh giá"
+        description="Xóa vĩnh viễn Đánh giá nay?"
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

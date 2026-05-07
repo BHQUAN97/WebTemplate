@@ -15,7 +15,7 @@ interface ProductCardProps {
 }
 
 /**
- * Card san pham — hien thi trong grid, co add to cart + wishlist
+ * Card Sản phẩm — hien thi trong grid, co add to cart + wishlist
  */
 export function ProductCard({ product }: ProductCardProps) {
   const addItem = useCartStore((s) => s.addItem);

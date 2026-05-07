@@ -21,7 +21,7 @@ interface Props {
 }
 
 /**
- * Textarea auto-expand (toi da 3 rows), Enter de gui, Shift+Enter xuong dong.
+ * Textarea auto-expand (Tối đa 3 rows), Enter de gui, Shift+Enter xuong dong.
  * Emit typing state co debounce de giam traffic WS.
  */
 export function ChatInput({ disabled, placeholder, onSend, onTypingChange }: Props) {
@@ -108,7 +108,7 @@ export function ChatInput({ disabled, placeholder, onSend, onTypingChange }: Pro
           value={value}
           onChange={(e) => handleChange(e.target.value)}
           onKeyDown={handleKeyDown}
-          placeholder={placeholder ?? 'Nhap tin nhan...'}
+          placeholder={placeholder ?? 'Nháp tin nhan...'}
           disabled={disabled}
           rows={1}
           maxLength={MAX_LENGTH}

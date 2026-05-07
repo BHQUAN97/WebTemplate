@@ -78,7 +78,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
       // eslint-disable-next-line no-new
       new URL(trimmed);
     } catch {
-      setUrlError('URL khong hop le');
+      setUrlError('URL không hợp lệ');
       return;
     }
 
@@ -104,7 +104,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
       case 'gform': {
         const normalized = normalizeGoogleFormUrl(trimmed);
         if (!normalized) {
-          setUrlError('URL phai la Google Forms (docs.google.com/forms/...)');
+          setUrlError('URL phải là Google Forms (docs.google.com/forms/...)');
           return;
         }
         editor
@@ -142,7 +142,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           className={btnCls(false)}
           onClick={() => editor.chain().focus().undo().run()}
           disabled={!editor.can().undo()}
-          title="Hoan tac"
+          title="Hoàn tác"
         >
           <Undo2 className="h-4 w-4" />
         </Button>
@@ -153,7 +153,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           className={btnCls(false)}
           onClick={() => editor.chain().focus().redo().run()}
           disabled={!editor.can().redo()}
-          title="Lam lai"
+          title="Làm lại"
         >
           <Redo2 className="h-4 w-4" />
         </Button>
@@ -167,7 +167,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('bold'))}
           onClick={() => editor.chain().focus().toggleBold().run()}
-          title="In dam"
+          title="In đậm"
         >
           <Bold className="h-4 w-4" />
         </Button>
@@ -177,7 +177,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('italic'))}
           onClick={() => editor.chain().focus().toggleItalic().run()}
-          title="In nghieng"
+          title="In nghiêng"
         >
           <Italic className="h-4 w-4" />
         </Button>
@@ -187,7 +187,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('strike'))}
           onClick={() => editor.chain().focus().toggleStrike().run()}
-          title="Gach ngang"
+          title="Gạch ngang"
         >
           <Strikethrough className="h-4 w-4" />
         </Button>
@@ -197,7 +197,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('code'))}
           onClick={() => editor.chain().focus().toggleCode().run()}
-          title="Ma"
+          title="Mã"
         >
           <Code className="h-4 w-4" />
         </Button>
@@ -213,7 +213,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 1 }).run()
           }
-          title="Tieu de 1"
+          title="Tiêu đề 1"
         >
           <Heading1 className="h-4 w-4" />
         </Button>
@@ -225,7 +225,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 2 }).run()
           }
-          title="Tieu de 2"
+          title="Tiêu đề 2"
         >
           <Heading2 className="h-4 w-4" />
         </Button>
@@ -237,7 +237,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           onClick={() =>
             editor.chain().focus().toggleHeading({ level: 3 }).run()
           }
-          title="Tieu de 3"
+          title="Tiêu đề 3"
         >
           <Heading3 className="h-4 w-4" />
         </Button>
@@ -251,7 +251,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('bulletList'))}
           onClick={() => editor.chain().focus().toggleBulletList().run()}
-          title="Danh sach"
+          title="Danh sách"
         >
           <List className="h-4 w-4" />
         </Button>
@@ -261,7 +261,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('orderedList'))}
           onClick={() => editor.chain().focus().toggleOrderedList().run()}
-          title="Danh sach co thu tu"
+          title="Danh sách có thứ tự"
         >
           <ListOrdered className="h-4 w-4" />
         </Button>
@@ -271,7 +271,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('blockquote'))}
           onClick={() => editor.chain().focus().toggleBlockquote().run()}
-          title="Trich dan"
+          title="Trích dẫn"
         >
           <Quote className="h-4 w-4" />
         </Button>
@@ -285,7 +285,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive({ textAlign: 'left' }))}
           onClick={() => editor.chain().focus().setTextAlign('left').run()}
-          title="Can trai"
+          title="Căn trái"
         >
           <AlignLeft className="h-4 w-4" />
         </Button>
@@ -295,7 +295,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive({ textAlign: 'center' }))}
           onClick={() => editor.chain().focus().setTextAlign('center').run()}
-          title="Can giua"
+          title="Căn giữa"
         >
           <AlignCenter className="h-4 w-4" />
         </Button>
@@ -305,7 +305,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive({ textAlign: 'right' }))}
           onClick={() => editor.chain().focus().setTextAlign('right').run()}
-          title="Can phai"
+          title="Căn phải"
         >
           <AlignRight className="h-4 w-4" />
         </Button>
@@ -319,7 +319,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(editor.isActive('link'))}
           onClick={() => openModal('link')}
-          title="Lien ket"
+          title="Liên kết"
         >
           <LinkIcon className="h-4 w-4" />
         </Button>
@@ -329,7 +329,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(false)}
           onClick={() => openModal('image')}
-          title="Hinh anh"
+          title="Hình ảnh"
         >
           <ImageIcon className="h-4 w-4" />
         </Button>
@@ -345,7 +345,7 @@ export function EditorToolbar({ editor }: ToolbarProps) {
               .insertTable({ rows: 3, cols: 3, withHeaderRow: true })
               .run()
           }
-          title="Bang"
+          title="Bảng"
         >
           <TableIcon className="h-4 w-4" />
         </Button>
@@ -379,22 +379,22 @@ export function EditorToolbar({ editor }: ToolbarProps) {
           size="icon"
           className={btnCls(false)}
           onClick={() => openModal('iframe')}
-          title="Iframe tuy chinh"
+          title="Iframe tùy chỉnh"
         >
           <Frame className="h-4 w-4" />
         </Button>
       </div>
 
-      {/* Modal nhap URL */}
+      {/* Modal Nháp URL */}
       <Dialog open={modal !== null} onOpenChange={(o) => !o && closeModal()}>
         <DialogContent>
           <DialogHeader>
             <DialogTitle>
-              {modal === 'link' && 'Chen lien ket'}
-              {modal === 'image' && 'Chen hinh anh'}
-              {modal === 'youtube' && 'Chen video YouTube'}
-              {modal === 'gform' && 'Chen Google Form'}
-              {modal === 'iframe' && 'Chen iframe'}
+              {modal === 'link' && 'Chèn liên kết'}
+              {modal === 'image' && 'Chèn hình ảnh'}
+              {modal === 'youtube' && 'Chèn video YouTube'}
+              {modal === 'gform' && 'Chèn Google Form'}
+              {modal === 'iframe' && 'Chèn iframe'}
             </DialogTitle>
           </DialogHeader>
           <div className="space-y-2 py-2">
@@ -423,16 +423,16 @@ export function EditorToolbar({ editor }: ToolbarProps) {
             )}
             {modal === 'iframe' && (
               <p className="text-xs text-gray-500">
-                Chi cho phep domain an toan: docs.google.com, youtube.com,
+                Chỉ cho phép domain an toàn: docs.google.com, youtube.com,
                 vimeo.com, codepen.io...
               </p>
             )}
           </div>
           <DialogFooter>
             <Button variant="outline" onClick={closeModal}>
-              Huy
+              Hủy
             </Button>
-            <Button onClick={handleSubmitModal}>Chen</Button>
+            <Button onClick={handleSubmitModal}>Chèn</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

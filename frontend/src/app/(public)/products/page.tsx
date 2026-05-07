@@ -8,7 +8,7 @@ export const revalidate = 300;
 export const metadata: Metadata = {
   title: `Sản phẩm - ${brand.name}`,
   description:
-    'Khám pha bo suu tap san pham da dang voi gia tot nhat. Loc theo danh muc, gia, danh gia.',
+    'Khám pha bo suu tap Sản phẩm da dang voi gia tot nhat. Loc theo Danh mục, gia, Đánh giá.',
   openGraph: {
     title: `Sản phẩm - ${brand.name}`,
     description: brand.description,

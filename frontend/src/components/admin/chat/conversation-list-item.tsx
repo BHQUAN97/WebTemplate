@@ -11,12 +11,12 @@ function relativeTime(iso?: string | null): string {
   const date = new Date(iso);
   const diff = Date.now() - date.getTime();
   const mins = Math.floor(diff / 60000);
-  if (mins < 1) return 'vua xong';
-  if (mins < 60) return `${mins} phut`;
+  if (mins < 1) return 'vừa xong';
+  if (mins < 60) return `${mins} phút`;
   const hours = Math.floor(mins / 60);
-  if (hours < 24) return `${hours} gio`;
+  if (hours < 24) return `${hours} giờ`;
   const days = Math.floor(hours / 24);
-  if (days < 7) return `${days} ngay`;
+  if (days < 7) return `${days} ngày`;
   return date.toLocaleDateString('vi-VN');
 }
 
@@ -46,7 +46,7 @@ export function ConversationListItem({ conversation, active, onClick }: Props) {
   const name =
     conversation.customerName?.trim() ||
     `Khách #${conversation.id.slice(-6).toUpperCase()}`;
-  const preview = conversation.lastMessage ?? '(Chua co tin nhan)';
+  const preview = conversation.lastMessage ?? '(Chưa có tin nhắn)';
   const unread = conversation.unreadCount ?? 0;
 
   return (

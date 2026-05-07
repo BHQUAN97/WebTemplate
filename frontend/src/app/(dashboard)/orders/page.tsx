@@ -12,7 +12,7 @@ import { formatPrice, formatDate, getOrderStatusInfo } from '@/lib/hooks';
 import type { Order } from '@/lib/types';
 
 /**
- * Danh sach don hang — lich su order, status badge, pagination
+ * Danh sach Đơn hàng — Lịch sử order, status badge, pagination
  */
 export default function OrdersPage() {
   const [orders, setOrders] = useState<Order[]>([]);
@@ -71,7 +71,7 @@ export default function OrdersPage() {
                             </p>
                             <p className="text-xs text-gray-500">
                               {formatDate(order.created_at)} ·{' '}
-                              {order.items?.length ?? 0} san pham
+                              {order.items?.length ?? 0} Sản phẩm
                             </p>
                           </div>
                         </div>
@@ -103,9 +103,9 @@ export default function OrdersPage() {
       ) : (
         <div className="text-center py-16">
           <Package className="h-12 w-12 text-gray-300 mx-auto mb-4" />
-          <p className="text-gray-500 text-lg mb-2">Chua co don hang nao</p>
+          <p className="text-gray-500 text-lg mb-2">Chua co Đơn hàng nao</p>
           <Link href="/products" className="text-blue-600 hover:underline text-sm">
-            Bật dau mua sam
+            Bật dau Mua sắm
           </Link>
         </div>
       )}

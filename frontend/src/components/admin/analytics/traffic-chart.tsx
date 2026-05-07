@@ -26,15 +26,15 @@ interface TrafficChartProps {
 }
 
 const LEGEND: Record<string, string> = {
-  organic: 'Tu khoa (Organic)',
-  direct: 'Truc tiep',
-  referral: 'Gioi thieu',
-  social: 'Mang xa hoi',
+  organic: 'Từ khóa (Organic)',
+  direct: 'Trực tiếp',
+  referral: 'Giới thiệu',
+  social: 'Mạng xã hội',
 };
 
 /**
- * Stacked AreaChart — 4 nguon traffic theo ngay.
- * Fallback: neu data rong hien empty state, parent co the show list thay the.
+ * Stacked AreaChart — 4 nguồn traffic theo ngày.
+ * Fallback: nếu data rỗng hiện empty state, parent có thể show list thay thế.
  */
 export function TrafficChart({
   data,
@@ -51,7 +51,7 @@ export function TrafficChart({
         className="flex items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground"
         style={{ height }}
       >
-        Chua co du lieu nguon truy cap
+        Chưa có dữ liệu nguồn truy cập
       </div>
     );
   }

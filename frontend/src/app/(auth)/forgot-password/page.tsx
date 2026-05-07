@@ -14,7 +14,7 @@ import { authApi } from '@/lib/api/modules/auth.api';
 const RESEND_COOLDOWN_SEC = 60;
 
 /**
- * Trang quen mat khau — nhap email, gui link reset + cooldown resend 60s
+ * Trang quen Mật khẩu — Nháp email, gui link reset + cooldown resend 60s
  */
 export default function ForgotPasswordPage() {
   const [submitted, setSubmitted] = useState(false);

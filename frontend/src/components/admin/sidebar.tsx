@@ -45,8 +45,8 @@ const navGroups: NavGroup[] = [
       { label: 'Sản phẩm', href: '/admin/products', icon: <Package className="h-4 w-4" /> },
       { label: 'Danh mục', href: '/admin/categories', icon: <FolderTree className="h-4 w-4" /> },
       { label: 'Đơn hàng', href: '/admin/orders', icon: <ShoppingCart className="h-4 w-4" /> },
-      { label: 'Kho hang', href: '/admin/inventory', icon: <Warehouse className="h-4 w-4" /> },
-      { label: 'Khuyen mai', href: '/admin/promotions', icon: <Tags className="h-4 w-4" /> },
+      { label: 'Kho hàng', href: '/admin/inventory', icon: <Warehouse className="h-4 w-4" /> },
+      { label: 'Khuyến mãi', href: '/admin/promotions', icon: <Tags className="h-4 w-4" /> },
       { label: 'Đánh giá', href: '/admin/reviews', icon: <Star className="h-4 w-4" /> },
     ],
   },
@@ -59,15 +59,15 @@ const navGroups: NavGroup[] = [
     ],
   },
   {
-    title: 'Cham soc khach hang',
+    title: 'Chăm sóc Khách hàng',
     items: [
-      { label: 'Hop thoai', href: '/admin/chat', icon: <MessageSquare className="h-4 w-4" /> },
-      { label: 'Kich ban', href: '/admin/chat-scenarios', icon: <Bot className="h-4 w-4" /> },
-      { label: 'Khung gio', href: '/admin/chat-schedules', icon: <Clock className="h-4 w-4" /> },
+      { label: 'Hộp thoại', href: '/admin/chat', icon: <MessageSquare className="h-4 w-4" /> },
+      { label: 'Kịch bản', href: '/admin/chat-scenarios', icon: <Bot className="h-4 w-4" /> },
+      { label: 'Khung giờ', href: '/admin/chat-schedules', icon: <Clock className="h-4 w-4" /> },
     ],
   },
   {
-    title: 'Quan ly',
+    title: 'Quản lý',
     items: [
       {
         label: 'Người dùng',
@@ -77,11 +77,11 @@ const navGroups: NavGroup[] = [
       },
       { label: 'Media', href: '/admin/media', icon: <Image className="h-4 w-4" /> },
       { label: 'Analytics', href: '/admin/analytics', icon: <BarChart3 className="h-4 w-4" /> },
-      { label: 'Bao cao', href: '/admin/reports', icon: <FileBarChart className="h-4 w-4" /> },
+      { label: 'Báo cáo', href: '/admin/reports', icon: <FileBarChart className="h-4 w-4" /> },
     ],
   },
   {
-    title: 'He thong',
+    title: 'Hệ thống',
     items: [
       {
         label: 'Cài đặt',
@@ -144,7 +144,7 @@ export function AdminSidebar() {
       try {
         const res = await adminChatApi.listConversations({ status: 'WAITING_AGENT', limit: 1, page: 1 });
         if (cancelled) return;
-        // Ho tro ca response co pagination hoac array thuan
+        // Hỗ trợ ca response co pagination hoac array thuan
         // eslint-disable-next-line @typescript-eslint/no-explicit-any
         const total = (res as any)?.pagination?.total ?? (Array.isArray(res) ? res.length : (res as any)?.data?.length ?? 0);
         setWaitingCount(total);

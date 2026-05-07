@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Label } from '@/components/ui/label';
@@ -87,7 +87,7 @@ export function FormField({
               >
                 *
               </span>
-              <span className="sr-only"> (bat buoc)</span>
+              <span className="sr-only"> (Bắt buộc)</span>
             </>
           )}
         </Label>

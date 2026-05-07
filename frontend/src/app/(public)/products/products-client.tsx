@@ -21,7 +21,7 @@ const sortOptions = [
 ];
 
 /**
- * Trang danh sach san pham — filter, sort, pagination
+ * Trang danh sach Sản phẩm — filter, sort, pagination
  */
 export function ProductsClient() {
   const [products, setProducts] = useState<Product[]>([]);

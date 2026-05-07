@@ -13,7 +13,7 @@ import { usePagination } from '@/lib/hooks/use-pagination';
 import { formatPrice, formatDate, formatOrderStatus, formatPaymentStatus } from '@/lib/utils/format';
 import type { ApiResponse, Order, OrderStatus } from '@/lib/types';
 
-/** Danh sach don hang */
+/** Danh sach Đơn hàng */
 export default function OrdersPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -42,7 +42,7 @@ export default function OrdersPage() {
   const columns: ColumnDef<Order>[] = [
     {
       key: 'order_number',
-      header: 'Ma don',
+      header: 'Mã đơn',
       sortable: true,
       render: (row) => (
         <a href={`/admin/orders/${row.id}`} className="text-blue-600 hover:underline font-medium">
@@ -52,7 +52,7 @@ export default function OrdersPage() {
     },
     {
       key: 'customer',
-      header: 'Khách hang',
+      header: 'Khách hàng',
       render: (row) => (
         <div>
           <p className="font-medium">{row.user?.name ?? row.shipping_name}</p>
@@ -67,19 +67,19 @@ export default function OrdersPage() {
     },
     {
       key: 'total',
-      header: 'Tong tien',
+      header: 'Tổng tiền',
       sortable: true,
       className: 'text-right',
       render: (row) => <span className="font-medium">{formatPrice(row.total)}</span>,
     },
     {
       key: 'status',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => <StatusBadge status={row.status} label={formatOrderStatus(row.status)} />,
     },
     {
       key: 'payment',
-      header: 'Thanh toan',
+      header: 'Thanh toán',
       render: (row) => (
         <StatusBadge
           status={row.payment?.status ?? 'PENDING'}
@@ -89,7 +89,7 @@ export default function OrdersPage() {
     },
     {
       key: 'created_at',
-      header: 'Ngay tao',
+      header: 'Ngày tạo',
       sortable: true,
       render: (row) => formatDate(row.created_at),
     },
@@ -110,7 +110,7 @@ export default function OrdersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly don hang"
+        title="Quản lý Đơn hàng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Đơn hàng' },
@@ -122,12 +122,12 @@ export default function OrdersPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả trạng thái</SelectItem>
             <SelectItem value="PENDING">Chờ xác nhận</SelectItem>
-            <SelectItem value="CONFIRMED">Da xac nhan</SelectItem>
+            <SelectItem value="CONFIRMED">Đã xác nhận</SelectItem>
             <SelectItem value="PROCESSING">Đang xử lý</SelectItem>
             <SelectItem value="SHIPPED">Đang giao</SelectItem>
             <SelectItem value="DELIVERED">Đã giao</SelectItem>
@@ -139,14 +139,14 @@ export default function OrdersPage() {
           value={dateFrom}
           onChange={(e) => setDateFrom(e.target.value)}
           className="w-full sm:w-44"
-          placeholder="Tu ngay"
+          placeholder="Từ ngày"
         />
         <Input
           type="date"
           value={dateTo}
           onChange={(e) => setDateTo(e.target.value)}
           className="w-full sm:w-44"
-          placeholder="Den ngay"
+          placeholder="Đến ngày"
         />
       </div>
 
@@ -159,7 +159,7 @@ export default function OrdersPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ma don hang..."
+        searchPlaceholder="Tìm theo mã Đơn hàng..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}

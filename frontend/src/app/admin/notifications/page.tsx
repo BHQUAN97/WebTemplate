@@ -35,15 +35,15 @@ interface AdminNotification {
 const sendSchema = z.object({
   target_type: z.enum(['user', 'tenant', 'all']),
   target_ids: z.string().optional(),
-  type: z.string().min(1, 'Loai la bat buoc'),
-  title: z.string().min(1, 'Tieu de la bat buoc').max(200),
-  content: z.string().min(1, 'Nội dung la bat buoc'),
+  type: z.string().min(1, 'Loại là bắt buộc'),
+  title: z.string().min(1, 'Tiêu đề là bắt buộc').max(200),
+  content: z.string().min(1, 'Nội dung là bắt buộc'),
   link: z.string().optional(),
 });
 
 type SendForm = z.infer<typeof sendSchema>;
 
-/** Quan ly Notifications (admin) — gui thong bao */
+/** Quản lý Notifications (admin) — gui thong bao */
 export default function AdminNotificationsPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
@@ -85,12 +85,12 @@ export default function AdminNotificationsPage() {
   const columns: ColumnDef<AdminNotification>[] = [
     {
       key: 'type',
-      header: 'Loai',
+      header: 'Loại',
       render: (row) => <Badge variant="secondary">{row.type}</Badge>,
     },
     {
       key: 'title',
-      header: 'Tieu de',
+      header: 'Tiêu đề',
       render: (row) => (
         <div>
           <p className="font-medium">{row.title}</p>
@@ -100,23 +100,23 @@ export default function AdminNotificationsPage() {
     },
     {
       key: 'target_type',
-      header: 'Muc tieu',
+      header: 'Mục tiêu',
       render: (row) => {
         const label =
           row.target_type === 'all' ? 'Tất cả'
           : row.target_type === 'tenant' ? 'Theo tenant'
-          : 'Người dùng cu the';
+          : 'Người dùng cụ thể';
         return <Badge variant="default">{label}</Badge>;
       },
     },
     {
       key: 'delivered_count',
-      header: 'Da gui',
+      header: 'Đã gửi',
       render: (row) => row.delivered_count,
     },
     {
       key: 'read_count',
-      header: 'Da doc',
+      header: 'Đã đọc',
       render: (row) => {
         const rate = row.delivered_count > 0 ? (row.read_count / row.delivered_count) * 100 : 0;
         return (
@@ -169,7 +169,7 @@ export default function AdminNotificationsPage() {
     }
     const res = await sendMutation.mutate(payload);
     if (res) {
-      toast('Da gui thong bao', undefined, 'success');
+      toast('Đã gửi thông báo', undefined, 'success');
       setSendOpen(false);
       setForm({
         target_type: 'all', target_ids: '', type: 'SYSTEM',
@@ -188,8 +188,8 @@ export default function AdminNotificationsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Thông báo he thong"
-        description="Gửi thong bao den nguoi dung"
+        title="Thông báo hệ thống"
+        description="Gửi thông báo đến người dùng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Thông báo' },
@@ -197,7 +197,7 @@ export default function AdminNotificationsPage() {
         actions={
           <Button onClick={() => setSendOpen(true)}>
             <Send className="h-4 w-4 mr-2" />
-            Gửi thong bao
+            Gửi thông báo
           </Button>
         }
       />
@@ -206,14 +206,14 @@ export default function AdminNotificationsPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={typeFilter} onValueChange={setTypeFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Loai" />
+            <SelectValue placeholder="Loại" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả loại</SelectItem>
-            <SelectItem value="SYSTEM">He thong</SelectItem>
-            <SelectItem value="PROMOTION">Khuyen mai</SelectItem>
+            <SelectItem value="SYSTEM">Hệ thống</SelectItem>
+            <SelectItem value="PROMOTION">Khuyến mãi</SelectItem>
             <SelectItem value="ORDER">Đơn hàng</SelectItem>
-            <SelectItem value="SECURITY">Bao mat</SelectItem>
+            <SelectItem value="SECURITY">Bảo mật</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -227,7 +227,7 @@ export default function AdminNotificationsPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo tieu de..."
+        searchPlaceholder="Tìm theo tiêu đề..."
         actions={actions}
       />
 
@@ -235,10 +235,10 @@ export default function AdminNotificationsPage() {
       <Dialog open={sendOpen} onOpenChange={setSendOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Gửi thong bao moi</DialogTitle>
+            <DialogTitle>Gửi thông báo mới</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2 max-h-[60vh] overflow-y-auto">
-            <FormField label="Doi tuong nhan" error={errors.target_type} required>
+            <FormField label="Đối tượng nhận" error={errors.target_type} required>
               <Select
                 value={form.target_type}
                 onValueChange={(v) => updateField('target_type', v as SendForm['target_type'])}
@@ -246,7 +246,7 @@ export default function AdminNotificationsPage() {
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
                   <SelectItem value="all">Tất cả người dùng</SelectItem>
-                  <SelectItem value="user">Người dùng cu the (ID)</SelectItem>
+                  <SelectItem value="user">Người dùng cụ thể (ID)</SelectItem>
                   <SelectItem value="tenant">Theo tenant</SelectItem>
                 </SelectContent>
               </Select>
@@ -254,7 +254,7 @@ export default function AdminNotificationsPage() {
 
             {form.target_type !== 'all' && (
               <FormField
-                label="IDs (cach nhau dau phay)"
+                label="IDs (cách nhau dấu phẩy)"
                 error={errors.target_ids}
                 description="VD: id1, id2, id3"
               >
@@ -265,19 +265,19 @@ export default function AdminNotificationsPage() {
               </FormField>
             )}
 
-            <FormField label="Loai" error={errors.type} required>
+            <FormField label="Loại" error={errors.type} required>
               <Select value={form.type} onValueChange={(v) => updateField('type', v)}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="SYSTEM">He thong</SelectItem>
-                  <SelectItem value="PROMOTION">Khuyen mai</SelectItem>
+                  <SelectItem value="SYSTEM">Hệ thống</SelectItem>
+                  <SelectItem value="PROMOTION">Khuyến mãi</SelectItem>
                   <SelectItem value="ORDER">Đơn hàng</SelectItem>
-                  <SelectItem value="SECURITY">Bao mat</SelectItem>
+                  <SelectItem value="SECURITY">Bảo mật</SelectItem>
                 </SelectContent>
               </Select>
             </FormField>
 
-            <FormField label="Tieu de" error={errors.title} required>
+            <FormField label="Tiêu đề" error={errors.title} required>
               <Input value={form.title} onChange={(e) => updateField('title', e.target.value)} />
             </FormField>
 
@@ -289,7 +289,7 @@ export default function AdminNotificationsPage() {
               />
             </FormField>
 
-            <FormField label="Link dich (tuy chon)" error={errors.link}>
+            <FormField label="Link đích (tuỳ chọn)" error={errors.link}>
               <Input
                 value={form.link ?? ''}
                 onChange={(e) => updateField('link', e.target.value)}
@@ -298,7 +298,7 @@ export default function AdminNotificationsPage() {
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setSendOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setSendOpen(false)}>Huỷ</Button>
             <Button onClick={handleSend} disabled={sendMutation.loading}>
               <Bell className="h-4 w-4 mr-2" />
               {sendMutation.loading ? 'Đang gửi...' : 'Gửi'}
@@ -310,8 +310,8 @@ export default function AdminNotificationsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xóa thong bao"
-        description="Xóa thong bao nay khoi he thong?"
+        title="Xóa thông báo"
+        description="Xóa thông báo này khỏi hệ thống?"
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

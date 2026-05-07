@@ -318,9 +318,9 @@ export function ProductDetailClient({ slug }: Props) {
       <div className="mt-12">
         <div className="flex border-b border-gray-200 gap-4 sm:gap-8 overflow-x-auto">
           {[
-            { key: 'description', label: 'Mo ta' },
+            { key: 'description', label: 'Mô tả' },
             { key: 'reviews', label: `Đánh giá (${reviews.length})` },
-            { key: 'faq', label: 'Cau hoi' },
+            { key: 'faq', label: 'Câu hỏi' },
           ].map((tab) => (
             <button
               key={tab.key}

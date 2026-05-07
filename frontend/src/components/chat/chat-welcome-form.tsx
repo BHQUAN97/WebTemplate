@@ -17,7 +17,7 @@ interface Props {
 
 /**
  * Form chao hoi lan dau — khach co the dien ten/email/phone optional,
- * chi tin nhan dau la bat buoc. "Bắt đầu chat" de di cho ba kenh cua hang.
+ * chi tin nhan dau la Bắt buộc. "Bắt đầu chat" de di cho ba kenh cua hang.
  */
 export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props) {
   const [name, setName] = useState('');
@@ -46,7 +46,7 @@ export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props)
         <h2 className="text-base font-semibold">Xin chao! Chung toi co the giup gi?</h2>
       </div>
       <p className="text-xs text-gray-500 dark:text-gray-400">
-        De lai thong tin (khong bat buoc) de chung toi ho tro tot hon.
+        De lai thong tin (khong Bắt buộc) de chung toi Hỗ trợ tot hon.
       </p>
 
       <input
@@ -69,7 +69,7 @@ export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props)
         type="tel"
         value={phone}
         onChange={(e) => setPhone(e.target.value)}
-        placeholder="So dien thoai"
+        placeholder="Số điện thoại"
         autoComplete="tel"
         pattern="[0-9]*"
         inputMode="tel"
@@ -78,7 +78,7 @@ export function ChatWelcomeForm({ isSubmitting, error, onStart, onSkip }: Props)
       <textarea
         value={message}
         onChange={(e) => setMessage(e.target.value)}
-        placeholder="Tin nhan dau tien... (bat buoc)"
+        placeholder="Tin nhan dau tien... (Bắt buộc)"
         rows={3}
         required
         className="resize-none rounded-lg border border-gray-200 bg-white px-3 py-2 text-sm text-gray-900 focus:border-blue-500 focus:outline-none focus:ring-2 focus:ring-blue-500/20 dark:border-gray-700 dark:bg-gray-900 dark:text-gray-100"

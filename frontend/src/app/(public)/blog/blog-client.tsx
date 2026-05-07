@@ -88,7 +88,7 @@ export function BlogClient() {
                       </div>
                     )}
                   </div>
-                  <Badge className="mb-2">Noi bat</Badge>
+                  <Badge className="mb-2">Nổi bật</Badge>
                   <h2 className="text-xl sm:text-2xl font-bold mb-2 group-hover:text-blue-600 transition-colors">
                     {featured.title}
                   </h2>
@@ -150,7 +150,7 @@ export function BlogClient() {
               />
             </>
           ) : (
-            <p className="text-center text-gray-500 py-16">Chua co bai viet nao</p>
+            <p className="text-center text-gray-500 py-16">Chua co Bài viết nao</p>
           )}
         </div>
 

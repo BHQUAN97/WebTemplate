@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { ChevronRight } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
@@ -16,7 +16,7 @@ interface PageHeaderProps {
 }
 
 /**
- * Page header voi tieu de, breadcrumb va action buttons
+ * Page header voi Tiêu đề, breadcrumb va action buttons
  */
 export function PageHeader({
   title,

@@ -1,4 +1,4 @@
-import { Skeleton } from '@/components/ui/skeleton';
+﻿import { Skeleton } from '@/components/ui/skeleton';
 import { cn } from '@/lib/utils';
 
 interface StatsGridSkeletonProps {
@@ -8,7 +8,7 @@ interface StatsGridSkeletonProps {
 }
 
 /**
- * Skeleton cho grid thong ke — 4 cot tren desktop, responsive ve 2/1 cot.
+ * Skeleton cho grid Thống kê — 4 cot tren desktop, responsive ve 2/1 cot.
  * Moi stat card gom: icon vuong + label + gia tri lon + delta.
  */
 export function StatsGridSkeleton({

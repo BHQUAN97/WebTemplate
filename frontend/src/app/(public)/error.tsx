@@ -23,7 +23,7 @@ export default function PublicError({
         Không thể tải trang
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Xin loi, da co loi xay ra khi tai noi dung. Ban co the thu lai.
+        Xin loi, da co loi xay ra khi tai Nội dung. Ban co the thu lai.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">
@@ -33,7 +33,7 @@ export default function PublicError({
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button onClick={() => unstable_retry()}>Thu lai</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/')}>
-          Ve trang chu
+          Ve Trang chủ
         </Button>
       </div>
     </div>

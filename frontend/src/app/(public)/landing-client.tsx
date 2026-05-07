@@ -32,10 +32,10 @@ const features = [
 ];
 
 const testimonials = [
-  { name: 'Nguyen Van A', rating: 5, text: 'Sản phẩm chat luong, giao hang nhanh. Rat hai long voi dich vu.' },
-  { name: 'Tran Thi B', rating: 5, text: 'Gia ca hop ly, nhan vien tu van nhiet tinh. Se quay lai mua hang.' },
-  { name: 'Le Van C', rating: 4, text: 'Dong goi can than, san pham dung mo ta. Toi se gioi thieu cho ban be.' },
-  { name: 'Pham Thi D', rating: 5, text: 'Dich vu khach hang tuyet voi, xu ly doi tra nhanh chong.' },
+  { name: 'Nguyễn Văn A', rating: 5, text: 'Sản phẩm chất lượng, giao hàng nhanh. Rất hài lòng với dịch vụ.' },
+  { name: 'Trần Thị B', rating: 5, text: 'Giá cả hợp lý, nhân viên tư vấn nhiệt tình. Sẽ quay lại mua hàng.' },
+  { name: 'Lê Văn C', rating: 4, text: 'Đóng gói cẩn thận, sản phẩm đúng mô tả. Tôi sẽ giới thiệu cho bạn bè.' },
+  { name: 'Phạm Thị D', rating: 5, text: 'Dịch vụ khách hàng tuyệt vời, xử lý đổi trả nhanh chóng.' },
 ];
 
 /**
@@ -97,11 +97,11 @@ export function LandingClient() {
               <h1 className="text-3xl sm:text-4xl lg:text-5xl font-bold leading-tight mb-6">
                 Mua sắm trực tuyến
                 <br />
-                <span className="text-blue-200">De dang & Nhanh chong</span>
+                <span className="text-blue-200">Dễ dàng & Nhanh chóng</span>
               </h1>
               <p className="text-lg text-blue-100 mb-8 max-w-lg">
                 Khám phá hàng nghìn sản phẩm chất lượng cao với giá tốt nhất.
-                Giao hang nhanh, ho tro 24/7.
+                Giao hàng nhanh, hỗ trợ 24/7.
               </p>
               <div className="flex flex-col sm:flex-row gap-4">
                 <Button
@@ -117,7 +117,7 @@ export function LandingClient() {
                   className="border-white text-white hover:bg-white/10"
                   asChild
                 >
-                  <Link href="/about">Tim hieu them</Link>
+                  <Link href="/about">Tìm hiểu thêm</Link>
                 </Button>
               </div>
             </div>
@@ -182,7 +182,7 @@ export function LandingClient() {
             </div>
           ) : (
             <p className="text-center text-gray-500 py-12">
-              Chua co san pham noi bat
+              Chua co Sản phẩm noi bat
             </p>
           )}
         </div>
@@ -226,7 +226,7 @@ export function LandingClient() {
               ))}
             </div>
           ) : (
-            <p className="text-center text-gray-500">Chua co danh muc</p>
+            <p className="text-center text-gray-500">Chua co Danh mục</p>
           )}
         </div>
       </section>
@@ -299,12 +299,12 @@ export function LandingClient() {
             Đăng ký nhan tin
           </h2>
           <p className="text-gray-500 mb-6">
-            Nhan thong tin khuyen mai va san pham moi nhat qua email
+            Nhan thong tin Khuyến mãi va Sản phẩm moi nhat qua email
           </p>
 
           {newsletterSent ? (
             <div className="bg-green-50 text-green-700 rounded-lg p-4">
-              Cam on ban da dang ky! Chung toi se gui email som nhat.
+              Cam on ban da Đăng ký! Chung toi se gui email som nhat.
             </div>
           ) : (
             <form
@@ -314,7 +314,7 @@ export function LandingClient() {
               <div className="flex-1">
                 <Input
                   {...register('email')}
-                  placeholder="Nhap email cua ban"
+                  placeholder="Nháp email cua ban"
                   type="email"
                 />
                 {errors.email && (

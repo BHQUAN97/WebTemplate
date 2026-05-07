@@ -1,4 +1,4 @@
-import { Star } from 'lucide-react';
+﻿import { Star } from 'lucide-react';
 import { cn } from '@/lib/utils';
 
 interface StarRatingProps {
@@ -11,7 +11,7 @@ interface StarRatingProps {
 }
 
 /**
- * Hien thi sao danh gia — ho tro interactive va display mode
+ * Hien thi sao Đánh giá — Hỗ trợ interactive va display mode
  */
 export function StarRating({
   rating,

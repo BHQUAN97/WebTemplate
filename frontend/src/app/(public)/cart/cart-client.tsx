@@ -15,7 +15,7 @@ import { promoCodeSchema, type PromoCodeFormData } from '@/lib/validations';
 import { cartApi } from '@/lib/api/modules/cart.api';
 
 /**
- * Trang gio hang — danh sach items, promo code, tong tien
+ * Trang Giỏ hàng — danh sach items, promo code, tong tien
  */
 export function CartClient() {
   const hydrated = useHydration();
@@ -67,7 +67,7 @@ export function CartClient() {
       const res = await cartApi.applyPromo(data.code);
       setPromoCode(data.code, res.discount);
     } catch (err: any) {
-      setPromoError(err.message || 'Ma giam gia khong hop le');
+      setPromoError(err.message || 'Mã giảm giá không hợp lệ');
     } finally {
       setPromoLoading(false);
     }
@@ -76,7 +76,7 @@ export function CartClient() {
   if (!hydrated) {
     return (
       <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
-        <h1 className="text-2xl font-bold mb-6">Gio hang</h1>
+        <h1 className="text-2xl font-bold mb-6">Giỏ hàng</h1>
         <div className="animate-pulse space-y-4">
           {Array.from({ length: 3 }).map((_, i) => (
             <div key={i} className="h-24 bg-gray-200 rounded-lg" />
@@ -93,12 +93,12 @@ export function CartClient() {
           className="h-16 w-16 text-gray-300 mx-auto mb-4"
           aria-hidden="true"
         />
-        <h1 className="text-2xl font-bold mb-2">Gio hang trong</h1>
+        <h1 className="text-2xl font-bold mb-2">Giỏ hàng trống</h1>
         <p className="text-gray-500 mb-6">
-          Ban chua co san pham nao trong gio hang
+          Bạn chưa có sản phẩm nào trong giỏ hàng
         </p>
         <Button asChild>
-          <Link href="/products">Tiếp tục mua sam</Link>
+          <Link href="/products">Tiếp tục Mua sắm</Link>
         </Button>
       </div>
     );
@@ -111,7 +111,7 @@ export function CartClient() {
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
       <h1 className="text-2xl sm:text-3xl font-bold mb-6">
-        Gio hang ({items.length} san pham)
+        Giỏ hàng ({items.length} sản phẩm)
       </h1>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -216,7 +216,7 @@ export function CartClient() {
         <div>
           <Card className="sticky top-20">
             <CardContent className="p-4 sm:p-6 space-y-4">
-              <h2 className="font-bold text-lg">Tong don hang</h2>
+              <h2 className="font-bold text-lg">Tong Đơn hàng</h2>
 
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
@@ -225,7 +225,7 @@ export function CartClient() {
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Giam gia ({promoCode})</span>
+                    <span>Giảm giá ({promoCode})</span>
                     <span>-{formatPrice(discountAmount)}</span>
                   </div>
                 )}
@@ -246,7 +246,7 @@ export function CartClient() {
               >
                 <Input
                   {...register('code')}
-                  placeholder="Ma giam gia"
+                  placeholder="Mã giảm giá"
                   className="text-sm"
                 />
                 <Button
@@ -266,14 +266,14 @@ export function CartClient() {
               )}
 
               <Button className="w-full" size="lg" asChild>
-                <Link href="/checkout">Thanh toan</Link>
+                <Link href="/checkout">Thanh toán</Link>
               </Button>
 
               <Link
                 href="/products"
                 className="block text-center text-sm text-blue-600 hover:underline"
               >
-                Tiếp tục mua sam
+                Tiếp tục mua sắm
               </Link>
             </CardContent>
           </Card>

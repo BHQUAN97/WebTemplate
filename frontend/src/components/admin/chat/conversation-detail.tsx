@@ -47,7 +47,7 @@ export function ConversationDetail({
   if (!conversation) {
     return (
       <div className="flex flex-1 items-center justify-center text-sm text-gray-500">
-        Chon mot cuoc tro chuyen de bat dau
+        Chọn một cuộc trò chuyện để bắt đầu
       </div>
     );
   }
@@ -63,7 +63,7 @@ export function ConversationDetail({
         {/* Header */}
         <header className="flex items-center gap-3 border-b border-gray-200 bg-white px-4 py-3 dark:border-gray-800 dark:bg-gray-900">
           {onBack && (
-            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack} aria-label="Quay lai">
+            <Button variant="ghost" size="icon" className="md:hidden" onClick={onBack} aria-label="Quay lại">
               <ArrowLeft className="h-4 w-4" />
             </Button>
           )}
@@ -80,18 +80,18 @@ export function ConversationDetail({
           </div>
           <div className="flex items-center gap-1">
             {!isClosed && onAssignSelf && (
-              <Button variant="outline" size="sm" onClick={onAssignSelf} title="Nhan cuoc chat">
+              <Button variant="outline" size="sm" onClick={onAssignSelf} title="Nhận cuộc chat">
                 <UserPlus className="h-4 w-4 sm:mr-1.5" />
-                <span className="hidden sm:inline">Nhan</span>
+                <span className="hidden sm:inline">Nhận</span>
               </Button>
             )}
             {!isClosed && onTransfer && (
-              <Button variant="outline" size="sm" onClick={onTransfer} title="Chuyen cho nhan vien khac">
+              <Button variant="outline" size="sm" onClick={onTransfer} title="Chuyển cho nhân viên khác">
                 <RotateCcw className="h-4 w-4" />
               </Button>
             )}
             {!isClosed && onClose && (
-              <Button variant="outline" size="sm" onClick={() => setConfirmClose(true)} title="Dong cuoc chat">
+              <Button variant="outline" size="sm" onClick={() => setConfirmClose(true)} title="Đóng cuộc chat">
                 <XCircle className="h-4 w-4" />
               </Button>
             )}
@@ -99,7 +99,7 @@ export function ConversationDetail({
               variant="ghost"
               size="icon"
               onClick={() => setShowInfo((v) => !v)}
-              title="Thong tin"
+              title="Thông tin"
               className={cn(showInfo && 'bg-gray-100 dark:bg-gray-800')}
             >
               <Info className="h-4 w-4" />
@@ -113,7 +113,7 @@ export function ConversationDetail({
         {/* Composer */}
         {isClosed ? (
           <div className="border-t border-gray-200 bg-gray-100 px-4 py-3 text-center text-sm text-gray-500 dark:border-gray-800 dark:bg-gray-800/50">
-            Cuoc tro chuyen da dong
+            Cuộc trò chuyện đã đóng
           </div>
         ) : (
           <MessageComposer
@@ -134,9 +134,9 @@ export function ConversationDetail({
       <ConfirmDialog
         open={confirmClose}
         onOpenChange={setConfirmClose}
-        title="Dong cuoc tro chuyen"
-        description="Sau khi dong, ban khong the gui them tin nhan. Tiếp tục?"
-        confirmLabel="Dong cuoc chat"
+        title="Đóng cuộc trò chuyện"
+        description="Sau khi đóng, bạn không thể gửi thêm tin nhắn. Tiếp tục?"
+        confirmLabel="Đóng cuộc chat"
         variant="danger"
         onConfirm={() => {
           setConfirmClose(false);

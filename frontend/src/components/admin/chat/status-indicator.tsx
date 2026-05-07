@@ -22,7 +22,7 @@ const STATUS_META: Record<
     icon: Headphones,
   },
   AI_RESPONDING: {
-    label: 'AI tra loi',
+    label: 'AI Trả lời',
     cls: 'bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-300',
     icon: Bot,
   },

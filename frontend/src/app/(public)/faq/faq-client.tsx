@@ -12,7 +12,7 @@ import { cn } from '@/lib/utils';
 import type { FAQ } from '@/lib/types';
 
 /**
- * Trang FAQ — tim kiem, accordion theo nhom, helpful buttons
+ * Trang FAQ — Tìm kiếm, accordion theo nhom, helpful buttons
  */
 export function FaqClient() {
   const [faqs, setFaqs] = useState<FAQ[]>([]);
@@ -67,10 +67,10 @@ export function FaqClient() {
   return (
     <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
       <h1 className="text-2xl sm:text-3xl font-bold mb-2">
-        Cau hoi thuong gap
+        Câu hỏi thường gặp
       </h1>
       <p className="text-gray-500 mb-6">
-        Tim cau tra loi cho nhung cau hoi pho bien
+        Tìm câu trả lời cho những câu hỏi phổ biến
       </p>
 
       {/* Search */}
@@ -132,7 +132,7 @@ export function FaqClient() {
                           {/* Helpful buttons */}
                           <div className="flex items-center gap-3 mt-4 pt-3 border-t border-gray-100">
                             <span className="text-xs text-gray-400">
-                              Cau tra loi nay co huu ich khong?
+                              Cau Trả lời nay co huu ich khong?
                             </span>
                             <button
                               onClick={() => handleFeedback(faq.id, true)}
@@ -174,10 +174,10 @@ export function FaqClient() {
       <div className="mt-12 text-center bg-gray-50 rounded-xl p-6 sm:p-8">
         <h3 className="text-lg font-bold mb-2">Không tìm thấy câu trả lời?</h3>
         <p className="text-gray-500 text-sm mb-4">
-          Lien he truc tiep voi chung toi de duoc ho tro
+          Liên hệ trực tiếp với chúng tôi để được hỗ trợ
         </p>
         <Button asChild>
-          <Link href="/contact">Lien he ngay</Link>
+          <Link href="/contact">Liên hệ ngay</Link>
         </Button>
       </div>
     </div>

@@ -32,14 +32,14 @@ const AVAILABLE_SCOPES = [
 ];
 
 const createSchema = z.object({
-  name: z.string().min(2, 'Ten toi thieu 2 ky tu').max(100),
-  scopes: z.array(z.string()).min(1, 'Chon it nhat 1 quyen'),
+  name: z.string().min(2, 'Tên tối thiểu 2 ký tự').max(100),
+  scopes: z.array(z.string()).min(1, 'Chọn ít nhất 1 quyền'),
   expires_at: z.string().optional().nullable(),
 });
 
 type CreateForm = z.infer<typeof createSchema>;
 
-/** Quan ly API Keys */
+/** Quản lý API Keys */
 export default function ApiKeysPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
@@ -85,7 +85,7 @@ export default function ApiKeysPage() {
   const deleteMutation = useMutation('DELETE', deleteId ? `/admin/api-keys/${deleteId}` : '');
 
   const columns: ColumnDef<ApiKey>[] = [
-    { key: 'name', header: 'Ten' },
+    { key: 'name', header: 'Tên' },
     {
       key: 'prefix',
       header: 'Key',
@@ -93,7 +93,7 @@ export default function ApiKeysPage() {
     },
     {
       key: 'scopes',
-      header: 'Quyen',
+      header: 'Quyền',
       render: (row) => (
         <div className="flex flex-wrap gap-1">
           {row.scopes?.slice(0, 2).map((s) => (
@@ -107,35 +107,35 @@ export default function ApiKeysPage() {
     },
     {
       key: 'is_active',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
-          label={row.is_active ? 'Hoat dong' : 'Da thu hoi'}
+          label={row.is_active ? 'Hoạt động' : 'Đã thu hồi'}
         />
       ),
     },
     {
       key: 'expires_at',
-      header: 'Het han',
-      render: (row) => (row.expires_at ? formatDate(row.expires_at) : 'Vinh vien'),
+      header: 'Hết hạn',
+      render: (row) => (row.expires_at ? formatDate(row.expires_at) : 'Vĩnh viễn'),
     },
     {
       key: 'last_used_at',
-      header: 'Dung cuoi',
-      render: (row) => (row.last_used_at ? formatDate(row.last_used_at) : 'Chua'),
+      header: 'Dùng cuối',
+      render: (row) => (row.last_used_at ? formatDate(row.last_used_at) : 'Chưa'),
     },
   ];
 
   const actions: ActionDef<ApiKey>[] = [
     {
-      label: 'Thu hoi',
+      label: 'Thu hồi',
       icon: <Ban className="h-4 w-4 mr-2" />,
       onClick: (row) => setRevokeId(row.id),
       hidden: (row) => !row.is_active,
     },
     {
-      label: 'Tạo lai',
+      label: 'Tạo lại',
       icon: <RefreshCw className="h-4 w-4 mr-2" />,
       onClick: (row) => setRegenerateId(row.id),
     },
@@ -200,9 +200,9 @@ export default function ApiKeysPage() {
   const handleCopy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast('Da copy', undefined, 'success');
+      toast('Đã copy', undefined, 'success');
     } catch {
-      toast('Copy that bai', undefined, 'destructive');
+      toast('Copy Thất bại', undefined, 'destructive');
     }
   };
 
@@ -210,7 +210,7 @@ export default function ApiKeysPage() {
     <div className="space-y-6">
       <PageHeader
         title="API Keys"
-        description="Quan ly token de goi API tu app ben ngoai"
+        description="Quản lý token để gọi API từ app bên ngoài"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'API Keys' },
@@ -232,7 +232,7 @@ export default function ApiKeysPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ten..."
+        searchPlaceholder="Tìm theo tên..."
         actions={actions}
       />
 
@@ -240,18 +240,18 @@ export default function ApiKeysPage() {
       <Dialog open={createOpen} onOpenChange={setCreateOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tạo API key moi</DialogTitle>
-            <DialogDescription>Key chi hien thi 1 lan sau khi tao — hay luu lai ngay</DialogDescription>
+            <DialogTitle>Tạo API key mới</DialogTitle>
+            <DialogDescription>Key chỉ hiển thị 1 lần sau khi tạo — hãy lưu lại ngay</DialogDescription>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <FormField label="Ten" error={errors.name} required>
+            <FormField label="Tên" error={errors.name} required>
               <Input
                 value={form.name}
                 onChange={(e) => { setForm((p) => ({ ...p, name: e.target.value })); setErrors((p) => ({ ...p, name: '' })); }}
                 placeholder="VD: Production backend"
               />
             </FormField>
-            <FormField label="Quyen (scopes)" error={errors.scopes} required>
+            <FormField label="Quyền (scopes)" error={errors.scopes} required>
               <div className="grid grid-cols-2 gap-2">
                 {AVAILABLE_SCOPES.map((sc) => (
                   <label key={sc} className="flex items-center gap-2 text-sm cursor-pointer">
@@ -264,7 +264,7 @@ export default function ApiKeysPage() {
                 ))}
               </div>
             </FormField>
-            <FormField label="Ngay het han" description="De trong = khong het han">
+            <FormField label="Ngày hết hạn" description="Để trống = không hết hạn">
               <Input
                 type="date"
                 value={form.expires_at ?? ''}
@@ -273,7 +273,7 @@ export default function ApiKeysPage() {
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setCreateOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setCreateOpen(false)}>Hủy</Button>
             <Button onClick={handleCreate} disabled={createMutation.loading}>
               <KeyRound className="h-4 w-4 mr-2" />
               {createMutation.loading ? 'Đang tạo...' : 'Tạo key'}
@@ -286,14 +286,14 @@ export default function ApiKeysPage() {
       <Dialog open={!!showKey} onOpenChange={(o) => !o && setShowKey(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>API key da duoc tao</DialogTitle>
+            <DialogTitle>API key đã được tạo</DialogTitle>
             <DialogDescription>
-              <strong>Lưu y:</strong> Key chi hien thi 1 lan. Copy va luu lai ngay bay gio.
+              <strong>Lưu ý:</strong> Key chỉ hiển thị 1 lần. Copy và lưu lại ngay bây giờ.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-              Neu mat key, ban phai tao lai (regenerate) de co key moi.
+              Nếu mất key, bạn phải tạo lại (regenerate) để có key mới.
             </div>
             <div className="font-mono text-xs bg-gray-100 p-3 rounded break-all">
               {showKey?.key}
@@ -304,7 +304,7 @@ export default function ApiKeysPage() {
           </div>
           <DialogFooter>
             <Button onClick={() => setShowKey(null)}>
-              <Check className="h-4 w-4 mr-2" /> Da luu key
+              <Check className="h-4 w-4 mr-2" /> Đã lưu key
             </Button>
           </DialogFooter>
         </DialogContent>
@@ -313,10 +313,10 @@ export default function ApiKeysPage() {
       <ConfirmDialog
         open={!!revokeId}
         onOpenChange={(o) => !o && setRevokeId(null)}
-        title="Thu hoi API key"
-        description="Key se bi vo hieu hoa ngay lap tuc. Tiếp tục?"
+        title="Thu hồi API key"
+        description="Key sẽ bị vô hiệu hóa ngay lập tức. Tiếp tục?"
         onConfirm={handleRevoke}
-        confirmLabel="Thu hoi"
+        confirmLabel="Thu hồi"
         variant="danger"
         loading={revokeMutation.loading}
       />
@@ -324,10 +324,10 @@ export default function ApiKeysPage() {
       <ConfirmDialog
         open={!!regenerateId}
         onOpenChange={(o) => !o && setRegenerateId(null)}
-        title="Tạo lai API key"
-        description="Key cu se bi vo hieu. Key moi chi hien thi 1 lan."
+        title="Tạo lại API key"
+        description="Key cũ sẽ bị vô hiệu. Key mới chỉ hiển thị 1 lần."
         onConfirm={handleRegenerate}
-        confirmLabel="Tạo lai"
+        confirmLabel="Tạo lại"
         variant="warning"
         loading={regenerateMutation.loading}
       />
@@ -336,7 +336,7 @@ export default function ApiKeysPage() {
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
         title="Xóa API key"
-        description="Xóa vĩnh viễn key nay?"
+        description="Xóa vĩnh viễn key này?"
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

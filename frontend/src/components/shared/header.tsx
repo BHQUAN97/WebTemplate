@@ -32,11 +32,11 @@ export function Header() {
   };
 
   const navLinks = [
-    { href: '/', label: 'Trang chu' },
+    { href: '/', label: 'Trang chủ' },
     { href: '/products', label: 'Sản phẩm' },
     { href: '/blog', label: 'Blog' },
-    { href: '/about', label: 'Gioi thieu' },
-    { href: '/contact', label: 'Lien he' },
+    { href: '/about', label: 'Giới thiệu' },
+    { href: '/contact', label: 'Liên hệ' },
     { href: '/faq', label: 'FAQ' },
   ];
 
@@ -85,7 +85,7 @@ export function Header() {
             </Button>
 
             <Link href="/cart" className="relative">
-              <Button variant="ghost" size="icon" aria-label="Gio hang">
+              <Button variant="ghost" size="icon" aria-label="Giỏ hàng">
                 <ShoppingCart className="h-5 w-5" />
                 {hydrated && itemCount > 0 && (
                   <span className="absolute -top-1 -right-1 h-5 w-5 rounded-full bg-red-500 text-white text-xs flex items-center justify-center">

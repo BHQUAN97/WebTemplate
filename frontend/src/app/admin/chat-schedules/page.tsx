@@ -135,7 +135,7 @@ export default function ChatSchedulesPage() {
       setDeleteId(null);
       load();
     } catch (err) {
-      toast('Xóa that bai', (err as Error).message, 'destructive');
+      toast('Xóa Thất bại', (err as Error).message, 'destructive');
     }
   };
 
@@ -144,7 +144,7 @@ export default function ChatSchedulesPage() {
       await adminChatApi.updateSchedule(row.id, { isActive: !row.isActive });
       load();
     } catch (err) {
-      toast('Cập nhật that bai', (err as Error).message, 'destructive');
+      toast('Cập nhật Thất bại', (err as Error).message, 'destructive');
     }
   };
 
@@ -195,7 +195,7 @@ export default function ChatSchedulesPage() {
     },
     {
       key: 'isActive',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.isActive ? 'active' : 'inactive'}
@@ -231,7 +231,7 @@ export default function ChatSchedulesPage() {
         description="Dinh nghia gio lam viec cua nhan vien va AI"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Cham soc khach hang' },
+          { label: 'Cham soc Khách hàng' },
           { label: 'Khung gio' },
         ]}
         actions={

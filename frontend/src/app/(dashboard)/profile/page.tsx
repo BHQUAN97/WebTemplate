@@ -161,7 +161,7 @@ export default function ProfilePage() {
       if (user) {
         await usersApi.updateUser(user.id, data);
         updateUser(data);
-        setProfileMsg('Cập nhật ho so thanh cong!');
+        setProfileMsg('Cập nhật ho so Thành công!');
       }
     } catch (err: any) {
       setProfileMsg(err.message || 'Lỗi khi cập nhật hồ sơ');
@@ -220,7 +220,7 @@ export default function ProfilePage() {
       {/* Profile form */}
       <Card>
         <CardHeader>
-          <CardTitle>Thong tin ca nhan</CardTitle>
+          <CardTitle>Thông tin cá nhân</CardTitle>
         </CardHeader>
         <CardContent>
           <form
@@ -293,7 +293,7 @@ export default function ProfilePage() {
               </div>
               <div>
                 <label className="block text-sm font-medium text-gray-700 mb-1">
-                  So dien thoai
+                  Số điện thoại
                 </label>
                 <Input {...profileForm.register('phone')} />
                 {profileForm.formState.errors.phone && (

@@ -7,7 +7,7 @@ import { authApi } from '@/lib/api/modules/auth.api';
 
 /**
  * Callback OAuth — BE redirect ve day voi ?token=... sau khi Google/Facebook OK.
- * FE lay token, fetch /users/me, setAuth, redirect ve trang chu.
+ * FE lay token, fetch /users/me, setAuth, redirect ve Trang chủ.
  */
 function CallbackInner() {
   const router = useRouter();

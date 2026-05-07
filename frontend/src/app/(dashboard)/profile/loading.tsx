@@ -1,5 +1,5 @@
-/**
- * Skeleton fallback cho trang ho so nguoi dung — Next.js auto-Suspense
+﻿/**
+ * Skeleton fallback cho trang ho so Người dùng — Next.js auto-Suspense
  */
 export default function Loading() {
   return (

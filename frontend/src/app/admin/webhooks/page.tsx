@@ -15,7 +15,7 @@ import { useToast } from '@/lib/hooks/use-toast';
 import type { ApiResponse } from '@/lib/types';
 import type { Webhook } from '@/lib/api/modules/webhooks.api';
 
-/** Quan ly Webhooks */
+/** Quản lý Webhooks */
 export default function WebhooksPage() {
   const { toast } = useToast();
   const [search, setSearch] = useState('');
@@ -59,7 +59,7 @@ export default function WebhooksPage() {
     },
     {
       key: 'events',
-      header: 'Su kien',
+      header: 'Sự kiện',
       render: (row) => (
         <div className="flex flex-wrap gap-1">
           {row.events?.slice(0, 3).map((e) => (
@@ -73,17 +73,17 @@ export default function WebhooksPage() {
     },
     {
       key: 'is_active',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
-          label={row.is_active ? 'Hoat dong' : 'Tam dung'}
+          label={row.is_active ? 'Hoạt động' : 'Tạm dừng'}
         />
       ),
     },
     {
       key: 'success_rate',
-      header: 'Ty le thanh cong',
+      header: 'Ty le Thành công',
       render: (row) => {
         const total = (row.success_count ?? 0) + (row.failure_count ?? 0);
         const rate = total > 0 ? (row.success_count / total) * 100 : 0;
@@ -96,7 +96,7 @@ export default function WebhooksPage() {
     },
     {
       key: 'last_triggered_at',
-      header: 'Lan cuoi',
+      header: 'Lần cuối',
       render: (row) =>
         row.last_triggered_at ? formatDate(row.last_triggered_at) : 'Chưa kích hoạt',
     },
@@ -139,7 +139,7 @@ export default function WebhooksPage() {
     setTestId(null);
     if (res) {
       toast(
-        res.success ? 'Test thanh cong' : 'Test that bai',
+        res.success ? 'Test Thành công' : 'Test Thất bại',
         undefined,
         res.success ? 'success' : 'destructive',
       );
@@ -150,7 +150,7 @@ export default function WebhooksPage() {
     <div className="space-y-6">
       <PageHeader
         title="Webhooks"
-        description="Cau hinh gui su kien toi endpoint ben ngoai"
+        description="Cấu hình gửi sự kiện tới endpoint bên ngoài"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Webhooks' },
@@ -174,7 +174,7 @@ export default function WebhooksPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo URL..."
+        searchPlaceholder="Tìm theo URL..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -185,7 +185,7 @@ export default function WebhooksPage() {
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
         title="Xóa webhook"
-        description="Ban co chac chan muon xoa webhook nay? Hanh dong nay khong the hoan tac."
+        description="Bạn có chắc chắn muốn xóa webhook này? Hành động này không thể hoàn tác."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"
@@ -196,7 +196,7 @@ export default function WebhooksPage() {
         open={!!testId}
         onOpenChange={(o) => !o && setTestId(null)}
         title="Test webhook"
-        description="Gửi 1 payload test den URL nay?"
+        description="Gửi 1 payload test đến URL này?"
         onConfirm={handleTest}
         confirmLabel="Gửi test"
         loading={testMutation.loading}

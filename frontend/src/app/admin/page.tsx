@@ -25,7 +25,7 @@ export default function AdminDashboardPage() {
     <div className="space-y-6 print:space-y-4">
       <PageHeader
         title="Dashboard"
-        description="Tổng quan hoat dong cua he thong"
+        description="Tổng quan hoat dong cua Hệ thống"
         actions={<PrintButton />}
       />
 
@@ -92,10 +92,10 @@ export default function AdminDashboardPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ma don</TableHead>
-                  <TableHead>Khách hang</TableHead>
-                  <TableHead className="text-right">Tong tien</TableHead>
-                  <TableHead>Trang thai</TableHead>
+                  <TableHead>Mã đơn</TableHead>
+                  <TableHead>Khách hàng</TableHead>
+                  <TableHead className="text-right">Tổng tiền</TableHead>
+                  <TableHead>Trạng thái</TableHead>
                   <TableHead>Ngay</TableHead>
                 </TableRow>
               </TableHeader>
@@ -127,7 +127,7 @@ export default function AdminDashboardPage() {
                 ) : (
                   <TableRow>
                     <TableCell colSpan={5} className="text-center text-gray-500 h-24">
-                      Chua co don hang nao
+                      Chua co Đơn hàng nao
                     </TableCell>
                   </TableRow>
                 )}
@@ -136,10 +136,10 @@ export default function AdminDashboardPage() {
           </CardContent>
         </Card>
 
-        {/* Sản phẩm ban chay */}
+        {/* Sản phẩm Bán chạy */}
         <Card>
           <CardHeader>
-            <CardTitle>Sản phẩm ban chay</CardTitle>
+            <CardTitle>Sản phẩm Bán chạy</CardTitle>
           </CardHeader>
           <CardContent>
             <div className="space-y-4">
@@ -197,7 +197,7 @@ export default function AdminDashboardPage() {
             <Button variant="outline" asChild>
               <a href="/admin/reports">
                 <BarChart3 className="h-4 w-4 mr-2" />
-                Xem bao cao
+                Xem Báo cáo
               </a>
             </Button>
           </div>

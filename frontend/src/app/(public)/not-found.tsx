@@ -12,15 +12,15 @@ export default function PublicNotFound() {
         Không tìm thấy trang
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Nội dung ban tim khong ton tai. Hay quay ve trang chu hoac tim san pham
+        Nội dung ban tim khong ton tai. Hay quay ve Trang chủ hoac tim Sản phẩm
         khac.
       </p>
       <div className="flex flex-col gap-2 sm:flex-row">
         <Link href="/">
-          <Button>Ve trang chu</Button>
+          <Button>Ve Trang chủ</Button>
         </Link>
         <Link href="/products">
-          <Button variant="outline">Xem san pham</Button>
+          <Button variant="outline">Xem Sản phẩm</Button>
         </Link>
       </div>
     </div>

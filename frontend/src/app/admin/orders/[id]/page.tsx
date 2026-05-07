@@ -20,12 +20,12 @@ import type { ApiResponse, Order, OrderStatus } from '@/lib/types';
 
 const ORDER_STATUSES: { value: string; label: string }[] = [
   { value: 'PENDING', label: 'Chờ xác nhận' },
-  { value: 'CONFIRMED', label: 'Da xac nhan' },
+  { value: 'CONFIRMED', label: 'Đã xác nhận' },
   { value: 'PROCESSING', label: 'Đang xử lý' },
   { value: 'SHIPPED', label: 'Đang giao hàng' },
   { value: 'DELIVERED', label: 'Đã giao' },
   { value: 'CANCELLED', label: 'Đã hủy' },
-  { value: 'REFUNDED', label: 'Da hoan tien' },
+  { value: 'REFUNDED', label: 'Đã hoàn tiền' },
 ];
 
 /** Chi tiết don hang */
@@ -75,7 +75,7 @@ export default function OrderDetailPage() {
   if (!order) {
     return (
       <div className="text-center py-12">
-        <p className="text-gray-500">Không tìm thấy don hang</p>
+        <p className="text-gray-500">Không tìm thấy đơn hàng</p>
       </div>
     );
   }
@@ -83,7 +83,7 @@ export default function OrderDetailPage() {
   return (
     <div className="space-y-6 print:space-y-4">
       <PageHeader
-        title={`Chi tiết don hang #${order.order_number}`}
+        title={`Chi tiết đơn hàng #${order.order_number}`}
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Đơn hàng', href: '/admin/orders' },
@@ -100,23 +100,23 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Thong tin don hang */}
         <Card className="lg:col-span-2">
-          <CardHeader><CardTitle>Thong tin don hang</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Thông tin đơn hàng</CardTitle></CardHeader>
           <CardContent>
             <div className="grid grid-cols-2 sm:grid-cols-4 gap-4 text-sm">
               <div>
-                <p className="text-gray-500">Ma don</p>
+                <p className="text-gray-500">Mã đơn</p>
                 <p className="font-medium">{order.order_number}</p>
               </div>
               <div>
-                <p className="text-gray-500">Ngay dat</p>
+                <p className="text-gray-500">Ngày đặt</p>
                 <p className="font-medium">{formatDateTime(order.created_at)}</p>
               </div>
               <div>
-                <p className="text-gray-500">Trang thai</p>
+                <p className="text-gray-500">Trạng thái</p>
                 <StatusBadge status={order.status} label={formatOrderStatus(order.status)} />
               </div>
               <div>
-                <p className="text-gray-500">Thanh toan</p>
+                <p className="text-gray-500">Thanh toán</p>
                 <StatusBadge
                   status={order.payment?.status ?? 'PENDING'}
                   label={formatPaymentStatus(order.payment?.status ?? 'PENDING')}
@@ -128,9 +128,9 @@ export default function OrderDetailPage() {
 
         {/* Thong tin khach hang */}
         <Card>
-          <CardHeader><CardTitle>Khách hang</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Khách hàng</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-2">
-            <p><span className="text-gray-500">Ten:</span> {order.user?.name ?? order.shipping_name}</p>
+            <p><span className="text-gray-500">Tên:</span> {order.user?.name ?? order.shipping_name}</p>
             <p><span className="text-gray-500">Email:</span> {order.user?.email ?? '---'}</p>
             <p><span className="text-gray-500">SDT:</span> {order.shipping_phone}</p>
           </CardContent>
@@ -146,11 +146,11 @@ export default function OrderDetailPage() {
               <TableRow>
                 <TableHead className="w-12">Ảnh</TableHead>
                 <TableHead>Sản phẩm</TableHead>
-                <TableHead>Bien the</TableHead>
+                <TableHead>Biến thể</TableHead>
                 <TableHead>SKU</TableHead>
-                <TableHead className="text-right">Don gia</TableHead>
+                <TableHead className="text-right">Đơn giá</TableHead>
                 <TableHead className="text-right">SL</TableHead>
-                <TableHead className="text-right">Thanh tien</TableHead>
+                <TableHead className="text-right">Thành tiền</TableHead>
               </TableRow>
             </TableHeader>
             <TableBody>
@@ -181,30 +181,30 @@ export default function OrderDetailPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         {/* Tong ket don hang */}
         <Card>
-          <CardHeader><CardTitle>Tong ket</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Tổng kết</CardTitle></CardHeader>
           <CardContent className="space-y-3 text-sm">
             <div className="flex justify-between">
-              <span className="text-gray-500">Tam tinh</span>
+              <span className="text-gray-500">Tạm tính</span>
               <span>{formatPrice(order.subtotal)}</span>
             </div>
             {order.discount > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Giam gia</span>
+                <span className="text-gray-500">Giảm giá</span>
                 <span className="text-red-600">-{formatPrice(order.discount)}</span>
               </div>
             )}
             <div className="flex justify-between">
-              <span className="text-gray-500">Phi van chuyen</span>
+              <span className="text-gray-500">Phí vận chuyển</span>
               <span>{formatPrice(order.shipping_fee)}</span>
             </div>
             {order.tax > 0 && (
               <div className="flex justify-between">
-                <span className="text-gray-500">Thue</span>
+                <span className="text-gray-500">Thuế</span>
                 <span>{formatPrice(order.tax)}</span>
               </div>
             )}
             <div className="border-t pt-3 flex justify-between font-bold text-base">
-              <span>Tong cong</span>
+              <span>Tổng cộng</span>
               <span>{formatPrice(order.total)}</span>
             </div>
           </CardContent>
@@ -212,7 +212,7 @@ export default function OrderDetailPage() {
 
         {/* Địa chỉ giao hang */}
         <Card>
-          <CardHeader><CardTitle>Địa chỉ giao hang</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Địa chỉ giao hàng</CardTitle></CardHeader>
           <CardContent className="text-sm space-y-1">
             <p className="font-medium">{order.shipping_name}</p>
             <p>{order.shipping_phone}</p>
@@ -220,7 +220,7 @@ export default function OrderDetailPage() {
             <p>{[order.shipping_ward, order.shipping_district, order.shipping_city].filter(Boolean).join(', ')}</p>
             {order.note && (
               <div className="mt-3 p-2 bg-yellow-50 rounded text-yellow-800 text-xs">
-                <strong>Ghi chu:</strong> {order.note}
+                <strong>Ghi chú:</strong> {order.note}
               </div>
             )}
           </CardContent>
@@ -228,11 +228,11 @@ export default function OrderDetailPage() {
 
         {/* Cập nhật trang thai */}
         <Card className="print:hidden">
-          <CardHeader><CardTitle>Cập nhật trang thai</CardTitle></CardHeader>
+          <CardHeader><CardTitle>Cập nhật trạng thái</CardTitle></CardHeader>
           <CardContent className="space-y-3">
             <Select value={newStatus} onValueChange={setNewStatus}>
               <SelectTrigger>
-                <SelectValue placeholder="Chon trang thai moi" />
+                <SelectValue placeholder="Chọn trạng thái mới" />
               </SelectTrigger>
               <SelectContent>
                 {ORDER_STATUSES.map((s) => (
@@ -256,7 +256,7 @@ export default function OrderDetailPage() {
                 onClick={() => setShowCancel(true)}
               >
                 <XCircle className="h-4 w-4 mr-2" />
-                Huy don hang
+                Hủy đơn hàng
               </Button>
             )}
           </CardContent>
@@ -265,7 +265,7 @@ export default function OrderDetailPage() {
 
       {/* Lich su trang thai */}
       <Card>
-        <CardHeader><CardTitle>Lich su trang thai</CardTitle></CardHeader>
+        <CardHeader><CardTitle>Lịch sử trạng thái</CardTitle></CardHeader>
         <CardContent>
           <div className="space-y-4">
             <div className="flex items-start gap-3">
@@ -278,7 +278,7 @@ export default function OrderDetailPage() {
             <div className="flex items-start gap-3">
               <div className="w-2 h-2 mt-2 rounded-full bg-gray-300" />
               <div>
-                <p className="font-medium text-sm">Đơn hàng duoc tao</p>
+                <p className="font-medium text-sm">Đơn hàng được tạo</p>
                 <p className="text-xs text-gray-500">{formatDateTime(order.created_at)}</p>
               </div>
             </div>
@@ -290,10 +290,10 @@ export default function OrderDetailPage() {
       <ConfirmDialog
         open={showCancel}
         onOpenChange={setShowCancel}
-        title="Huy don hang"
-        description="Ban co chac chan muon huy don hang nay?"
+        title="Hủy đơn hàng"
+        description="Bạn có chắc chắn muốn hủy đơn hàng này?"
         onConfirm={handleCancel}
-        confirmLabel="Huy don"
+        confirmLabel="Hủy đơn"
         variant="danger"
         loading={cancelMutation.loading}
       />

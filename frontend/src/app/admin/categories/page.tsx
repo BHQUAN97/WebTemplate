@@ -21,13 +21,13 @@ import { slugify } from '@/lib/utils/format';
 import type { ApiResponse, Category } from '@/lib/types';
 
 const categorySchema = z.object({
-  name: z.string().min(1, 'Ten danh muc la bat buoc').max(100, 'Toi da 100 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
+  name: z.string().min(1, 'Tên danh mục là bắt buộc').max(100, 'Tối đa 100 ký tự'),
+  slug: z.string().min(1, 'Slug là bắt buộc'),
   description: z.string().optional(),
   parent_id: z.string().optional().nullable(),
-  type: z.string().min(1, 'Loai la bat buoc'),
+  type: z.string().min(1, 'Loại là bắt buộc'),
   image_url: z.string().optional().nullable(),
-  position: z.number().min(0, 'Thu tu khong duoc am'),
+  position: z.number().min(0, 'Thứ tự không được âm'),
   is_active: z.boolean(),
 });
 
@@ -40,7 +40,7 @@ const TYPES = [
   { value: 'general', label: 'Chung' },
 ];
 
-/** Quan ly danh muc */
+/** Quản lý Danh mục */
 export default function CategoriesPage() {
   const [activeTab, setActiveTab] = useState('product');
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -98,7 +98,7 @@ export default function CategoriesPage() {
     refetch();
   };
 
-  // Render danh muc (co indent theo level)
+  // Render Danh mục (co indent theo level)
   const renderCategories = (items: Category[], level = 0): React.ReactNode => {
     return items.map((cat) => (
       <React.Fragment key={cat.id}>
@@ -111,7 +111,7 @@ export default function CategoriesPage() {
           </TableCell>
           <TableCell className="text-gray-500">{cat.slug}</TableCell>
           <TableCell>
-            <StatusBadge status={cat.is_active ? 'active' : 'inactive'} label={cat.is_active ? 'Hoat dong' : 'An'} />
+            <StatusBadge status={cat.is_active ? 'active' : 'inactive'} label={cat.is_active ? 'Hoạt động' : 'Ẩn'} />
           </TableCell>
           <TableCell>{cat.position}</TableCell>
           <TableCell>
@@ -133,7 +133,7 @@ export default function CategoriesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly danh muc"
+        title="Quản lý Danh mục"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Danh mục' },
@@ -141,7 +141,7 @@ export default function CategoriesPage() {
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Thêm danh muc
+            Thêm Danh mục
           </Button>
         }
       />
@@ -158,11 +158,11 @@ export default function CategoriesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Ten danh muc</TableHead>
+                  <TableHead>Tên Danh mục</TableHead>
                   <TableHead>Slug</TableHead>
-                  <TableHead>Trang thai</TableHead>
-                  <TableHead>Thu tu</TableHead>
-                  <TableHead className="w-24">Thao tac</TableHead>
+                  <TableHead>Trạng thái</TableHead>
+                  <TableHead>Thứ tự</TableHead>
+                  <TableHead className="w-24">Thao tác</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -177,7 +177,7 @@ export default function CategoriesPage() {
                 ) : categories.length === 0 ? (
                   <TableRow>
                     <TableCell colSpan={5} className="h-24 text-center text-gray-500">
-                      Chua co danh muc nao
+                      Chưa có Danh mục nào
                     </TableCell>
                   </TableRow>
                 ) : (
@@ -189,14 +189,14 @@ export default function CategoriesPage() {
         </TabsContent>
       </Tabs>
 
-      {/* Dialog tao/sua danh muc */}
+      {/* Dialog tao/sua Danh mục */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg">
           <DialogHeader>
             <DialogTitle>{editingId ? 'Chỉnh sửa danh mục' : 'Thêm danh mục mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <FormField label="Ten danh muc" error={errors.name} required>
+            <FormField label="Tên Danh mục" error={errors.name} required>
               <Input
                 value={form.name}
                 onChange={(e) => {
@@ -208,7 +208,7 @@ export default function CategoriesPage() {
             <FormField label="Slug" error={errors.slug} required>
               <Input value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} />
             </FormField>
-            <FormField label="Mo ta" error={errors.description}>
+            <FormField label="Mô tả" error={errors.description}>
               <Textarea
                 value={form.description ?? ''}
                 onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))}
@@ -216,7 +216,7 @@ export default function CategoriesPage() {
               />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Loai" error={errors.type} required>
+              <FormField label="Loại" error={errors.type} required>
                 <Select value={form.type} onValueChange={(val) => setForm((p) => ({ ...p, type: val }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -234,16 +234,16 @@ export default function CategoriesPage() {
                 </Select>
               </FormField>
             </div>
-            <FormField label="Thu tu sap xep" error={errors.position}>
+            <FormField label="Thứ tự sắp xếp" error={errors.position}>
               <Input type="number" value={form.position} onChange={(e) => setForm((p) => ({ ...p, position: parseInt(e.target.value) || 0 }))} />
             </FormField>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Hoat dong</span>
+              <span className="text-sm font-medium">Hoạt động</span>
               <Switch checked={form.is_active} onCheckedChange={(c) => setForm((p) => ({ ...p, is_active: c }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
               {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -254,8 +254,8 @@ export default function CategoriesPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa danh muc"
-        description="Ban co chac chan muon xoa danh muc nay? Cac danh muc con cung se bi anh huong."
+        title="Xóa Danh mục"
+        description="Bạn có chắc chắn muốn xóa Danh mục này? Các Danh mục con cũng sẽ bị ảnh hưởng."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

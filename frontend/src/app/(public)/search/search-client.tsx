@@ -11,7 +11,7 @@ import { searchApi, type SearchResult } from '@/lib/api/modules/search.api';
 import { useDebounce, formatPrice } from '@/lib/hooks';
 
 /**
- * Trang tim kiem — tabs All/Products/Articles, result cards
+ * Trang Tìm kiếm — tabs All/Products/Articles, result cards
  */
 export function SearchClient() {
   const [query, setQuery] = useState('');
@@ -62,7 +62,7 @@ export function SearchClient() {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Nhap tu khoa tim kiem..."
+          placeholder="Nháp tu khoa Tìm kiếm..."
           className="pl-10 h-12 text-base"
           autoFocus
         />
@@ -89,7 +89,7 @@ export function SearchClient() {
       {!debouncedQuery.trim() ? (
         <div className="text-center text-gray-400 py-16">
           <Search className="h-12 w-12 mx-auto mb-4" />
-          <p>Nhap tu khoa de bat dau tim kiem</p>
+          <p>Nháp tu khoa de bat dau Tìm kiếm</p>
         </div>
       ) : loading ? (
         <div className="space-y-4">

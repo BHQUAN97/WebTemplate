@@ -19,15 +19,15 @@ import { slugify } from '@/lib/utils/format';
 import type { ApiResponse, Article } from '@/lib/types';
 
 const articleSchema = z.object({
-  title: z.string().min(1, 'Tieu de la bat buoc').max(255, 'Toi da 255 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
-  content: z.string().min(1, 'Nội dung la bat buoc'),
-  excerpt: z.string().max(500, 'Tom tat toi da 500 ky tu').optional(),
+  title: z.string().min(1, 'Tiêu đề là bắt buộc').max(255, 'Tối đa 255 ký tự'),
+  slug: z.string().min(1, 'Slug là bắt buộc'),
+  content: z.string().min(1, 'Nội dung là bắt buộc'),
+  excerpt: z.string().max(500, 'Tóm tắt tối đa 500 ký tự').optional(),
   featured_image: z.string().optional().nullable(),
   status: z.enum(['DRAFT', 'PUBLISHED', 'ARCHIVED']),
   is_featured: z.boolean(),
-  seo_title: z.string().max(70, 'SEO title toi da 70 ky tu').optional(),
-  seo_description: z.string().max(160, 'SEO description toi da 160 ky tu').optional(),
+  seo_title: z.string().max(70, 'SEO title tối đa 70 ký tự').optional(),
+  seo_description: z.string().max(160, 'SEO description tối đa 160 ký tự').optional(),
 });
 
 type ArticleForm = z.infer<typeof articleSchema>;
@@ -118,7 +118,7 @@ export default function EditArticlePage() {
           <Card>
             <CardHeader><CardTitle>Nội dung</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Tieu de" error={errors.title} required>
+              <FormField label="Tiêu đề" error={errors.title} required>
                 <Input value={form.title} onChange={(e) => updateField('title', e.target.value)} />
               </FormField>
               <FormField label="Slug" error={errors.slug} required>
@@ -128,10 +128,10 @@ export default function EditArticlePage() {
                 <RichTextEditor
                   value={form.content}
                   onChange={(html) => updateField('content', html)}
-                  placeholder="Nội dung bai viet..."
+                  placeholder="Nội dung bài viết..."
                 />
               </FormField>
-              <FormField label="Tom tat" error={errors.excerpt}>
+              <FormField label="Tóm tắt" error={errors.excerpt}>
                 <Textarea
                   value={form.excerpt ?? ''}
                   onChange={(e) => updateField('excerpt', e.target.value)}
@@ -144,10 +144,10 @@ export default function EditArticlePage() {
           <Card>
             <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="SEO Title" error={errors.seo_title} description="Toi da 70 ky tu">
+              <FormField label="SEO Title" error={errors.seo_title} description="Tối đa 70 ký tự">
                 <Input value={form.seo_title ?? ''} onChange={(e) => updateField('seo_title', e.target.value)} maxLength={70} />
               </FormField>
-              <FormField label="SEO Description" error={errors.seo_description} description="Toi da 160 ky tu">
+              <FormField label="SEO Description" error={errors.seo_description} description="Tối đa 160 ký tự">
                 <Textarea value={form.seo_description ?? ''} onChange={(e) => updateField('seo_description', e.target.value)} rows={3} maxLength={160} />
               </FormField>
             </CardContent>
@@ -156,20 +156,20 @@ export default function EditArticlePage() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Ảnh dai dien</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Ảnh đại diện</CardTitle></CardHeader>
             <CardContent>
               <div className="border-2 border-dashed border-gray-300 rounded-lg p-6 text-center">
-                <p className="text-gray-400 text-sm">Click de chon anh dai dien</p>
-                <Button type="button" variant="outline" className="mt-3" size="sm">Chon anh</Button>
+                <p className="text-gray-400 text-sm">Click để chọn ảnh đại diện</p>
+                <Button type="button" variant="outline" className="mt-3" size="sm">Chọn ảnh</Button>
               </div>
             </CardContent>
           </Card>
 
           <Card>
-            <CardHeader><CardTitle>Tuy chon</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Tùy chọn</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Bài viết noi bat</span>
+                <span className="text-sm font-medium">Bài viết nổi bật</span>
                 <Switch checked={form.is_featured} onCheckedChange={(c) => updateField('is_featured', c)} />
               </div>
             </CardContent>
@@ -181,10 +181,10 @@ export default function EditArticlePage() {
               {updateMutation.loading ? 'Đang lưu...' : 'Xuất bản'}
             </Button>
             <Button variant="outline" className="w-full" disabled={updateMutation.loading} onClick={() => handleSubmit('DRAFT')}>
-              <FileText className="h-4 w-4 mr-2" /> Lưu nhap
+              <FileText className="h-4 w-4 mr-2" /> Lưu nháp
             </Button>
             <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/articles')}>
-              Huy
+              Hủy
             </Button>
           </div>
           {updateMutation.error && <p className="text-sm text-red-500">{updateMutation.error}</p>}
@@ -194,8 +194,8 @@ export default function EditArticlePage() {
       <ConfirmDialog
         open={showDelete}
         onOpenChange={setShowDelete}
-        title="Xóa bai viet"
-        description="Ban co chac chan muon xoa bai viet nay?"
+        title="Xóa bài viết"
+        description="Bạn có chắc chắn muốn xóa bài viết này?"
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

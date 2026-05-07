@@ -31,7 +31,7 @@ export default function AboutPage() {
           </h1>
           <p className="text-lg text-blue-100 max-w-2xl mx-auto">
             WebTemplate duoc thanh lap voi su menh mang den trai nghiem mua
-            sam truc tuyen tot nhat cho nguoi Viet Nam.
+            sam truc tuyen tot nhat cho Người viết Nam.
           </p>
         </div>
       </section>
@@ -43,11 +43,11 @@ export default function AboutPage() {
           <p>
             Bật dau tu nam 2020 voi chi 2 thanh vien, WebTemplate da phat trien
             thanh mot nen tang thuong mai dien tu hang dau. Chung toi tin rang
-            moi nguoi deu xung dang co duoc san pham chat luong voi gia ca hop ly.
+            moi nguoi deu xung dang co duoc Sản phẩm chat luong voi gia ca hop ly.
           </p>
           <p>
             Voi doi ngu hon 50 nhan vien tan tam, chung toi khong ngung cai tien
-            de mang den trai nghiem mua sam tuyet voi nhat cho khach hang.
+            de mang den trai nghiem Mua sắm tuyet voi nhat cho Khách hàng.
           </p>
         </div>
       </section>
@@ -61,9 +61,9 @@ export default function AboutPage() {
                 <Target className="h-10 w-10 text-blue-600 mb-4" />
                 <h3 className="text-xl font-bold mb-3">Su menh</h3>
                 <p className="text-gray-600">
-                  Mang den trai nghiem mua sam truc tuyen de dang, an toan va
-                  gia tri nhat cho moi khach hang. Chung toi cam ket chat luong
-                  san pham va dich vu khach hang xuat sac.
+                  Mang den trai nghiem Mua sắm truc tuyen de dang, an toan va
+                  gia tri nhat cho moi Khách hàng. Chung toi cam ket chat luong
+                  Sản phẩm va dich vu Khách hàng xuat sac.
                 </p>
               </CardContent>
             </Card>
@@ -73,7 +73,7 @@ export default function AboutPage() {
                 <h3 className="text-xl font-bold mb-3">Tam nhin</h3>
                 <p className="text-gray-600">
                   Tro thanh nen tang thuong mai dien tu so 1 Viet Nam, noi moi
-                  nguoi deu co the tim thay san pham phu hop voi nhu cau va
+                  nguoi deu co the tim thay Sản phẩm phu hop voi nhu cau va
                   ngan sach cua minh.
                 </p>
               </CardContent>
@@ -109,9 +109,9 @@ export default function AboutPage() {
       {/* CTA */}
       <section className="py-12 sm:py-16 bg-blue-600 text-white text-center">
         <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-4">San sang mua sam?</h2>
+          <h2 className="text-2xl font-bold mb-4">Sẵn sàng mua sắm?</h2>
           <p className="text-blue-100 mb-6">
-            Lien he voi chung toi hoac bat dau mua sam ngay hom nay.
+            Liên hệ với chúng tôi hoặc bắt đầu mua sắm ngay hôm nay.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
             <Button
@@ -119,7 +119,7 @@ export default function AboutPage() {
               className="bg-white text-blue-600 hover:bg-blue-50"
               asChild
             >
-              <Link href="/products">Xem san pham</Link>
+              <Link href="/products">Xem sản phẩm</Link>
             </Button>
             <Button
               size="lg"
@@ -127,7 +127,7 @@ export default function AboutPage() {
               className="border-white text-white hover:bg-white/10"
               asChild
             >
-              <Link href="/contact">Lien he</Link>
+              <Link href="/contact">Liên hệ</Link>
             </Button>
           </div>
         </div>

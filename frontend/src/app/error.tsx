@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { Button } from '@/components/ui/button';
@@ -25,7 +25,7 @@ export default function Error({
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
         Ung dung gap su co khong mong muon. Ban co the thu lai hoac quay ve
-        trang chu.
+        Trang chủ.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">
@@ -35,7 +35,7 @@ export default function Error({
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button onClick={() => unstable_retry()}>Thu lai</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/')}>
-          Ve trang chu
+          Ve Trang chủ
         </Button>
       </div>
     </div>

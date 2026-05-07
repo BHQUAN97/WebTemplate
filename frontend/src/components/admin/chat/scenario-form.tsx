@@ -27,12 +27,12 @@ import type {
 
 /** Zod schema — FE/BE validation phai dong bo */
 export const scenarioSchema = z.object({
-  name: z.string().min(2, 'Toi thieu 2 ky tu').max(100, 'Toi da 100 ky tu'),
+  name: z.string().min(2, 'Tối thiểu 2 ký tự').max(100, 'Tối đa 100 ký tự'),
   description: z.string().max(500).optional(),
   triggerType: z.enum(['keyword', 'intent', 'event', 'fallback', 'schedule']),
   triggerValue: z.string().min(1, 'Không được bỏ trống'),
   conditionsJson: z.string().optional(),
-  response: z.string().min(1, 'Nội dung phan hoi bat buoc').max(4000, 'Toi da 4000 ky tu'),
+  response: z.string().min(1, 'Nội dung phản hồi bắt buộc').max(4000, 'Tối đa 4000 ký tự'),
   responseType: z.enum(['text', 'template', 'quick_reply', 'product', 'order']),
   followUpScenarioId: z.string().optional(),
   delayMs: z.coerce.number().int().min(0).max(300000).default(0),
@@ -43,15 +43,15 @@ export const scenarioSchema = z.object({
 export type ScenarioFormValues = z.infer<typeof scenarioSchema>;
 
 const TRIGGER_OPTIONS: Array<{ value: ScenarioTriggerType; label: string; hint: string }> = [
-  { value: 'keyword', label: 'Tu khoa', hint: 'Danh sach tu khoa ngan cach bang dau phay' },
-  { value: 'intent', label: 'Intent (y dinh)', hint: 'Ma intent do AI phan loai' },
-  { value: 'event', label: 'Su kien', hint: 'Ten event (vd: cart.abandoned)' },
+  { value: 'keyword', label: 'Từ khóa', hint: 'Danh sách từ khóa ngăn cách bằng dấu phẩy' },
+  { value: 'intent', label: 'Intent (ý định)', hint: 'Mã intent do AI phân loại' },
+  { value: 'event', label: 'Sự kiện', hint: 'Tên event (vd: cart.abandoned)' },
   { value: 'fallback', label: 'Fallback', hint: 'Không cần trigger value' },
-  { value: 'schedule', label: 'Theo lich', hint: 'Cron hoac khung gio' },
+  { value: 'schedule', label: 'Theo lịch', hint: 'Cron hoặc khung giờ' },
 ];
 
 const RESPONSE_TYPE_OPTIONS: Array<{ value: ScenarioResponseType; label: string }> = [
-  { value: 'text', label: 'Van ban' },
+  { value: 'text', label: 'Văn bản' },
   { value: 'template', label: 'Template (Handlebars)' },
   { value: 'quick_reply', label: 'Quick reply (JSON)' },
   { value: 'product', label: 'Product card' },
@@ -150,7 +150,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
         router.push('/admin/chat-scenarios');
       }
     } catch (err) {
-      toast('Lưu that bai', (err as Error).message, 'destructive');
+      toast('Lưu Thất bại', (err as Error).message, 'destructive');
     } finally {
       setSubmitting(false);
     }
@@ -162,7 +162,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
         {/* Thong tin co ban */}
         <Card>
           <CardHeader>
-            <CardTitle>Thong tin co ban</CardTitle>
+            <CardTitle>Thông tin cơ bản</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
             <FormField label="Ten kich ban" error={errors.name} required>
@@ -172,7 +172,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
                 placeholder="Vd: Chao khach moi"
               />
             </FormField>
-            <FormField label="Mo ta" error={errors.description}>
+            <FormField label="Mô tả" error={errors.description}>
               <Textarea
                 rows={2}
                 value={values.description ?? ''}
@@ -188,7 +188,7 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
             <CardTitle>Dieu kien kich hoat</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Loai trigger" required>
+            <FormField label="Loại trigger" required>
               <Select
                 value={values.triggerType}
                 onValueChange={(v) => update('triggerType', v as ScenarioTriggerType)}
@@ -246,10 +246,10 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
         {/* Response */}
         <Card>
           <CardHeader>
-            <CardTitle>Phan hoi</CardTitle>
+            <CardTitle>Phản hồi</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Loai phan hoi">
+            <FormField label="Loại Phản hồi">
               <Select
                 value={values.responseType}
                 onValueChange={(v) => update('responseType', v as ScenarioResponseType)}
@@ -267,9 +267,9 @@ export function ScenarioForm({ initial, onSubmit, scenarios = [] }: Props) {
               </Select>
             </FormField>
             <FormField
-              label="Nội dung phan hoi"
+              label="Nội dung Phản hồi"
               error={errors.response}
-              description="Ho tro bien {{customer_name}}, {{order_code}}, {{product_name}}..."
+              description="Hỗ trợ bien {{customer_name}}, {{order_code}}, {{product_name}}..."
               required
             >
               <Textarea

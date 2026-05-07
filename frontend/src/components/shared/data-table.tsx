@@ -58,7 +58,7 @@ export interface DataTableProps<T extends { id: string }> {
 }
 
 /**
- * Data table co the tai su dung — ho tro sort, pagination, search, bulk actions
+ * Data table co the tai su dung — Hỗ trợ sort, pagination, search, bulk actions
  */
 export function DataTable<T extends { id: string }>({
   columns,

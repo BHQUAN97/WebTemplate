@@ -256,7 +256,7 @@ export default function WebhookDetailPage() {
 
           {!isNew && (
             <Card>
-              <CardHeader><CardTitle>Lich su gui (20 gan nhat)</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Lịch sử gửi (20 gần nhất)</CardTitle></CardHeader>
               <CardContent>
                 {deliveries.loading ? (
                   <Skeleton className="h-40" />

@@ -20,11 +20,11 @@ import { formatDate } from '@/lib/utils/format';
 import type { ApiResponse, User, UserRole } from '@/lib/types';
 
 const userSchema = z.object({
-  name: z.string().min(1, 'Ten la bat buoc').max(100, 'Toi da 100 ky tu'),
-  email: z.string().email('Email khong hop le'),
-  password: z.string().min(6, 'Mật khẩu toi thieu 6 ky tu').optional(),
+  name: z.string().min(1, 'Tên là bắt buộc').max(100, 'Tối đa 100 ký tự'),
+  email: z.string().email('Email không hợp lệ'),
+  password: z.string().min(6, 'Mật khẩu tối thiểu 6 ký tự').optional(),
   phone: z.string().optional().nullable(),
-  role: z.string().min(1, 'Vai tro la bat buoc'),
+  role: z.string().min(1, 'Vai trò là bắt buộc'),
   is_active: z.boolean(),
 });
 
@@ -37,7 +37,7 @@ const ROLE_VARIANTS: Record<string, 'default' | 'secondary' | 'success' | 'warni
   USER: 'secondary',
 };
 
-/** Quan ly khach hang */
+/** Quản lý Khách hàng */
 export default function CustomersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -81,26 +81,26 @@ export default function CustomersPage() {
         </div>
       ),
     },
-    { key: 'name', header: 'Ten', sortable: true },
+    { key: 'name', header: 'Tên', sortable: true },
     { key: 'email', header: 'Email', sortable: true },
     {
       key: 'role',
-      header: 'Vai tro',
+      header: 'Vai trò',
       render: (row) => <Badge variant={ROLE_VARIANTS[row.role] ?? 'secondary'}>{row.role}</Badge>,
     },
     {
       key: 'is_active',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
-          label={row.is_active ? 'Hoat dong' : 'Khoa'}
+          label={row.is_active ? 'Hoạt động' : 'Khóa'}
         />
       ),
     },
     {
       key: 'created_at',
-      header: 'Ngay tham gia',
+      header: 'Ngày tham gia',
       sortable: true,
       render: (row) => formatDate(row.created_at),
     },
@@ -156,15 +156,15 @@ export default function CustomersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly khach hang"
+        title="Quản lý Khách hàng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Khách hang' },
+          { label: 'Khách hàng' },
         ]}
         actions={
           <Button onClick={openCreate}>
             <UserPlus className="h-4 w-4 mr-2" />
-            Thêm nguoi dung
+            Thêm Người dùng
           </Button>
         }
       />
@@ -173,7 +173,7 @@ export default function CustomersPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={roleFilter} onValueChange={setRoleFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Vai tro" />
+            <SelectValue placeholder="Vai trò" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả vai trò</SelectItem>
@@ -194,7 +194,7 @@ export default function CustomersPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ten, email..."
+        searchPlaceholder="Tìm theo tên, email..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -214,13 +214,13 @@ export default function CustomersPage() {
             <FormField label="Email" error={errors.email} required>
               <Input type="email" value={form.email} onChange={(e) => { setForm((p) => ({ ...p, email: e.target.value })); setErrors((p) => ({ ...p, email: '' })); }} />
             </FormField>
-            <FormField label={editingId ? 'Mật khẩu moi (de trong neu khong doi)' : 'Mật khẩu'} error={errors.password} required={!editingId}>
+            <FormField label={editingId ? 'Mật khẩu mới (để trống nếu không đổi)' : 'Mật khẩu'} error={errors.password} required={!editingId}>
               <Input type="password" value={form.password ?? ''} onChange={(e) => setForm((p) => ({ ...p, password: e.target.value }))} />
             </FormField>
-            <FormField label="So dien thoai" error={errors.phone}>
+            <FormField label="Số điện thoại" error={errors.phone}>
               <Input value={form.phone ?? ''} onChange={(e) => setForm((p) => ({ ...p, phone: e.target.value || null }))} />
             </FormField>
-            <FormField label="Vai tro" error={errors.role} required>
+            <FormField label="Vai trò" error={errors.role} required>
               <Select value={form.role} onValueChange={(val) => setForm((p) => ({ ...p, role: val }))}>
                 <SelectTrigger><SelectValue /></SelectTrigger>
                 <SelectContent>
@@ -232,12 +232,12 @@ export default function CustomersPage() {
               </Select>
             </FormField>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Hoat dong</span>
+              <span className="text-sm font-medium">Hoạt động</span>
               <Switch checked={form.is_active} onCheckedChange={(c) => setForm((p) => ({ ...p, is_active: c }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
               {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -248,8 +248,8 @@ export default function CustomersPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa nguoi dung"
-        description="Ban co chac chan muon xoa nguoi dung nay? Hanh dong nay khong the hoan tac."
+        title="Xóa Người dùng"
+        description="Bạn có chắc chắn muốn xóa Người dùng này? Hành động này không thể hoàn tác."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

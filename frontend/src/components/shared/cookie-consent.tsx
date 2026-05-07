@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import { useCallback, useEffect, useState } from 'react';
 import Link from 'next/link';
@@ -130,7 +130,7 @@ export function useCookieConsent() {
  * Banner xin consent cookie — hien fixed bottom-0, slide-up animation.
  * - An neu da co consent trong localStorage
  * - 3 nut: "Chap nhan tat ca" / "Chi can thiet" / "Tuy chinh" (mo dialog)
- * - Dialog tuy chinh: 4 toggles (necessary disabled always-on + 3 loai khac)
+ * - Dialog tuy chinh: 4 toggles (necessary disabled always-on + 3 Loại khac)
  */
 export function CookieConsent() {
   const t = useSafeT('cookies');
@@ -242,7 +242,7 @@ export function CookieConsent() {
         </div>
       </div>
 
-      {/* Dialog tuy chinh chi tiet */}
+      {/* Dialog tuy chinh Chi tiết */}
       <Dialog open={customizeOpen} onOpenChange={setCustomizeOpen}>
         <DialogContent className="max-w-lg">
           <DialogHeader>

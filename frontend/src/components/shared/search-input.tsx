@@ -15,7 +15,7 @@ interface SearchInputProps {
 }
 
 /**
- * Input tim kiem voi debounce va icon
+ * Input Tìm kiếm voi debounce va icon
  */
 export function SearchInput({
   value: controlledValue,

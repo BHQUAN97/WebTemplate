@@ -13,7 +13,7 @@ import { usePagination } from '@/lib/hooks/use-pagination';
 import { formatPrice } from '@/lib/utils/format';
 import type { ApiResponse, Product, PaginationMeta } from '@/lib/types';
 
-/** Danh sach san pham */
+/** Danh sach Sản phẩm */
 export default function ProductsPage() {
   const [search, setSearch] = useState('');
   const [categoryFilter, setCategoryFilter] = useState('all');
@@ -40,7 +40,7 @@ export default function ProductsPage() {
 
   const deleteMutation = useMutation('DELETE', `/admin/products/${deleteId}`);
 
-  // Cot bang san pham
+  // Cot bang Sản phẩm
   const columns: ColumnDef<Product>[] = [
     {
       key: 'image',
@@ -58,7 +58,7 @@ export default function ProductsPage() {
     },
     {
       key: 'name',
-      header: 'Ten san pham',
+      header: 'Ten Sản phẩm',
       sortable: true,
       render: (row) => (
         <div>
@@ -82,7 +82,7 @@ export default function ProductsPage() {
     },
     {
       key: 'quantity',
-      header: 'Ton kho',
+      header: 'Tồn kho',
       sortable: true,
       render: (row) => (
         <span className={row.quantity <= 0 ? 'text-red-600 font-medium' : ''}>
@@ -97,7 +97,7 @@ export default function ProductsPage() {
     },
     {
       key: 'is_active',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
@@ -178,7 +178,7 @@ export default function ProductsPage() {
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả trạng thái</SelectItem>

@@ -1,10 +1,10 @@
-'use client';
+﻿'use client';
 
 import { useEffect } from 'react';
 import { toast } from '@/lib/hooks/use-toast';
 
 /**
- * ServiceWorkerProvider — dang ky /sw.js khi production + lang nghe controllerchange
+ * ServiceWorkerProvider — Đăng ký /sw.js khi production + lang nghe controllerchange
  * de thong bao co update moi.
  *
  * - Chi register o production (NODE_ENV === 'production') de tranh conflict voi HMR dev.
@@ -84,7 +84,7 @@ export function ServiceWorkerProvider({ children }: { children: React.ReactNode 
 }
 
 /**
- * Hien toast thong bao co update + tu dong apply sau khi user xac nhan
+ * Hien toast thong bao co update + tu dong apply sau khi user Xác nhận
  * (dang hien tai: chi show toast, user tu reload). Giu tach ham de de mo rong sau.
  */
 function notifyUpdate(registration: ServiceWorkerRegistration) {

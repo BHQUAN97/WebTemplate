@@ -12,10 +12,10 @@ export default function NotFound() {
         Không tìm thấy trang
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Trang ban tim kiem khong ton tai hoac da bi xoa.
+        Trang ban Tìm kiếm khong ton tai hoac da bi xoa.
       </p>
       <Link href="/">
-        <Button>Ve trang chu</Button>
+        <Button>Ve Trang chủ</Button>
       </Link>
     </div>
   );

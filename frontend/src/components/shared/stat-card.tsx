@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { TrendingUp, TrendingDown } from 'lucide-react';
 import { Card, CardContent } from '@/components/ui/card';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,7 @@ interface StatCardProps {
 }
 
 /**
- * Card thong ke dashboard — icon, gia tri, xu huong tang/giam
+ * Card Thống kê dashboard — icon, gia tri, xu huong tang/giam
  */
 export function StatCard({
   icon,

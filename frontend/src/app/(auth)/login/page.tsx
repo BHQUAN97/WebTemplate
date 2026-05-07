@@ -15,7 +15,7 @@ import { authApi } from '@/lib/api/modules/auth.api';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
 /**
- * Trang dang nhap — email/password, remember me, OAuth Google/Facebook
+ * Trang Đăng nhập — email/password, remember me, OAuth Google/Facebook
  * Xu ly 2FA: neu BE tra TWO_FACTOR_REQUIRED → luu context vao sessionStorage
  * va chuyen sang /verify-2fa.
  */

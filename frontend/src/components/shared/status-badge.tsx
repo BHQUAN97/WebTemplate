@@ -1,4 +1,4 @@
-import { Badge } from '@/components/ui/badge';
+﻿import { Badge } from '@/components/ui/badge';
 import { statusColor } from '@/lib/utils/format';
 import { cn } from '@/lib/utils';
 
@@ -9,7 +9,7 @@ interface StatusBadgeProps {
 }
 
 /**
- * Badge tu dong doi mau theo trang thai
+ * Badge tu dong doi mau theo Trạng thái
  */
 export function StatusBadge({ status, label, className }: StatusBadgeProps) {
   return (

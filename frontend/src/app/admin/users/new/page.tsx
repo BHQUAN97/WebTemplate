@@ -14,17 +14,17 @@ import { Card, CardHeader, CardTitle, CardContent } from '@/components/ui/card';
 import { useMutation } from '@/lib/hooks/use-api';
 
 const userSchema = z.object({
-  email: z.string().email('Email khong hop le'),
+  email: z.string().email('Email không hợp lệ'),
   password: z
     .string()
-    .min(8, 'Mật khẩu toi thieu 8 ky tu')
-    .regex(/[A-Z]/, 'Can it nhat 1 chu hoa')
-    .regex(/[0-9]/, 'Can it nhat 1 so')
-    .regex(/[^a-zA-Z0-9]/, 'Can it nhat 1 ky tu dac biet'),
-  name: z.string().min(2, 'Ten toi thieu 2 ky tu').max(100, 'Toi da 100 ky tu'),
+    .min(8, 'Mật khẩu tối thiểu 8 ký tự')
+    .regex(/[A-Z]/, 'Cần ít nhất 1 chữ hoa')
+    .regex(/[0-9]/, 'Cần ít nhất 1 số')
+    .regex(/[^a-zA-Z0-9]/, 'Cần ít nhất 1 ký tự đặc biệt'),
+  name: z.string().min(2, 'Tên tối thiểu 2 ký tự').max(100, 'Tối đa 100 ký tự'),
   phone: z
     .string()
-    .regex(/^0\d{9,10}$/, 'So dien thoai khong hop le')
+    .regex(/^0\d{9,10}$/, 'Số điện thoại không hợp lệ')
     .optional()
     .or(z.literal('')),
   role: z.enum(['ADMIN', 'MANAGER', 'EDITOR', 'USER']),
@@ -83,7 +83,7 @@ export default function NewUserPage() {
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle>Thong tin tai khoan</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Thông tin tài khoản</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Email" error={errors.email} required>
                 <Input
@@ -93,7 +93,7 @@ export default function NewUserPage() {
                   placeholder="user@example.com"
                 />
               </FormField>
-              <FormField label="Mật khẩu" error={errors.password} required description="Toi thieu 8 ky tu, gom chu hoa, so, ky tu dac biet">
+              <FormField label="Mật khẩu" error={errors.password} required description="Tối thiểu 8 ký tự, gồm chữ hoa, số, ký tự đặc biệt">
                 <Input
                   type="password"
                   value={form.password}
@@ -106,7 +106,7 @@ export default function NewUserPage() {
                   onChange={(e) => updateField('name', e.target.value)}
                 />
               </FormField>
-              <FormField label="So dien thoai" error={errors.phone}>
+              <FormField label="Số điện thoại" error={errors.phone}>
                 <Input
                   value={form.phone ?? ''}
                   onChange={(e) => updateField('phone', e.target.value)}
@@ -119,9 +119,9 @@ export default function NewUserPage() {
 
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Phan quyen</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Phân quyền</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Vai tro" error={errors.role} required>
+              <FormField label="Vai trò" error={errors.role} required>
                 <Select value={form.role} onValueChange={(v) => updateField('role', v as UserForm['role'])}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>

@@ -23,7 +23,7 @@ export default function DashboardSettingsPage() {
     try {
       // TODO: save settings via API
       await new Promise(resolve => setTimeout(resolve, 500));
-      alert('Da luu cai dat thanh cong!');
+      alert('Da luu cai dat Thành công!');
     } finally {
       setSaving(false);
     }
@@ -45,13 +45,13 @@ export default function DashboardSettingsPage() {
             <Bell className="h-5 w-5" />
             Thông báo
           </CardTitle>
-          <CardDescription>Quan ly cach ban nhan thong bao</CardDescription>
+          <CardDescription>Quản lý cach ban nhan thong bao</CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
           <div className="flex items-center justify-between">
             <div>
-              <Label>Cập nhật don hang</Label>
-              <p className="text-sm text-gray-500">Nhan thong bao khi don hang thay doi trang thai</p>
+              <Label>Cập nhật Đơn hàng</Label>
+              <p className="text-sm text-gray-500">Nhan thong bao khi Đơn hàng thay doi Trạng thái</p>
             </div>
             <Switch
               checked={notifications.orderUpdates}
@@ -62,8 +62,8 @@ export default function DashboardSettingsPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <Label>Khuyen mai</Label>
-              <p className="text-sm text-gray-500">Nhan thong bao ve chuong trinh khuyen mai moi</p>
+              <Label>Khuyến mãi</Label>
+              <p className="text-sm text-gray-500">Nhan thong bao ve chuong trinh Khuyến mãi moi</p>
             </div>
             <Switch
               checked={notifications.promotions}
@@ -86,8 +86,8 @@ export default function DashboardSettingsPage() {
           </div>
           <div className="flex items-center justify-between">
             <div>
-              <Label>Bao mat</Label>
-              <p className="text-sm text-gray-500">Canh bao dang nhap tu thiet bi moi</p>
+              <Label>Bảo mật</Label>
+              <p className="text-sm text-gray-500">Canh bao Đăng nhập tu thiet bi moi</p>
             </div>
             <Switch
               checked={notifications.security}
@@ -99,19 +99,19 @@ export default function DashboardSettingsPage() {
         </CardContent>
       </Card>
 
-      {/* Giao dien */}
+      {/* Giao diện */}
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             {theme === 'light' ? <Sun className="h-5 w-5" /> : <Moon className="h-5 w-5" />}
-            Giao dien
+            Giao diện
           </CardTitle>
         </CardHeader>
         <CardContent>
           <div className="flex items-center justify-between">
             <div>
               <Label>Che do toi</Label>
-              <p className="text-sm text-gray-500">Chuyen sang giao dien toi</p>
+              <p className="text-sm text-gray-500">Chuyen sang Giao diện toi</p>
             </div>
             <Switch
               checked={theme === 'dark'}
@@ -171,7 +171,7 @@ export default function DashboardSettingsPage() {
             <div className="flex items-center justify-between">
               <div>
                 <Label className="text-red-600">Xóa tài khoản</Label>
-                <p className="text-sm text-gray-500">Xóa vĩnh viễn tai khoan va toan bo du lieu</p>
+                <p className="text-sm text-gray-500">Xóa vĩnh viễn Tài khoản va toan bo du lieu</p>
               </div>
               <Button variant="destructive" size="sm">
                 <Trash2 className="h-4 w-4 mr-1" />

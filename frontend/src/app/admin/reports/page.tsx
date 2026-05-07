@@ -41,13 +41,13 @@ const FORMAT_MAP: Record<ExportFormat, 'csv' | 'xlsx' | 'pdf'> = {
 };
 
 const REPORT_TYPES: { type: ReportType; icon: React.ReactNode; title: string; description: string }[] = [
-  { type: 'sales', icon: <BarChart3 className="h-8 w-8 text-blue-500" />, title: 'Bao cao doanh thu', description: 'Doanh thu, don hang, thanh toan theo thoi gian' },
-  { type: 'products', icon: <Package className="h-8 w-8 text-green-500" />, title: 'Bao cao san pham', description: 'Sản phẩm ban chay, ton kho, loi nhuan' },
-  { type: 'customers', icon: <Users className="h-8 w-8 text-purple-500" />, title: 'Bao cao khach hang', description: 'Khách hang moi, ty le quay lai, gia tri' },
-  { type: 'inventory', icon: <Warehouse className="h-8 w-8 text-orange-500" />, title: 'Bao cao ton kho', description: 'Tinh trang kho, san pham sap het, nhap hang' },
+  { type: 'sales', icon: <BarChart3 className="h-8 w-8 text-blue-500" />, title: 'Báo cáo doanh thu', description: 'Doanh thu, Đơn hàng, Thanh toán theo thoi gian' },
+  { type: 'products', icon: <Package className="h-8 w-8 text-green-500" />, title: 'Báo cáo Sản phẩm', description: 'Sản phẩm Bán chạy, Tồn kho, loi nhuan' },
+  { type: 'customers', icon: <Users className="h-8 w-8 text-purple-500" />, title: 'Báo cáo Khách hàng', description: 'Khách hang moi, ty le quay lai, gia tri' },
+  { type: 'inventory', icon: <Warehouse className="h-8 w-8 text-orange-500" />, title: 'Báo cáo Tồn kho', description: 'Tinh trang kho, Sản phẩm sap het, Nháp hang' },
 ];
 
-/** Bao cao */
+/** Báo cáo */
 export default function ReportsPage() {
   const { toast } = useToast();
   const [selectedReport, setSelectedReport] = useState<ReportType | null>(null);
@@ -75,9 +75,9 @@ export default function ReportsPage() {
       });
       const ext = fmt === 'xlsx' ? 'xlsx' : fmt;
       saveAs(blob, `${selectedReport}-report-${Date.now()}.${ext}`);
-      toast('Da tai bao cao', undefined, 'success');
+      toast('Da tai Báo cáo', undefined, 'success');
     } catch (err) {
-      toast('Xuat bao cao that bai', (err as Error).message, 'destructive');
+      toast('Xuat Báo cáo Thất bại', (err as Error).message, 'destructive');
     } finally {
       setExportLoading(false);
     }
@@ -86,10 +86,10 @@ export default function ReportsPage() {
   return (
     <div className="space-y-6 print:space-y-4">
       <PageHeader
-        title="Bao cao"
+        title="Báo cáo"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Bao cao' },
+          { label: 'Báo cáo' },
         ]}
         actions={
           <div className="flex items-center gap-2 print:hidden">
@@ -147,11 +147,11 @@ export default function ReportsPage() {
               <Table>
                 <TableHeader>
                   <TableRow>
-                    <TableHead>Ngay</TableHead>
+                    <TableHead>Ngày</TableHead>
                     <TableHead className="text-right">Đơn hàng</TableHead>
                     <TableHead className="text-right">Doanh thu</TableHead>
-                    <TableHead className="text-right">Giam gia</TableHead>
-                    <TableHead className="text-right">Thuc thu</TableHead>
+                    <TableHead className="text-right">Giảm giá</TableHead>
+                    <TableHead className="text-right">Thực thu</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -167,7 +167,7 @@ export default function ReportsPage() {
                     ))
                   ) : (
                     <TableRow>
-                      <TableCell colSpan={5} className="text-center text-gray-500 h-24">Chon khoang thoi gian de xem bao cao</TableCell>
+                      <TableCell colSpan={5} className="text-center text-gray-500 h-24">Chon khoang thoi gian de xem Báo cáo</TableCell>
                     </TableRow>
                   )}
                 </TableBody>
@@ -179,7 +179,7 @@ export default function ReportsPage() {
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead className="text-right">Da ban</TableHead>
                     <TableHead className="text-right">Doanh thu</TableHead>
-                    <TableHead className="text-right">Ton kho</TableHead>
+                    <TableHead className="text-right">Tồn kho</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -232,8 +232,8 @@ export default function ReportsPage() {
                   <TableRow>
                     <TableHead>Sản phẩm</TableHead>
                     <TableHead>SKU</TableHead>
-                    <TableHead className="text-right">Ton kho</TableHead>
-                    <TableHead>Trang thai</TableHead>
+                    <TableHead className="text-right">Tồn kho</TableHead>
+                    <TableHead>Trạng thái</TableHead>
                   </TableRow>
                 </TableHeader>
                 <TableBody>
@@ -261,7 +261,7 @@ export default function ReportsPage() {
       {!selectedReport && (
         <div className="text-center py-12 text-gray-500">
           <BarChart3 className="h-12 w-12 mx-auto text-gray-300 mb-3" />
-          <p>Chon loai bao cao o tren de bat dau</p>
+          <p>Chon Loại Báo cáo o tren de bat dau</p>
         </div>
       )}
 

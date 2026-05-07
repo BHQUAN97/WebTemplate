@@ -17,20 +17,20 @@ import { useMutation } from '@/lib/hooks/use-api';
 import { slugify } from '@/lib/utils/format';
 
 const articleSchema = z.object({
-  title: z.string().min(1, 'Tieu de la bat buoc').max(255, 'Toi da 255 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
-  content: z.string().min(1, 'Nội dung la bat buoc'),
-  excerpt: z.string().max(500, 'Tom tat toi da 500 ky tu').optional(),
+  title: z.string().min(1, 'Tiêu đề là bắt buộc').max(255, 'Tối đa 255 ký tự'),
+  slug: z.string().min(1, 'Slug la Bắt buộc'),
+  content: z.string().min(1, 'Nội dung là bắt buộc'),
+  excerpt: z.string().max(500, 'Tóm tắt tối đa 500 ký tự').optional(),
   featured_image: z.string().optional().nullable(),
   status: z.enum(['DRAFT', 'PUBLISHED']),
   is_featured: z.boolean(),
-  seo_title: z.string().max(70, 'SEO title toi da 70 ky tu').optional(),
-  seo_description: z.string().max(160, 'SEO description toi da 160 ky tu').optional(),
+  seo_title: z.string().max(70, 'SEO title tối đa 70 ký tự').optional(),
+  seo_description: z.string().max(160, 'SEO description tối đa 160 ký tự').optional(),
 });
 
 type ArticleForm = z.infer<typeof articleSchema>;
 
-/** Tạo bai viet moi */
+/** Tạo Bài viết moi */
 export default function NewArticlePage() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -69,11 +69,11 @@ export default function NewArticlePage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Viet bai moi"
+        title="Viết bài mới"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Bài viết', href: '/admin/articles' },
-          { label: 'Viet bai moi' },
+          { label: 'Viết bài mới' },
         ]}
       />
 
@@ -83,11 +83,11 @@ export default function NewArticlePage() {
           <Card>
             <CardHeader><CardTitle>Nội dung</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="Tieu de" error={errors.title} required>
+              <FormField label="Tiêu đề" error={errors.title} required>
                 <Input
                   value={form.title}
                   onChange={(e) => updateField('title', e.target.value)}
-                  placeholder="Nhap tieu de bai viet"
+                  placeholder="Nhập tiêu đề bài viết"
                 />
               </FormField>
               <FormField label="Slug" error={errors.slug} required>
@@ -97,15 +97,15 @@ export default function NewArticlePage() {
                 <RichTextEditor
                   value={form.content}
                   onChange={(html) => updateField('content', html)}
-                  placeholder="Nhap noi dung bai viet..."
+                  placeholder="Nhập nội dung bài viết..."
                 />
               </FormField>
-              <FormField label="Tom tat" error={errors.excerpt}>
+              <FormField label="Tóm tắt" error={errors.excerpt}>
                 <Textarea
                   value={form.excerpt ?? ''}
                   onChange={(e) => updateField('excerpt', e.target.value)}
                   rows={3}
-                  placeholder="Tom tat ngan ve bai viet"
+                  placeholder="Tóm tắt ngắn về bài viết"
                 />
               </FormField>
             </CardContent>
@@ -115,14 +115,14 @@ export default function NewArticlePage() {
           <Card>
             <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
             <CardContent className="space-y-4">
-              <FormField label="SEO Title" error={errors.seo_title} description="Toi da 70 ky tu">
+              <FormField label="SEO Title" error={errors.seo_title} description="Tối đa 70 ký tự">
                 <Input
                   value={form.seo_title ?? ''}
                   onChange={(e) => updateField('seo_title', e.target.value)}
                   maxLength={70}
                 />
               </FormField>
-              <FormField label="SEO Description" error={errors.seo_description} description="Toi da 160 ky tu">
+              <FormField label="SEO Description" error={errors.seo_description} description="Tối đa 160 ký tự">
                 <Textarea
                   value={form.seo_description ?? ''}
                   onChange={(e) => updateField('seo_description', e.target.value)}
@@ -175,7 +175,7 @@ export default function NewArticlePage() {
               onClick={() => handleSubmit('DRAFT')}
             >
               <FileText className="h-4 w-4 mr-2" />
-              Lưu nhap
+              Lưu Nháp
             </Button>
             <Button
               variant="ghost"

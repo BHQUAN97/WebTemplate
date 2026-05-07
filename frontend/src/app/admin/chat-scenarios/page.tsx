@@ -13,11 +13,11 @@ import { toast } from '@/lib/hooks/use-toast';
 import { adminChatApi, type ChatScenario, type ScenarioTriggerType } from '@/lib/api/modules/admin-chat.api';
 
 const TRIGGER_LABELS: Record<ScenarioTriggerType, string> = {
-  keyword: 'Tu khoa',
+  keyword: 'Từ khóa',
   intent: 'Intent',
-  event: 'Su kien',
+  event: 'Sự kiện',
   fallback: 'Fallback',
-  schedule: 'Lich',
+  schedule: 'Lịch',
 };
 
 /** Danh sach kich ban chatbot */
@@ -53,11 +53,11 @@ export default function ChatScenariosPage() {
     if (!deleteId) return;
     try {
       await adminChatApi.deleteScenario(deleteId);
-      toast('Da xoa kich ban', undefined, 'success');
+      toast('Đã xóa kịch bản', undefined, 'success');
       setDeleteId(null);
       load();
     } catch (err) {
-      toast('Xóa that bai', (err as Error).message, 'destructive');
+      toast('Xóa Thất bại', (err as Error).message, 'destructive');
     }
   };
 
@@ -66,14 +66,14 @@ export default function ChatScenariosPage() {
       await adminChatApi.updateScenario(row.id, { isActive: !row.isActive });
       load();
     } catch (err) {
-      toast('Cập nhật that bai', (err as Error).message, 'destructive');
+      toast('Cập nhật Thất bại', (err as Error).message, 'destructive');
     }
   };
 
   const columns: ColumnDef<ChatScenario>[] = [
     {
       key: 'name',
-      header: 'Ten',
+      header: 'Tên',
       sortable: true,
       render: (row) => (
         <div>
@@ -86,7 +86,7 @@ export default function ChatScenariosPage() {
     },
     {
       key: 'triggerType',
-      header: 'Loai',
+      header: 'Loại',
       render: (row) => (
         <span className="inline-flex items-center rounded-full bg-purple-100 px-2 py-0.5 text-xs font-medium text-purple-700">
           {TRIGGER_LABELS[row.triggerType]}
@@ -95,7 +95,7 @@ export default function ChatScenariosPage() {
     },
     {
       key: 'triggerValue',
-      header: 'Gia tri',
+      header: 'Giá trị',
       render: (row) => (
         <p className="max-w-[200px] truncate font-mono text-xs" title={row.triggerValue}>
           {row.triggerValue || '—'}
@@ -104,18 +104,18 @@ export default function ChatScenariosPage() {
     },
     {
       key: 'priority',
-      header: 'Uu tien',
+      header: 'Ưu tiên',
       sortable: true,
       render: (row) => <span>{row.priority}</span>,
     },
     {
       key: 'matchCount',
-      header: 'Luot khop',
+      header: 'Lượt khớp',
       render: (row) => <span className="text-gray-600">{row.matchCount ?? 0}</span>,
     },
     {
       key: 'isActive',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.isActive ? 'active' : 'inactive'}
@@ -147,17 +147,17 @@ export default function ChatScenariosPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Kich ban chatbot"
-        description="Quan ly cac kich ban tu dong phan hoi khach"
+        title="Kịch bản chatbot"
+        description="Quản lý các kịch bản tự động phản hồi khách"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Cham soc khach hang' },
-          { label: 'Kich ban' },
+          { label: 'Chăm sóc Khách hàng' },
+          { label: 'Kịch bản' },
         ]}
         actions={
           <Button onClick={() => router.push('/admin/chat-scenarios/new')}>
             <Plus className="mr-2 h-4 w-4" />
-            Tạo kich ban
+            Tạo kịch bản
           </Button>
         }
       />
@@ -165,7 +165,7 @@ export default function ChatScenariosPage() {
       <div className="flex flex-col gap-3 sm:flex-row">
         <Select value={typeFilter} onValueChange={(v) => setTypeFilter(v as typeof typeFilter)}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Loai" />
+            <SelectValue placeholder="Loại" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả loại</SelectItem>
@@ -179,7 +179,7 @@ export default function ChatScenariosPage() {
 
         <Select value={activeFilter} onValueChange={(v) => setActiveFilter(v as typeof activeFilter)}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả</SelectItem>
@@ -199,8 +199,8 @@ export default function ChatScenariosPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa kich ban"
-        description="Ban co chac muon xoa kich ban nay? Hanh dong khong the hoan tac."
+        title="Xóa kịch bản"
+        description="Bạn có chắc muốn xóa kịch bản này? Hành động không thể hoàn tác."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

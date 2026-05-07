@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import Link from 'next/link';
@@ -29,8 +29,8 @@ function getTourKeyForPath(pathname: string): string {
 }
 
 /**
- * Help menu — dropdown goc man hinh chua cac tuy chon ho tro:
- * xem lai huong dan tour, tai lieu FAQ, lien he ho tro.
+ * Help menu — dropdown goc man hinh chua cac tuy chon Hỗ trợ:
+ * xem lai huong dan tour, tai lieu FAQ, Liên hệ Hỗ trợ.
  */
 export function HelpMenu({ className }: HelpMenuProps) {
   const pathname = usePathname();
@@ -52,7 +52,7 @@ export function HelpMenu({ className }: HelpMenuProps) {
             variant="default"
             size="icon"
             className="h-12 w-12 rounded-full shadow-lg"
-            aria-label="Mo menu tro giup"
+            aria-label="Mở menu trợ giúp"
           >
             <HelpCircle className="h-5 w-5" />
           </Button>
@@ -60,19 +60,19 @@ export function HelpMenu({ className }: HelpMenuProps) {
         <DropdownMenuContent align="end" side="top" className="w-56">
           <DropdownMenuItem onClick={handleReplayTour} className="cursor-pointer">
             <RotateCcw className="mr-2 h-4 w-4" />
-            <span>Xem lai huong dan</span>
+            <span>Xem lại hướng dẫn</span>
           </DropdownMenuItem>
           <DropdownMenuSeparator />
           <DropdownMenuItem asChild className="cursor-pointer">
             <Link href="/faq">
               <BookOpen className="mr-2 h-4 w-4" />
-              <span>Tai lieu</span>
+              <span>Tài liệu</span>
             </Link>
           </DropdownMenuItem>
           <DropdownMenuItem asChild className="cursor-pointer">
             <Link href="/contact">
               <MessageCircle className="mr-2 h-4 w-4" />
-              <span>Lien he ho tro</span>
+              <span>Liên hệ Hỗ trợ</span>
             </Link>
           </DropdownMenuItem>
         </DropdownMenuContent>

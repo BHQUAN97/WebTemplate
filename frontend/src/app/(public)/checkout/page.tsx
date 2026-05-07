@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { CheckoutClient } from './checkout-client';
 
 export const metadata: Metadata = {
-  title: 'Thanh toan - WebTemplate',
-  description: 'Hoan tat don hang cua ban.',
+  title: 'Thanh toán - WebTemplate',
+  description: 'Hoan tat Đơn hàng cua ban.',
 };
 
 export default function CheckoutPage() {

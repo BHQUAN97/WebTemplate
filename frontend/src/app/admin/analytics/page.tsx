@@ -78,7 +78,7 @@ function computeDefaultRange(): { from: string; to: string } {
   };
 }
 
-/** Trang phan tich nang cao cho admin — stats + 4 bieu do recharts. */
+/** Trang Phân tích nang cao cho admin — stats + 4 bieu do recharts. */
 export default function AnalyticsPage() {
   // Khoi tao null tren SSR → client hydrate → useEffect set range → load data.
   // Tranh new Date() chay o render path gay hydration mismatch.
@@ -122,7 +122,7 @@ export default function AnalyticsPage() {
 
   const handleExport = useCallback(
     (format: ExportFormat) => {
-      if (format !== 'csv' || !range) return; // chi ho tro CSV client-side
+      if (format !== 'csv' || !range) return; // chi Hỗ trợ CSV client-side
       const csv = buildAnalyticsCsv(revenue);
       const blob = new Blob([csv], { type: 'text/csv;charset=utf-8;' });
       const url = URL.createObjectURL(blob);
@@ -148,7 +148,7 @@ export default function AnalyticsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Phan tich nang cao"
+        title="Phân tích nang cao"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Analytics' },
@@ -220,7 +220,7 @@ export default function AnalyticsPage() {
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <Card>
           <CardHeader>
-            <CardTitle>Đơn hàng theo trang thai</CardTitle>
+            <CardTitle>Đơn hàng theo Trạng thái</CardTitle>
           </CardHeader>
           <CardContent>
             <OrdersStatusChart data={statuses} loading={loading} />
@@ -229,7 +229,7 @@ export default function AnalyticsPage() {
 
         <Card>
           <CardHeader>
-            <CardTitle>Top 5 san pham ban chay</CardTitle>
+            <CardTitle>Top 5 Sản phẩm Bán chạy</CardTitle>
           </CardHeader>
           <CardContent>
             {topProductsFallback ?? (

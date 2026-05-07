@@ -17,7 +17,7 @@ interface PendingContext {
 }
 
 /**
- * Trang xac thuc 2FA — nhap 6 chu so, resend code
+ * Trang xac thuc 2FA — Nháp 6 chu so, resend code
  * Flow: login page luu context vao sessionStorage khi BE tra TWO_FACTOR_REQUIRED,
  * page nay doc context va goi lai /auth/login voi totp_code.
  */
@@ -65,7 +65,7 @@ export default function Verify2faPage() {
       inputRefs.current[index + 1]?.focus();
     }
 
-    // Auto submit khi nhap du 6 so
+    // Auto submit khi Nháp du 6 so
     const fullCode = newCode.join('');
     if (fullCode.length === 6) {
       handleSubmit(fullCode);

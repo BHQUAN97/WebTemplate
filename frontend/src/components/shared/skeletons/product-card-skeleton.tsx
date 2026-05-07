@@ -17,7 +17,7 @@ export function ProductCardSkeleton({ className }: ProductCardSkeletonProps) {
         className,
       )}
     >
-      {/* Ảnh san pham — ty le 16:9 */}
+      {/* Ảnh Sản phẩm — ty le 16:9 */}
       <Skeleton className="aspect-[16/9] w-full rounded-md" />
 
       {/* Title — 2 dong */}

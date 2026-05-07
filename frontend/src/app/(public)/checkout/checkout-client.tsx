@@ -28,7 +28,7 @@ const paymentMethods = [
 ];
 
 /**
- * Trang thanh toan — 3 buoc: Shipping -> Payment -> Review
+ * Trang Thanh toán — 3 buoc: Shipping -> Payment -> Review
  */
 export function CheckoutClient() {
   const hydrated = useHydration();
@@ -56,8 +56,8 @@ export function CheckoutClient() {
   });
 
   const steps: { key: Step; label: string }[] = [
-    { key: 'shipping', label: 'Giao hang' },
-    { key: 'payment', label: 'Thanh toan' },
+    { key: 'shipping', label: 'Giao hàng' },
+    { key: 'payment', label: 'Thanh toán' },
     { key: 'review', label: 'Xác nhận' },
   ];
 
@@ -93,7 +93,7 @@ export function CheckoutClient() {
 
       setOrderNumber(res.order_number);
 
-      // Gateway thanh toan online — cần redirect sang trang payment provider
+      // Gateway Thanh toán online — cần redirect sang trang payment provider
       if (
         paymentMethod === 'vnpay' ||
         paymentMethod === 'momo' ||
@@ -110,20 +110,20 @@ export function CheckoutClient() {
             window.location.href = payRes.payment_url;
             return;
           }
-          setSubmitError('Phuong thuc nay chua duoc ho tro');
+          setSubmitError('Phương thức này chưa được hỗ trợ');
         } catch (payErr: any) {
           setSubmitError(
-            payErr?.message || 'Phuong thuc nay chua duoc ho tro',
+            payErr?.message || 'Phương thức này chưa được hỗ trợ',
           );
         }
         return;
       }
 
-      // COD / bank_transfer — hien thanh cong ngay tren trang
+      // COD / bank_transfer — hien Thành công ngay tren trang
       setOrderSuccess(true);
       clearCart();
     } catch (err: any) {
-      setSubmitError(err.message || 'Đặt hàng that bai, vui long thu lai');
+      setSubmitError(err.message || 'Đặt hàng thất bại, vui lòng thử lại');
     } finally {
       setSubmitting(false);
     }
@@ -134,9 +134,9 @@ export function CheckoutClient() {
   if (items.length === 0 && !orderSuccess) {
     return (
       <div className="max-w-3xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
-        <h1 className="text-2xl font-bold mb-4">Gio hang trong</h1>
+        <h1 className="text-2xl font-bold mb-4">Giỏ hàng trống</h1>
         <Button asChild>
-          <Link href="/products">Tiếp tục mua sam</Link>
+          <Link href="/products">Tiếp tục mua sắm</Link>
         </Button>
       </div>
     );
@@ -147,19 +147,19 @@ export function CheckoutClient() {
     return (
       <div className="max-w-xl mx-auto px-4 sm:px-6 lg:px-8 py-16 text-center">
         <CheckCircle className="h-16 w-16 text-green-500 mx-auto mb-4" />
-        <h1 className="text-2xl font-bold mb-2">Đặt hàng thanh cong!</h1>
+        <h1 className="text-2xl font-bold mb-2">Đặt hàng thành công!</h1>
         <p className="text-gray-500 mb-2">
-          Ma don hang: <span className="font-semibold text-gray-900">{orderNumber}</span>
+          Mã đơn hàng: <span className="font-semibold text-gray-900">{orderNumber}</span>
         </p>
         <p className="text-gray-500 mb-6">
-          Chung toi se gui email xac nhan don hang cua ban.
+          Chúng tôi sẽ gửi email xác nhận đơn hàng của bạn.
         </p>
         <div className="flex flex-col sm:flex-row gap-4 justify-center">
           <Button asChild>
-            <Link href="/orders">Xem don hang</Link>
+            <Link href="/orders">Xem đơn hàng</Link>
           </Button>
           <Button variant="outline" asChild>
-            <Link href="/products">Tiếp tục mua sam</Link>
+            <Link href="/products">Tiếp tục mua sắm</Link>
           </Button>
         </div>
       </div>
@@ -171,7 +171,7 @@ export function CheckoutClient() {
 
   return (
     <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-8">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Thanh toan</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-6">Thanh toán</h1>
 
       {/* Step indicator */}
       <div className="flex items-center gap-2 mb-8 overflow-x-auto">
@@ -205,12 +205,12 @@ export function CheckoutClient() {
           {/* Shipping step */}
           {step === 'shipping' && (
             <form onSubmit={handleSubmit(onShippingSubmit)} className="space-y-4">
-              <h2 className="text-lg font-bold mb-4">Thong tin giao hang</h2>
+              <h2 className="text-lg font-bold mb-4">Thông tin giao hàng</h2>
 
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Họ tên nguoi nhan *
+                    Họ tên người nhận *
                   </label>
                   <Input {...register('name')} placeholder="Nhập họ tên" />
                   {errors.name && (
@@ -219,7 +219,7 @@ export function CheckoutClient() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    So dien thoai *
+                    Số điện thoại *
                   </label>
                   <Input
                     {...register('phone')}
@@ -238,7 +238,7 @@ export function CheckoutClient() {
                 <label className="block text-sm font-medium text-gray-700 mb-1">
                   Địa chỉ *
                 </label>
-                <Input {...register('address')} placeholder="So nha, duong" />
+                <Input {...register('address')} placeholder="Số nhà, đường" />
                 {errors.address && (
                   <p className="text-red-500 text-xs mt-1">{errors.address.message}</p>
                 )}
@@ -247,16 +247,16 @@ export function CheckoutClient() {
               <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Tinh/Thanh pho *
+                    Tỉnh/Thành phố *
                   </label>
-                  <Input {...register('city')} placeholder="Chon tinh/thanh" />
+                  <Input {...register('city')} placeholder="Chọn tỉnh/thành" />
                   {errors.city && (
                     <p className="text-red-500 text-xs mt-1">{errors.city.message}</p>
                   )}
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Quan/Huyen *
+                    Quận/Huyện *
                   </label>
                   <Input {...register('district')} placeholder="Chọn quận/huyện" />
                   {errors.district && (
@@ -265,9 +265,9 @@ export function CheckoutClient() {
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    Phuong/Xa *
+                    Phường/Xã *
                   </label>
-                  <Input {...register('ward')} placeholder="Chon phuong/xa" />
+                  <Input {...register('ward')} placeholder="Chọn phường/xã" />
                   {errors.ward && (
                     <p className="text-red-500 text-xs mt-1">{errors.ward.message}</p>
                   )}
@@ -288,7 +288,7 @@ export function CheckoutClient() {
           {/* Payment step */}
           {step === 'payment' && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Phuong thuc thanh toan</h2>
+              <h2 className="text-lg font-bold mb-4">Phuong thuc Thanh toán</h2>
               <div className="space-y-3">
                 {paymentMethods.map((method) => (
                   <button
@@ -319,13 +319,13 @@ export function CheckoutClient() {
           {/* Review step */}
           {step === 'review' && (
             <div>
-              <h2 className="text-lg font-bold mb-4">Xác nhận don hang</h2>
+              <h2 className="text-lg font-bold mb-4">Xác nhận Đơn hàng</h2>
 
               {/* Shipping info */}
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">Địa chỉ giao hang</h3>
+                    <h3 className="font-semibold text-sm">Địa chỉ Giao hàng</h3>
                     <button
                       onClick={() => setStep('shipping')}
                       className="text-xs text-blue-600 hover:underline"
@@ -346,7 +346,7 @@ export function CheckoutClient() {
               <Card className="mb-4">
                 <CardContent className="p-4">
                   <div className="flex items-center justify-between mb-2">
-                    <h3 className="font-semibold text-sm">Thanh toan</h3>
+                    <h3 className="font-semibold text-sm">Thanh toán</h3>
                     <button
                       onClick={() => setStep('payment')}
                       className="text-xs text-blue-600 hover:underline"
@@ -427,7 +427,7 @@ export function CheckoutClient() {
         <div>
           <Card className="sticky top-20">
             <CardContent className="p-4 sm:p-6 space-y-3">
-              <h2 className="font-bold">Tong don hang</h2>
+              <h2 className="font-bold">Tong Đơn hàng</h2>
               <div className="space-y-2 text-sm">
                 <div className="flex justify-between">
                   <span className="text-gray-500">Tam tinh</span>
@@ -435,7 +435,7 @@ export function CheckoutClient() {
                 </div>
                 {discountAmount > 0 && (
                   <div className="flex justify-between text-green-600">
-                    <span>Giam gia</span>
+                    <span>Giảm giá</span>
                     <span>-{formatPrice(discountAmount)}</span>
                   </div>
                 )}

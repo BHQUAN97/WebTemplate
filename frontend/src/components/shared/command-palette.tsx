@@ -38,7 +38,7 @@ import { UserRole } from '@/lib/types';
 
 /**
  * CommandPalette — bang lenh global toggle bang Cmd+K / Ctrl+K.
- * Nhom lenh: Dieu huong, Admin (chi khi role ADMIN), Hanh dong, Lien he.
+ * Nhom lenh: Điều hướng, Admin (chi khi role ADMIN), Hành động, Liên hệ.
  * Nghe `window` event `open-command-palette` de cho components khac trigger mo.
  */
 export function CommandPalette() {
@@ -87,14 +87,14 @@ export function CommandPalette() {
 
   return (
     <CommandDialog open={open} onOpenChange={setOpen}>
-      <CommandInput placeholder="Go lenh hoac tim kiem..." />
+      <CommandInput placeholder="Gõ lệnh hoặc tìm kiếm..." />
       <CommandList>
         <CommandEmpty>Không tìm thấy kết quả</CommandEmpty>
 
-        <CommandGroup heading="Dieu huong">
+        <CommandGroup heading="Điều hướng">
           <CommandItem onSelect={() => runCommand(() => router.push('/'))}>
             <Home />
-            <span>Trang chu</span>
+            <span>Trang chủ</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/products'))}>
             <Package />
@@ -106,7 +106,7 @@ export function CommandPalette() {
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/cart'))}>
             <ShoppingCart />
-            <span>Gio hang</span>
+            <span>Giỏ hàng</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/dashboard'))}>
             <LayoutDashboard />
@@ -153,18 +153,18 @@ export function CommandPalette() {
         )}
 
         <CommandSeparator />
-        <CommandGroup heading="Hanh dong">
+        <CommandGroup heading="Hành động">
           <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
             <Sun />
-            <span>Giao dien sang</span>
+            <span>Giao diện sáng</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
             <Moon />
-            <span>Giao dien toi</span>
+            <span>Giao diện tối</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
             <Monitor />
-            <span>Theo he thong</span>
+            <span>Theo hệ thống</span>
           </CommandItem>
           <CommandItem onSelect={() => runCommand(() => router.push('/search'))}>
             <Search />
@@ -187,7 +187,7 @@ export function CommandPalette() {
         </CommandGroup>
 
         <CommandSeparator />
-        <CommandGroup heading="Lien he">
+        <CommandGroup heading="Liên hệ">
           <CommandItem onSelect={() => runCommand(copyEmail)}>
             <Mail />
             <span>Copy email</span>

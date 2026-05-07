@@ -1,4 +1,4 @@
-import * as React from 'react';
+﻿import * as React from 'react';
 import { InboxIcon } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { cn } from '@/lib/utils';
@@ -13,7 +13,7 @@ interface EmptyStateProps {
 }
 
 /**
- * Trang thai rong — hien thi khi danh sach khong co du lieu
+ * Trạng thái rong — hien thi khi danh sach khong co du lieu
  */
 export function EmptyState({
   icon,

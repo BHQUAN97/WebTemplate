@@ -19,7 +19,7 @@ export function ConversationInfoPanel({
       {/* Thong tin khach */}
       <section>
         <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
-          Thong tin khach
+          Thông tin khách
         </h3>
         <div className="space-y-2 text-sm">
           <p className="font-medium">
@@ -44,7 +44,7 @@ export function ConversationInfoPanel({
       {(meta.ip || meta.userAgent || meta.pageUrl) && (
         <section>
           <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">
-            Thong tin phien
+            Thông tin phiên
           </h3>
           <div className="space-y-2 text-xs text-gray-600 dark:text-gray-300">
             {meta.ip && (
@@ -89,10 +89,10 @@ export function ConversationInfoPanel({
 
       {/* Thoi gian */}
       <section>
-        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Thoi gian</h3>
+        <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Thời gian</h3>
         <dl className="space-y-1 text-xs">
           <div className="flex justify-between">
-            <dt className="text-gray-500">Tạo luc</dt>
+            <dt className="text-gray-500">Tạo lúc</dt>
             <dd>{new Date(conversation.createdAt).toLocaleString('vi-VN')}</dd>
           </div>
           <div className="flex justify-between">
@@ -101,7 +101,7 @@ export function ConversationInfoPanel({
           </div>
           {conversation.closedAt && (
             <div className="flex justify-between">
-              <dt className="text-gray-500">Dong luc</dt>
+              <dt className="text-gray-500">Đóng lúc</dt>
               <dd>{new Date(conversation.closedAt).toLocaleString('vi-VN')}</dd>
             </div>
           )}
@@ -110,7 +110,7 @@ export function ConversationInfoPanel({
 
       {conversation.feedback && (
         <section>
-          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Phan hoi</h3>
+          <h3 className="mb-2 text-xs font-semibold uppercase tracking-wider text-gray-500">Phản hồi</h3>
           <p className="text-sm text-gray-700 dark:text-gray-200">{conversation.feedback}</p>
           {conversation.rating != null && (
             <p className="mt-1 text-xs text-yellow-600">Đánh giá: {conversation.rating}/5</p>

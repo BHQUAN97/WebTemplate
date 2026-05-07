@@ -19,13 +19,13 @@ import { slugify } from '@/lib/utils/format';
 import type { ApiResponse, Product } from '@/lib/types';
 
 const productSchema = z.object({
-  name: z.string().min(1, 'Ten san pham la bat buoc').max(255, 'Ten san pham toi da 255 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
-  short_description: z.string().max(500, 'Mo ta ngan toi da 500 ky tu').optional(),
+  name: z.string().min(1, 'Tên sản phẩm là bắt buộc').max(255, 'Tên sản phẩm tối đa 255 ký tự'),
+  slug: z.string().min(1, 'Slug là bắt buộc'),
+  short_description: z.string().max(500, 'Mô tả ngắn tối đa 500 ký tự').optional(),
   description: z.string().optional(),
-  price: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
-  compare_at_price: z.number().min(0, 'Gia so sanh khong duoc am').optional().nullable(),
-  cost_price: z.number().min(0, 'Gia von khong duoc am').optional().nullable(),
+  price: z.number({ error: 'Giá phải là số' }).min(0, 'Giá không được âm'),
+  compare_at_price: z.number().min(0, 'Giá so sánh không được âm').optional().nullable(),
+  cost_price: z.number().min(0, 'Giá vốn không được âm').optional().nullable(),
   category_id: z.string().optional().nullable(),
   sku: z.string().optional().nullable(),
   is_active: z.boolean(),
@@ -181,15 +181,15 @@ export default function EditProductPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Thong tin co ban */}
             <Card>
-              <CardHeader><CardTitle>Thong tin co ban</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Thông tin cơ bản</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="Ten san pham" error={errors.name} required htmlFor="name">
+                <FormField label="Tên sản phẩm" error={errors.name} required htmlFor="name">
                   <Input id="name" value={form.name} onChange={(e) => updateField('name', e.target.value)} />
                 </FormField>
                 <FormField label="Slug" error={errors.slug} required htmlFor="slug">
                   <Input id="slug" value={form.slug} onChange={(e) => updateField('slug', e.target.value)} />
                 </FormField>
-                <FormField label="Mo ta ngan" error={errors.short_description} htmlFor="short_description">
+                <FormField label="Mô tả ngắn" error={errors.short_description} htmlFor="short_description">
                   <Textarea
                     id="short_description"
                     value={form.short_description ?? ''}
@@ -197,7 +197,7 @@ export default function EditProductPage() {
                     rows={2}
                   />
                 </FormField>
-                <FormField label="Mo ta chi tiet" error={errors.description} htmlFor="description">
+                <FormField label="Mô tả chi tiết" error={errors.description} htmlFor="description">
                   <Textarea
                     id="description"
                     value={form.description ?? ''}
@@ -210,16 +210,16 @@ export default function EditProductPage() {
 
             {/* Gia */}
             <Card>
-              <CardHeader><CardTitle>Gia ca</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Giá cả</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <FormField label="Gia ban" error={errors.price} required>
+                  <FormField label="Giá bán" error={errors.price} required>
                     <Input type="number" value={form.price} onChange={(e) => updateField('price', parseFloat(e.target.value) || 0)} />
                   </FormField>
-                  <FormField label="Gia so sanh" error={errors.compare_at_price}>
+                  <FormField label="Giá so sánh" error={errors.compare_at_price}>
                     <Input type="number" value={form.compare_at_price ?? ''} onChange={(e) => updateField('compare_at_price', e.target.value ? parseFloat(e.target.value) : null)} />
                   </FormField>
-                  <FormField label="Gia von" error={errors.cost_price}>
+                  <FormField label="Giá vốn" error={errors.cost_price}>
                     <Input type="number" value={form.cost_price ?? ''} onChange={(e) => updateField('cost_price', e.target.value ? parseFloat(e.target.value) : null)} />
                   </FormField>
                 </div>
@@ -228,11 +228,11 @@ export default function EditProductPage() {
 
             {/* Media */}
             <Card>
-              <CardHeader><CardTitle>Hinh anh</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Hình ảnh</CardTitle></CardHeader>
               <CardContent>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
-                  <p className="text-gray-400 text-sm">Keo tha hinh anh vao day hoac click de chon file</p>
-                  <Button type="button" variant="outline" className="mt-3" size="sm">Chon hinh anh</Button>
+                  <p className="text-gray-400 text-sm">Kéo thả hình ảnh vào đây hoặc click để chọn file</p>
+                  <Button type="button" variant="outline" className="mt-3" size="sm">Chọn hình ảnh</Button>
                 </div>
               </CardContent>
             </Card>
@@ -240,26 +240,26 @@ export default function EditProductPage() {
             {/* Bien the */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Bien the san pham</CardTitle>
+                <CardTitle>Biến thể sản phẩm</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addVariant}>
-                  <Plus className="h-4 w-4 mr-1" /> Thêm bien the
+                  <Plus className="h-4 w-4 mr-1" /> Thêm biến thể
                 </Button>
               </CardHeader>
               <CardContent>
                 {variants.length === 0 ? (
-                  <p className="text-sm text-gray-500 text-center py-4">Chua co bien the nao.</p>
+                  <p className="text-sm text-gray-500 text-center py-4">Chưa có biến thể nào.</p>
                 ) : (
                   <div className="space-y-3">
                     {variants.map((v, i) => (
                       <div key={i} className="grid grid-cols-12 gap-2 items-end">
                         <div className="col-span-3">
-                          <Input placeholder="Ten" value={v.name} onChange={(e) => updateVariant(i, 'name', e.target.value)} />
+                          <Input placeholder="Tên" value={v.name} onChange={(e) => updateVariant(i, 'name', e.target.value)} />
                         </div>
                         <div className="col-span-3">
                           <Input placeholder="SKU" value={v.sku} onChange={(e) => updateVariant(i, 'sku', e.target.value)} />
                         </div>
                         <div className="col-span-2">
-                          <Input type="number" placeholder="Gia" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} />
+                          <Input type="number" placeholder="Giá" value={v.price} onChange={(e) => updateVariant(i, 'price', e.target.value)} />
                         </div>
                         <div className="col-span-3">
                           <Input placeholder="Attributes" value={v.attributes} onChange={(e) => updateVariant(i, 'attributes', e.target.value)} />
@@ -280,10 +280,10 @@ export default function EditProductPage() {
             <Card>
               <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="SEO Title" error={errors.seo_title} description="Toi da 70 ky tu">
+                <FormField label="SEO Title" error={errors.seo_title} description="Tối đa 70 ký tự">
                   <Input value={form.seo_title ?? ''} onChange={(e) => updateField('seo_title', e.target.value)} maxLength={70} />
                 </FormField>
-                <FormField label="SEO Description" error={errors.seo_description} description="Toi da 160 ky tu">
+                <FormField label="SEO Description" error={errors.seo_description} description="Tối đa 160 ký tự">
                   <Textarea value={form.seo_description ?? ''} onChange={(e) => updateField('seo_description', e.target.value)} rows={3} maxLength={160} />
                 </FormField>
               </CardContent>
@@ -293,11 +293,11 @@ export default function EditProductPage() {
           {/* Sidebar */}
           <div className="space-y-6">
             <Card>
-              <CardHeader><CardTitle>To chuc</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Tổ chức</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <FormField label="Danh mục">
                   <Select value={form.category_id ?? ''} onValueChange={(val) => updateField('category_id', val || null)}>
-                    <SelectTrigger><SelectValue placeholder="Chon danh muc" /></SelectTrigger>
+                    <SelectTrigger><SelectValue placeholder="Chọn danh mục" /></SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Không có</SelectItem>
                     </SelectContent>
@@ -310,14 +310,14 @@ export default function EditProductPage() {
             </Card>
 
             <Card>
-              <CardHeader><CardTitle>Trang thai</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Trạng thái</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Đang bán</span>
                   <Switch checked={form.is_active} onCheckedChange={(c) => updateField('is_active', c)} />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Noi bat</span>
+                  <span className="text-sm font-medium">Nổi bật</span>
                   <Switch checked={form.is_featured} onCheckedChange={(c) => updateField('is_featured', c)} />
                 </div>
               </CardContent>
@@ -329,7 +329,7 @@ export default function EditProductPage() {
                 {updateMutation.loading ? 'Đang lưu...' : 'Cập nhật'}
               </Button>
               <Button type="button" variant="outline" className="w-full" onClick={() => router.push('/admin/products')}>
-                <X className="h-4 w-4 mr-2" /> Huy
+                <X className="h-4 w-4 mr-2" /> Hủy
               </Button>
             </div>
 

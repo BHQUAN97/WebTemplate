@@ -79,7 +79,7 @@ export function NotificationBell() {
               ) : (
                 <Check className="h-3 w-3 mr-1" />
               )}
-              Danh dau da doc
+              Danh dau Đã đọc
             </Button>
           )}
         </div>

@@ -21,15 +21,15 @@ import { cn } from '@/lib/utils';
 /** Cac tab filter theo status */
 const STATUS_TABS: Array<{ value: 'all' | ConversationStatus; label: string }> = [
   { value: 'all', label: 'Tất cả' },
-  { value: 'WAITING_AGENT', label: 'Cho nhan vien' },
+  { value: 'WAITING_AGENT', label: 'Chờ nhân viên' },
   { value: 'IN_PROGRESS', label: 'Đang xử lý' },
-  { value: 'AI_RESPONDING', label: 'AI tra loi' },
-  { value: 'CLOSED', label: 'Da dong' },
+  { value: 'AI_RESPONDING', label: 'AI Trả lời' },
+  { value: 'CLOSED', label: 'Đã đóng' },
 ];
 
 /**
  * Admin chat console — 2-pane layout (list + detail).
- * Mobile: hien 1 trong 2 pane, dieu huong qua query ?id=.
+ * Mobile: hien 1 trong 2 pane, Điều hướng qua query ?id=.
  */
 export default function AdminChatPage() {
   const router = useRouter();
@@ -61,11 +61,11 @@ export default function AdminChatPage() {
         page: 1,
         limit: 50,
       });
-      // Response co the la ApiResponse<[]> hoac array truc tiep — ho tro ca hai
+      // Response co the la ApiResponse<[]> hoac array truc tiep — Hỗ trợ ca hai
       const data = Array.isArray(res) ? res : (res?.data ?? []);
       setConversations(data);
     } catch (err) {
-      toast('Không tải được danh sach', (err as Error).message, 'destructive');
+      toast('Không tải được danh sách', (err as Error).message, 'destructive');
     } finally {
       setListLoading(false);
     }
@@ -97,7 +97,7 @@ export default function AdminChatPage() {
         adminChatApi.markRead(selectedId).catch(() => {});
       })
       .catch((err) => {
-        if (!cancelled) toast('Không tải được cuoc chat', (err as Error).message, 'destructive');
+        if (!cancelled) toast('Không tải được cuộc chat', (err as Error).message, 'destructive');
       })
       .finally(() => {
         if (!cancelled) setDetailLoading(false);
@@ -136,7 +136,7 @@ export default function AdminChatPage() {
         setConversations((prev) => [payload.conversation, ...prev.filter((c) => c.id !== payload.conversation.id)]);
       }
       if (payload.conversation.status === 'WAITING_AGENT') {
-        toast('Co khach cho', `Khách #${payload.conversation.id.slice(-6).toUpperCase()} dang doi`, 'warning');
+        toast('Có khách chờ', `Khách #${payload.conversation.id.slice(-6).toUpperCase()} đang đợi`, 'warning');
       }
     });
 
@@ -176,7 +176,7 @@ export default function AdminChatPage() {
       const msg = await adminChatApi.sendMessage(selectedId, { content, type: 'text' });
       setMessages((prev) => [...prev, msg]);
     } catch (err) {
-      toast('Gửi that bai', (err as Error).message, 'destructive');
+      toast('Gửi Thất bại', (err as Error).message, 'destructive');
     } finally {
       setSending(false);
     }
@@ -187,7 +187,7 @@ export default function AdminChatPage() {
     try {
       const updated = await adminChatApi.assignConversation(selectedId, currentUser.id);
       setSelected(updated);
-      toast('Da nhan cuoc chat', undefined, 'success');
+      toast('Đã nhận cuộc chat', undefined, 'success');
     } catch (err) {
       toast('Không thể nhận', (err as Error).message, 'destructive');
     }
@@ -198,7 +198,7 @@ export default function AdminChatPage() {
     try {
       const updated = await adminChatApi.closeConversation(selectedId);
       setSelected(updated);
-      toast('Da dong cuoc chat', undefined, 'success');
+      toast('Đã đóng cuộc chat', undefined, 'success');
       loadList();
     } catch (err) {
       toast('Không thể đóng', (err as Error).message, 'destructive');
@@ -210,12 +210,12 @@ export default function AdminChatPage() {
   return (
     <div className="space-y-4">
       <PageHeader
-        title="Tro chuyen voi khach"
-        description="Quan ly va tra loi cac cuoc tro chuyen tu khach hang"
+        title="Trò chuyện với khách"
+        description="Quản lý và Trả lời các cuộc trò chuyện từ Khách hàng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Cham soc khach hang' },
-          { label: 'Hop thoai' },
+          { label: 'Chăm sóc Khách hàng' },
+          { label: 'Hộp thoại' },
         ]}
       />
 
@@ -239,7 +239,7 @@ export default function AdminChatPage() {
               <Input
                 value={search}
                 onChange={(e) => setSearch(e.target.value)}
-                placeholder="Tim khach / tin nhan..."
+                placeholder="Tìm khách / tin nhắn..."
                 className="pl-8"
               />
             </div>
@@ -264,8 +264,8 @@ export default function AdminChatPage() {
             ) : conversations.length === 0 ? (
               <EmptyState
                 icon={<MessageSquare className="h-10 w-10" />}
-                title="Chua co cuoc chat"
-                description="Cac hoi thoai moi se xuat hien o day"
+                title="Chưa có cuộc chat"
+                description="Các hội thoại mới sẽ xuất hiện ở đây"
               />
             ) : (
               <div className="space-y-1">

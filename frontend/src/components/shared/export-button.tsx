@@ -68,7 +68,7 @@ interface ExportButtonProps {
    */
   targetId?: string;
 
-  /** Tieu de in tren PDF (khi auto-build tu data) */
+  /** Tiêu đề in tren PDF (khi auto-build tu data) */
   title?: string;
 
   label?: string;
@@ -81,15 +81,15 @@ const formatConfig: Record<
   { label: string; icon: React.ReactNode }
 > = {
   csv: {
-    label: 'Xuat CSV',
+    label: 'Xuất CSV',
     icon: <FileText className="h-4 w-4 mr-2" />,
   },
   excel: {
-    label: 'Xuat Excel (.xlsx)',
+    label: 'Xuất Excel (.xlsx)',
     icon: <FileSpreadsheet className="h-4 w-4 mr-2" />,
   },
   pdf: {
-    label: 'Xuat PDF',
+    label: 'Xuất PDF',
     icon: <FileType className="h-4 w-4 mr-2" />,
   },
 };
@@ -116,7 +116,7 @@ export function ExportButton({
   html,
   targetId,
   title,
-  label = 'Xuat',
+  label = 'Xuất',
   formats = ['csv', 'excel', 'pdf'],
   loading: loadingProp = false,
 }: ExportButtonProps) {
@@ -162,7 +162,7 @@ export function ExportButton({
       if (format === 'csv' && data && data.length > 0) {
         // CSV — gen client-side
         exportToCSV(data, fname, columns);
-        toast('Da xuat CSV', fname, 'success');
+        toast('Đã xuất CSV', fname, 'success');
         return;
       }
 
@@ -171,7 +171,7 @@ export function ExportButton({
         const pdfHtml = resolveHtmlForPdf();
         if (pdfHtml) {
           await exportHtmlToPdf(pdfHtml, fname);
-          toast('Da xuat PDF', fname, 'success');
+          toast('Đã xuất PDF', fname, 'success');
           return;
         }
         // Neu khong co HTML lan data → goi endpoint raw (BE tu xu ly)
@@ -194,13 +194,13 @@ export function ExportButton({
         body: JSON.stringify(body),
       });
       downloadFile(blob, fname);
-      toast('Da xuat file', fname, 'success');
+      toast('Đã xuất file', fname, 'success');
     } catch (err) {
       const msg = (err as Error).message;
       if (format === 'pdf') {
         toast('Không thể xuất PDF', msg, 'destructive');
       } else {
-        toast('Xuat file that bai', msg, 'destructive');
+        toast('Xuất file thất bại', msg, 'destructive');
       }
     } finally {
       setInternalLoading(false);
@@ -220,7 +220,7 @@ export function ExportButton({
       <DropdownMenuTrigger asChild>
         <Button variant="outline" disabled={loading}>
           <Download className="h-4 w-4 mr-2" />
-          {loading ? 'Đăng xuất...' : label}
+          {loading ? 'Đang xuất...' : label}
         </Button>
       </DropdownMenuTrigger>
       <DropdownMenuContent align="end">

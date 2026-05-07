@@ -12,9 +12,9 @@ export type TourPlacement = 'top' | 'bottom' | 'left' | 'right' | 'center';
 export interface TourStep {
   /** CSS selector xac dinh element highlight (khong can voi placement='center') */
   target: string;
-  /** Tieu de tooltip */
+  /** Tiêu đề tooltip */
   title: string;
-  /** Nội dung mo ta */
+  /** Nội dung Mô tả */
   content: string;
   /** Vi tri tooltip so voi target */
   placement?: TourPlacement;
@@ -39,7 +39,7 @@ const PAD = 8; // padding quanh highlight
 const GAP = 12; // khoang cach tooltip voi target
 
 /**
- * Reset trang thai hoan thanh tour theo storageKey (dung de test/xem lai)
+ * Reset Trạng thái hoan thanh tour theo storageKey (dung de test/xem lai)
  */
 export function resetTour(storageKey: string): void {
   if (typeof window === 'undefined') return;
@@ -257,14 +257,14 @@ export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTour
           type="button"
           onClick={() => finish(false)}
           className="absolute right-3 top-3 rounded p-1 text-gray-400 hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-gray-800 dark:hover:text-gray-200"
-          aria-label="Bo qua huong dan"
+          aria-label="Bỏ qua hướng dẫn"
         >
           <X className="h-4 w-4" />
         </button>
 
         {/* Progress */}
         <p className="mb-2 text-xs font-medium uppercase tracking-wide text-blue-600 dark:text-blue-400">
-          Buoc {index + 1}/{steps.length}
+          Bước {index + 1}/{steps.length}
         </p>
 
         {/* Title + content */}
@@ -294,7 +294,7 @@ export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTour
             size="sm"
             onClick={() => finish(false)}
           >
-            Bo qua
+            Bỏ qua
           </Button>
           <div className="flex items-center gap-2">
             {!isFirst && (
@@ -305,18 +305,18 @@ export function OnboardingTour({ steps, storageKey, onComplete }: OnboardingTour
                 onClick={goBack}
               >
                 <ChevronLeft className="mr-1 h-4 w-4" />
-                Quay lai
+                Quay lại
               </Button>
             )}
             <Button type="button" size="sm" onClick={goNext}>
               {isLast ? (
                 <>
-                  Hoan tat
+                  Hoàn tất
                   <Check className="ml-1 h-4 w-4" />
                 </>
               ) : (
                 <>
-                  Tiep
+                  Tiếp
                   <ChevronRight className="ml-1 h-4 w-4" />
                 </>
               )}

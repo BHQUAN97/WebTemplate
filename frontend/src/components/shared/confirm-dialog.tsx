@@ -42,7 +42,7 @@ const variantConfig = {
 };
 
 /**
- * Dialog xac nhan — dung cho xoa, thay doi trang thai, etc.
+ * Dialog Xác nhận — dung cho xoa, thay doi Trạng thái, etc.
  */
 export function ConfirmDialog({
   open,
@@ -51,7 +51,7 @@ export function ConfirmDialog({
   description,
   onConfirm,
   confirmLabel = 'Xác nhận',
-  cancelLabel = 'Huy',
+  cancelLabel = 'Hủy',
   variant = 'danger',
   loading = false,
 }: ConfirmDialogProps) {

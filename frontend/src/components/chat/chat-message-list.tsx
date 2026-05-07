@@ -99,7 +99,7 @@ export function ChatMessageList({
       className="flex-1 space-y-2 overflow-y-auto bg-white px-3 py-3 dark:bg-gray-950"
       role="log"
       aria-live="polite"
-      aria-label="Lich su tin nhan"
+      aria-label="Lịch sử tin nhan"
     >
       {hasMore && (
         <div className="flex justify-center">
@@ -119,7 +119,7 @@ export function ChatMessageList({
 
       {rendered.length === 0 && (
         <div className="flex h-full items-center justify-center text-center text-sm text-gray-400">
-          Hay de lai loi nhan, chung toi se phan hoi som nhat.
+          Hay de lai loi nhan, chung toi se Phản hồi som nhat.
         </div>
       )}
 

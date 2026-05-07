@@ -18,29 +18,29 @@ export function Footer() {
 
           {/* Links */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Lien ket</h4>
+            <h4 className="text-white font-semibold mb-4">Liên kết</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/products" className="hover:text-white transition-colors">Sản phẩm</Link></li>
               <li><Link href="/blog" className="hover:text-white transition-colors">Blog</Link></li>
-              <li><Link href="/about" className="hover:text-white transition-colors">Gioi thieu</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">Giới thiệu</Link></li>
               <li><Link href="/faq" className="hover:text-white transition-colors">FAQ</Link></li>
             </ul>
           </div>
 
           {/* Support */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Ho tro</h4>
+            <h4 className="text-white font-semibold mb-4">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/contact" className="hover:text-white transition-colors">Lien he</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">Cau hoi thuong gap</Link></li>
-              <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chinh sach doi tra</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Liên hệ</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">Câu hỏi thường gặp</Link></li>
+              <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chính sách đổi trả</Link></li>
               <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
 
           {/* Contact */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Lien he</h4>
+            <h4 className="text-white font-semibold mb-4">Liên hệ</h4>
             <ul className="space-y-2 text-sm">
               <li>123 Nguyen Hue, Q1, TP.HCM</li>
               <li>0900 123 456</li>

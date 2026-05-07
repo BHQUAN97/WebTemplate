@@ -12,7 +12,7 @@ type Status = 'loading' | 'ok' | 'error';
 
 /**
  * Trang xac thuc email — user click link trong email → /verify-email?token=xxx
- * Auto-verify khi mount. 3 trang thai: loading | ok | error.
+ * Auto-verify khi mount. 3 Trạng thái: loading | ok | error.
  */
 function VerifyEmailInner() {
   const sp = useSearchParams();
@@ -80,11 +80,11 @@ function VerifyEmailInner() {
           <div className="text-center py-4">
             <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">
-              Xác thực thanh cong!
+              Xác thực thành công!
             </h3>
             <p className="text-sm text-gray-500 mb-6">
-              Email cua ban da duoc xac thuc. Ban co the dang nhap de bat dau
-              su dung.
+              Email của bạn đã được xác thực. Bạn có thể đăng nhập để bắt đầu
+              sử dụng.
             </p>
             <Button asChild className="w-full">
               <Link href="/login">Đăng nhập</Link>
@@ -96,7 +96,7 @@ function VerifyEmailInner() {
           <div className="text-center py-4">
             <XCircle className="h-12 w-12 text-red-500 mx-auto mb-4" />
             <h3 className="font-semibold text-lg mb-2">
-              Xác thực that bai
+              Xác thực thất bại
             </h3>
             <p className="text-sm text-gray-500 mb-6">
               {message || 'Link xác thực không hợp lệ hoặc đã hết hạn.'}
@@ -105,7 +105,7 @@ function VerifyEmailInner() {
             {resent ? (
               <div className="bg-green-50 text-green-700 text-sm rounded-lg p-3 mb-4 flex items-center justify-center gap-2">
                 <Mail className="h-4 w-4" />
-                Da gui lai email xac thuc
+                Đã gửi lại email xác thực
               </div>
             ) : (
               <Button

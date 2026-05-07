@@ -21,8 +21,8 @@ import type { ApiResponse } from '@/lib/types';
 import type { NavigationGroup, NavigationItem } from '@/lib/api/modules/navigation.api';
 
 const itemSchema = z.object({
-  label: z.string().min(1, 'Nhan la bat buoc').max(100),
-  url: z.string().min(1, 'URL la bat buoc'),
+  label: z.string().min(1, 'Nhãn là bắt buộc').max(100),
+  url: z.string().min(1, 'URL là bắt buộc'),
   icon: z.string().optional(),
   parent_id: z.string().optional().nullable(),
   sort_order: z.number().int().min(0),
@@ -42,7 +42,7 @@ const emptyItem: ItemForm = {
   is_active: true,
 };
 
-/** Quan ly Navigation — header, footer, sidebar... */
+/** Quản lý Navigation — header, footer, sidebar... */
 export default function NavigationPage() {
   const { toast } = useToast();
   const [selectedGroup, setSelectedGroup] = useState<string | null>(null);
@@ -116,7 +116,7 @@ export default function NavigationPage() {
     if (res) {
       setDialogOpen(false);
       refetchItems();
-      toast(editingId ? 'Da cap nhat' : 'Da them muc', undefined, 'success');
+      toast(editingId ? 'Đã cập nhật' : 'Đã thêm mục', undefined, 'success');
     }
   };
 
@@ -154,8 +154,8 @@ export default function NavigationPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly Navigation"
-        description="Cau hinh menu header, footer, sidebar..."
+        title="Quản lý Navigation"
+        description="Cấu hình menu header, footer, sidebar..."
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Navigation' },
@@ -163,7 +163,7 @@ export default function NavigationPage() {
         actions={
           activeGroup && (
             <Button onClick={openCreate}>
-              <Plus className="h-4 w-4 mr-2" /> Thêm muc
+              <Plus className="h-4 w-4 mr-2" /> Thêm mục
             </Button>
           )
         }
@@ -196,7 +196,7 @@ export default function NavigationPage() {
                   {loadingItems ? (
                     <Skeleton className="h-40" />
                   ) : topLevelItems.length === 0 ? (
-                    <p className="text-sm text-gray-500 text-center py-8">Chua co muc nao</p>
+                    <p className="text-sm text-gray-500 text-center py-8">Chưa có mục nào</p>
                   ) : (
                     <ul className="space-y-2">
                       {topLevelItems.map((item, idx) => (
@@ -233,7 +233,7 @@ export default function NavigationPage() {
             <DialogTitle>{editingId ? 'Chỉnh sửa mục menu' : 'Thêm mục menu'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <FormField label="Nhan" error={errors.label} required>
+            <FormField label="Nhãn" error={errors.label} required>
               <Input
                 value={form.label}
                 onChange={(e) => { setForm((p) => ({ ...p, label: e.target.value })); setErrors((p) => ({ ...p, label: '' })); }}
@@ -243,7 +243,7 @@ export default function NavigationPage() {
               <Input
                 value={form.url}
                 onChange={(e) => { setForm((p) => ({ ...p, url: e.target.value })); setErrors((p) => ({ ...p, url: '' })); }}
-                placeholder="/about hoac https://..."
+                placeholder="/about hoặc https://..."
               />
             </FormField>
             <FormField label="Icon (ten lucide)">
@@ -253,7 +253,7 @@ export default function NavigationPage() {
                 placeholder="VD: home, users, settings"
               />
             </FormField>
-            <FormField label="Muc cha (parent)">
+            <FormField label="Mục cha (parent)">
               <Select
                 value={form.parent_id ?? 'none'}
                 onValueChange={(v) => setForm((p) => ({ ...p, parent_id: v === 'none' ? null : v }))}
@@ -269,7 +269,7 @@ export default function NavigationPage() {
                 </SelectContent>
               </Select>
             </FormField>
-            <FormField label="Thu tu sap xep">
+            <FormField label="Thứ tự sắp xếp">
               <Input
                 type="number"
                 value={form.sort_order}
@@ -277,14 +277,14 @@ export default function NavigationPage() {
               />
             </FormField>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Link ngoai</span>
+              <span className="text-sm font-medium">Link ngoài</span>
               <Switch
                 checked={form.is_external}
                 onCheckedChange={(c) => setForm((p) => ({ ...p, is_external: c }))}
               />
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Hien thi</span>
+              <span className="text-sm font-medium">Hiển thị</span>
               <Switch
                 checked={form.is_active}
                 onCheckedChange={(c) => setForm((p) => ({ ...p, is_active: c }))}
@@ -292,7 +292,7 @@ export default function NavigationPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
               {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -303,8 +303,8 @@ export default function NavigationPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(o) => !o && setDeleteId(null)}
-        title="Xóa muc menu"
-        description="Xóa muc nay? Cac muc con cung se bi xoa."
+        title="Xóa mục menu"
+        description="Xóa mục này? Các mục con cũng sẽ bị xóa."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"
@@ -332,7 +332,7 @@ function NavItemRow({ item, onEdit, onDelete, onMoveUp, onMoveDown }: NavItemRow
           <p className="text-xs text-gray-500 font-mono truncate">{item.url}</p>
         </div>
         {item.is_external && <Badge variant="secondary" className="text-xs">External</Badge>}
-        {!item.is_active && <Badge variant="destructive" className="text-xs">An</Badge>}
+        {!item.is_active && <Badge variant="destructive" className="text-xs">Ẩn</Badge>}
       </div>
       <div className="flex items-center gap-1">
         <Button variant="ghost" size="icon" disabled={!onMoveUp} onClick={onMoveUp}>

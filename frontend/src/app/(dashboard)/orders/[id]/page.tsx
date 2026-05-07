@@ -84,8 +84,8 @@ export default function OrderDetailPage({
   const timelineSteps = [
     { status: 'PENDING', label: 'Đặt hàng', icon: Package },
     { status: 'CONFIRMED', label: 'Xác nhận', icon: CheckCircle },
-    { status: 'PROCESSING', label: 'Xu ly', icon: Package },
-    { status: 'SHIPPED', label: 'Giao hang', icon: Truck },
+    { status: 'PROCESSING', label: 'Xử lý', icon: Package },
+    { status: 'SHIPPED', label: 'Giao hàng', icon: Truck },
     { status: 'DELIVERED', label: 'Hoàn thành', icon: CheckCircle },
   ];
 
@@ -222,29 +222,29 @@ export default function OrderDetailPage({
           {/* Summary */}
           <Card>
             <CardHeader>
-              <CardTitle className="text-sm">Tong tien</CardTitle>
+              <CardTitle className="text-sm">Tổng tiền</CardTitle>
             </CardHeader>
             <CardContent className="space-y-2 text-sm">
               <div className="flex justify-between">
-                <span className="text-gray-500">Tam tinh</span>
+                <span className="text-gray-500">Tạm tính</span>
                 <span>{formatPrice(order.subtotal)}</span>
               </div>
               {order.discount > 0 && (
                 <div className="flex justify-between text-green-600">
-                  <span>Giam gia</span>
+                  <span>Giảm giá</span>
                   <span>-{formatPrice(order.discount)}</span>
                 </div>
               )}
               <div className="flex justify-between">
-                <span className="text-gray-500">Van chuyen</span>
+                <span className="text-gray-500">Vận chuyển</span>
                 <span>
                   {order.shipping_fee > 0
                     ? formatPrice(order.shipping_fee)
-                    : 'Mien phi'}
+                    : 'Miễn phí'}
                 </span>
               </div>
               <div className="border-t pt-2 flex justify-between font-bold">
-                <span>Tong</span>
+                <span>Tổng</span>
                 <span className="text-red-600">{formatPrice(order.total)}</span>
               </div>
             </CardContent>

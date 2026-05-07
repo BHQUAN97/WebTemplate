@@ -34,20 +34,20 @@ export function PublicFooter() {
             <h4 className="text-white font-semibold mb-4">Sản phẩm</h4>
             <ul className="space-y-2 text-sm">
               <li><Link href="/products" className="hover:text-white transition-colors">Tất cả sản phẩm</Link></li>
-              <li><Link href="/products?featured=true" className="hover:text-white transition-colors">Sản phẩm noi bat</Link></li>
-              <li><Link href="/products?sort=newest" className="hover:text-white transition-colors">Hang moi ve</Link></li>
-              <li><Link href="/products?sort=bestselling" className="hover:text-white transition-colors">Ban chay</Link></li>
+              <li><Link href="/products?featured=true" className="hover:text-white transition-colors">Sản phẩm nổi bật</Link></li>
+              <li><Link href="/products?sort=newest" className="hover:text-white transition-colors">Hàng mới về</Link></li>
+              <li><Link href="/products?sort=bestselling" className="hover:text-white transition-colors">Bán chạy</Link></li>
             </ul>
           </div>
 
           {/* Support */}
           <div>
-            <h4 className="text-white font-semibold mb-4">Ho tro</h4>
+            <h4 className="text-white font-semibold mb-4">Hỗ trợ</h4>
             <ul className="space-y-2 text-sm">
-              <li><Link href="/contact" className="hover:text-white transition-colors">Lien he</Link></li>
-              <li><Link href="/faq" className="hover:text-white transition-colors">Cau hoi thuong gap</Link></li>
-              <li><Link href="/about" className="hover:text-white transition-colors">Gioi thieu</Link></li>
-              <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chinh sach doi tra</Link></li>
+              <li><Link href="/contact" className="hover:text-white transition-colors">Liên hệ</Link></li>
+              <li><Link href="/faq" className="hover:text-white transition-colors">Câu hỏi thường gặp</Link></li>
+              <li><Link href="/about" className="hover:text-white transition-colors">Giới thiệu</Link></li>
+              <li><Link href="/chinh-sach-doi-tra" className="hover:text-white transition-colors">Chính sách đổi trả</Link></li>
               <li><Link href="/dieu-khoan" className="hover:text-white transition-colors">Điều khoản sử dụng</Link></li>
             </ul>
           </div>
@@ -56,12 +56,12 @@ export function PublicFooter() {
           <div>
             <h4 className="text-white font-semibold mb-4">Đăng ký nhan tin</h4>
             <p className="text-sm mb-3">
-              Nhan thong tin uu dai va san pham moi nhat qua email.
+              Nhận thông tin ưu đãi và sản phẩm mới nhất qua email.
             </p>
             <form onSubmit={(e) => e.preventDefault()} className="flex gap-2">
               <Input
                 type="email"
-                placeholder="Email cua ban"
+                placeholder="Email của bạn"
                 className="bg-gray-800 border-gray-700 text-white placeholder:text-gray-500"
               />
               <Button type="submit" size="sm">

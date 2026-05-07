@@ -19,7 +19,7 @@ import { formatDate } from '@/lib/utils/format';
 import type { ApiResponse } from '@/lib/types';
 import type { InventoryItem, InventoryHistory } from '@/lib/api/modules/inventory.api';
 
-/** Quan ly ton kho */
+/** Quản lý Tồn kho */
 export default function InventoryPage() {
   const [search, setSearch] = useState('');
   const [lowStock, setLowStock] = useState(false);
@@ -86,7 +86,7 @@ export default function InventoryPage() {
     },
     {
       key: 'quantity',
-      header: 'Ton kho',
+      header: 'Tồn kho',
       sortable: true,
       render: (row) => {
         const available = row.quantity - row.reserved_quantity;
@@ -99,7 +99,7 @@ export default function InventoryPage() {
             </span>
             {row.reserved_quantity > 0 && (
               <span className="text-xs text-gray-500 ml-2">
-                ({row.reserved_quantity} dat cho)
+                ({row.reserved_quantity} đặt chỗ)
               </span>
             )}
           </div>
@@ -108,7 +108,7 @@ export default function InventoryPage() {
     },
     {
       key: 'available',
-      header: 'Co san',
+      header: 'Có sẵn',
       render: (row) => {
         const available = row.quantity - row.reserved_quantity;
         return <span>{available}</span>;
@@ -116,17 +116,17 @@ export default function InventoryPage() {
     },
     {
       key: 'low_stock_threshold',
-      header: 'Nguong canh bao',
+      header: 'Ngưỡng cảnh báo',
       render: (row) => row.low_stock_threshold,
     },
     {
       key: 'status',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => {
         const available = row.quantity - row.reserved_quantity;
-        if (available <= 0) return <Badge variant="destructive">Het hang</Badge>;
-        if (available <= row.low_stock_threshold) return <Badge variant="warning">Sap het</Badge>;
-        return <Badge variant="success">Du hang</Badge>;
+        if (available <= 0) return <Badge variant="destructive">Hết hàng</Badge>;
+        if (available <= row.low_stock_threshold) return <Badge variant="warning">Sắp hết</Badge>;
+        return <Badge variant="success">Đủ hàng</Badge>;
       },
     },
     {
@@ -139,7 +139,7 @@ export default function InventoryPage() {
 
   const actions: ActionDef<InventoryItem>[] = [
     {
-      label: 'Dieu chinh so luong',
+      label: 'Điều chỉnh số lượng',
       icon: <Pencil className="h-4 w-4 mr-2" />,
       onClick: (row) => {
         setAdjustItem(row);
@@ -147,7 +147,7 @@ export default function InventoryPage() {
       },
     },
     {
-      label: 'Lich su',
+      label: 'Lịch sử',
       icon: <History className="h-4 w-4 mr-2" />,
       onClick: (row) => setHistoryItem(row),
     },
@@ -165,11 +165,11 @@ export default function InventoryPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly ton kho"
-        description="Theo doi so luong va canh bao het hang"
+        title="Quản lý Tồn kho"
+        description="Theo dõi số lượng và cảnh báo hết hàng"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Ton kho' },
+          { label: 'Tồn kho' },
         ]}
       />
 
@@ -177,17 +177,17 @@ export default function InventoryPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         <StatCard
           icon={<Package className="h-5 w-5" />}
-          label="Tong SKU"
+          label="Tổng SKU"
           value={stats.data?.data?.total_sku ?? 0}
         />
         <StatCard
           icon={<AlertTriangle className="h-5 w-5" />}
-          label="SKU sap het hang"
+          label="SKU sắp hết hàng"
           value={stats.data?.data?.low_stock_count ?? 0}
         />
         <StatCard
           icon={<XCircle className="h-5 w-5" />}
-          label="SKU het hang"
+          label="SKU hết hàng"
           value={stats.data?.data?.out_of_stock_count ?? 0}
         />
       </div>
@@ -196,11 +196,11 @@ export default function InventoryPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={lowStock} onCheckedChange={setLowStock} />
-          Chi SKU sap het
+          Chỉ SKU sắp hết
         </label>
         <label className="flex items-center gap-2 text-sm">
           <Switch checked={outOfStock} onCheckedChange={setOutOfStock} />
-          Chi SKU het hang
+          Chỉ SKU hết hàng
         </label>
       </div>
 
@@ -213,7 +213,7 @@ export default function InventoryPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ten san pham, SKU..."
+        searchPlaceholder="Tìm theo tên Sản phẩm, SKU..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -224,30 +224,30 @@ export default function InventoryPage() {
       <Dialog open={!!adjustItem} onOpenChange={(o) => !o && setAdjustItem(null)}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Dieu chinh ton kho</DialogTitle>
+            <DialogTitle>Điều chỉnh Tồn kho</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
             <p className="text-sm text-gray-500">
               SKU: <span className="font-mono">{adjustItem?.sku}</span>
             </p>
             <p className="text-sm text-gray-500">
-              Hien tai: <span className="font-bold">{adjustItem?.quantity}</span>
+              Hiện tại: <span className="font-bold">{adjustItem?.quantity}</span>
             </p>
-            <FormField label="So luong moi" required>
+            <FormField label="Số lượng mới" required>
               <Input
                 type="number"
                 value={adjustForm.quantity}
                 onChange={(e) => setAdjustForm((p) => ({ ...p, quantity: Number(e.target.value) }))}
               />
             </FormField>
-            <FormField label="Ly do" required>
+            <FormField label="Lý do" required>
               <Input
                 value={adjustForm.reason}
                 onChange={(e) => setAdjustForm((p) => ({ ...p, reason: e.target.value }))}
-                placeholder="VD: Nhap hang, kiem ke, hu hong..."
+                placeholder="VD: Nhập hàng, kiểm kê, hư hỏng..."
               />
             </FormField>
-            <FormField label="Ghi chu">
+            <FormField label="Ghi chú">
               <Textarea
                 rows={3}
                 value={adjustForm.note}
@@ -256,7 +256,7 @@ export default function InventoryPage() {
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setAdjustItem(null)}>Huy</Button>
+            <Button variant="outline" onClick={() => setAdjustItem(null)}>Hủy</Button>
             <Button onClick={handleAdjust} disabled={adjustMutation.loading || !adjustForm.reason}>
               {adjustMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -264,11 +264,11 @@ export default function InventoryPage() {
         </DialogContent>
       </Dialog>
 
-      {/* Dialog lich su */}
+      {/* Dialog Lịch sử */}
       <Dialog open={!!historyItem} onOpenChange={(o) => !o && setHistoryItem(null)}>
         <DialogContent className="max-w-2xl">
           <DialogHeader>
-            <DialogTitle>Lich su ton kho</DialogTitle>
+            <DialogTitle>Lịch sử Tồn kho</DialogTitle>
           </DialogHeader>
           <div className="py-2 max-h-[60vh] overflow-y-auto">
             {history.loading ? (
@@ -277,10 +277,10 @@ export default function InventoryPage() {
               <table className="w-full text-sm">
                 <thead className="text-left text-gray-500 border-b">
                   <tr>
-                    <th className="py-2">Thoi gian</th>
-                    <th>Loai</th>
+                    <th className="py-2">Thời gian</th>
+                    <th>Loại</th>
                     <th>SL</th>
-                    <th>Ly do</th>
+                    <th>Lý do</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -295,7 +295,7 @@ export default function InventoryPage() {
                 </tbody>
               </table>
             ) : (
-              <p className="text-sm text-gray-500">Chua co lich su</p>
+              <p className="text-sm text-gray-500">Chưa có Lịch sử</p>
             )}
           </div>
         </DialogContent>

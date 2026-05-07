@@ -18,7 +18,7 @@ interface ImageUploadProps {
 }
 
 /**
- * Upload hinh anh drag-and-drop — ho tro nhieu file, preview, gioi han dung luong
+ * Upload hinh anh drag-and-drop — Hỗ trợ nhieu file, preview, gioi han dung luong
  */
 export function ImageUpload({
   value = [],
@@ -45,14 +45,14 @@ export function ImageUpload({
 
     // Kiem tra so luong file
     if (previews.length + files.length > maxFiles) {
-      setError(`Chi duoc upload toi da ${maxFiles} file`);
+      setError(`Chỉ được upload tối đa ${maxFiles} file`);
       return;
     }
 
     // Kiem tra dung luong
     const oversized = files.find((f) => f.size > maxSizeBytes);
     if (oversized) {
-      setError(`File "${oversized.name}" vuot qua ${maxSizeMB}MB`);
+      setError(`File "${oversized.name}" vượt quá ${maxSizeMB}MB`);
       return;
     }
 
@@ -103,10 +103,10 @@ export function ImageUpload({
       >
         <Upload className="h-8 w-8 text-gray-400 mb-2" />
         <p className="text-sm text-gray-600">
-          Keo tha file vao day hoac <span className="text-blue-600 font-medium">chon file</span>
+          Kéo thả file vào đây hoặc <span className="text-blue-600 font-medium">chọn file</span>
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          Toi da {maxFiles} file, moi file khong qua {maxSizeMB}MB
+          Tối đa {maxFiles} file, mỗi file không quá {maxSizeMB}MB
         </p>
         <input
           ref={inputRef}

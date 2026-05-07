@@ -12,24 +12,24 @@ interface Props {
 
 /**
  * Hien thi mode hien tai cua conversation — AI, nhan vien, hoac ngoai gio.
- * Thêm 1 dot nho the hien trang thai WS connected.
+ * Thêm 1 dot nho the hien Trạng thái WS connected.
  */
 export function ChatStatusBar({ mode, agent, isConnected }: Props) {
   let icon = <Bot className="h-4 w-4" />;
-  let label = 'AI dang ho tro';
+  let label = 'AI dang Hỗ trợ';
   let tone = 'text-blue-600 dark:text-blue-400';
 
   if (mode === 'human' && agent?.name) {
     icon = <User2 className="h-4 w-4" />;
-    label = `Nhân viên ${agent.name} dang tra loi`;
+    label = `Nhân viên ${agent.name} dang Trả lời`;
     tone = 'text-emerald-600 dark:text-emerald-400';
   } else if (mode === 'hybrid') {
     icon = <User2 className="h-4 w-4" />;
-    label = 'AI + nhan vien cung ho tro';
+    label = 'AI + nhan vien cung Hỗ trợ';
     tone = 'text-emerald-600 dark:text-emerald-400';
   } else if (mode === 'offline') {
     icon = <Clock className="h-4 w-4" />;
-    label = 'Ngoai gio truc — se phan hoi som';
+    label = 'Ngoai gio truc — se Phản hồi som';
     tone = 'text-amber-600 dark:text-amber-400';
   }
 

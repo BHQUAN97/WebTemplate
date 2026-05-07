@@ -1,9 +1,9 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { CartClient } from './cart-client';
 
 export const metadata: Metadata = {
-  title: 'Gio hang - WebTemplate',
-  description: 'Xem va quan ly gio hang cua ban.',
+  title: 'Giỏ hàng - WebTemplate',
+  description: 'Xem va Quản lý Giỏ hàng cua ban.',
 };
 
 export default function CartPage() {

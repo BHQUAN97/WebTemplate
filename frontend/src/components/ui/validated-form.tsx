@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import {
@@ -22,7 +22,7 @@ export interface ValidatedFormProps<TSchema extends ZodType>
   schema: TSchema;
   /** Default values cho form */
   defaultValues?: DefaultValues<TSchema['_output'] & FieldValues>;
-  /** Handler khi submit thanh cong */
+  /** Handler khi submit Thành công */
   onSubmit: SubmitHandler<TSchema['_output'] & FieldValues>;
   /**
    * Children — co the la ReactNode hoac render prop nhan form methods.

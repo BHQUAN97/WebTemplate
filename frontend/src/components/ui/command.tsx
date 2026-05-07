@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { Command as CommandPrimitive } from 'cmdk';
@@ -10,7 +10,7 @@ import { Dialog, DialogContent } from '@/components/ui/dialog';
  * Command — wrapper shadcn pattern quanh thu vien `cmdk`.
  * Cung cap Command, CommandDialog, CommandInput, CommandList, CommandEmpty,
  * CommandGroup, CommandItem, CommandShortcut, CommandSeparator.
- * Ho tro dark mode bang class `dark:` cua Tailwind.
+ * Hỗ trợ dark mode bang class `dark:` cua Tailwind.
  */
 const Command = React.forwardRef<
   React.ComponentRef<typeof CommandPrimitive>,

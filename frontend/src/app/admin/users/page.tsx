@@ -21,7 +21,7 @@ const ROLE_VARIANTS: Record<string, 'default' | 'secondary' | 'success' | 'warni
   USER: 'secondary',
 };
 
-/** Quan ly nguoi dung (admin) */
+/** Quản lý Người dùng (admin) */
 export default function UsersPage() {
   const [search, setSearch] = useState('');
   const [roleFilter, setRoleFilter] = useState('all');
@@ -70,16 +70,16 @@ export default function UsersPage() {
     { key: 'name', header: 'Họ tên', sortable: true },
     {
       key: 'role',
-      header: 'Vai tro',
+      header: 'Vai trò',
       render: (row) => <Badge variant={ROLE_VARIANTS[row.role] ?? 'secondary'}>{row.role}</Badge>,
     },
     {
       key: 'is_active',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => (
         <StatusBadge
           status={row.is_active ? 'active' : 'inactive'}
-          label={row.is_active ? 'Hoat dong' : 'Da khoa'}
+          label={row.is_active ? 'Hoạt động' : 'Đã khóa'}
         />
       ),
     },
@@ -94,7 +94,7 @@ export default function UsersPage() {
     },
     {
       key: 'created_at',
-      header: 'Ngay tao',
+      header: 'Ngày tạo',
       sortable: true,
       render: (row) => formatDate(row.created_at),
     },
@@ -112,7 +112,7 @@ export default function UsersPage() {
       onClick: (row) => { window.location.href = `/admin/users/${row.id}`; },
     },
     {
-      label: 'Kích hoạt / Vo hieu',
+      label: 'Kích hoạt / Vô hiệu',
       icon: <PowerOff className="h-4 w-4 mr-2" />,
       onClick: (row) => setToggleUser(row),
     },
@@ -128,8 +128,8 @@ export default function UsersPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly nguoi dung"
-        description="Danh sach tat ca nguoi dung he thong"
+        title="Quản lý Người dùng"
+        description="Danh sách tất cả Người dùng Hệ thống"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Người dùng' },
@@ -148,7 +148,7 @@ export default function UsersPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={roleFilter} onValueChange={setRoleFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Vai tro" />
+            <SelectValue placeholder="Vai trò" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả vai trò</SelectItem>
@@ -161,12 +161,12 @@ export default function UsersPage() {
 
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả trạng thái</SelectItem>
-            <SelectItem value="true">Hoat dong</SelectItem>
-            <SelectItem value="false">Da khoa</SelectItem>
+            <SelectItem value="true">Hoạt động</SelectItem>
+            <SelectItem value="false">Đã khóa</SelectItem>
           </SelectContent>
         </Select>
       </div>
@@ -180,7 +180,7 @@ export default function UsersPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo email, ten..."
+        searchPlaceholder="Tìm theo email, tên..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -190,11 +190,11 @@ export default function UsersPage() {
       <ConfirmDialog
         open={!!toggleUser}
         onOpenChange={(open) => !open && setToggleUser(null)}
-        title={toggleUser?.is_active ? 'Vô hiệu hóa nguoi dung' : 'Kích hoạt nguoi dung'}
+        title={toggleUser?.is_active ? 'Vô hiệu hóa Người dùng' : 'Kích hoạt Người dùng'}
         description={
           toggleUser?.is_active
-            ? `Người dùng ${toggleUser?.email} se khong the dang nhap. Tiếp tục?`
-            : `Kích hoạt lai ${toggleUser?.email}?`
+            ? `Người dùng ${toggleUser?.email} sẽ không thể Đăng nhập. Tiếp tục?`
+            : `Kích hoạt lại ${toggleUser?.email}?`
         }
         onConfirm={handleToggle}
         confirmLabel={toggleUser?.is_active ? 'Vô hiệu hóa' : 'Kích hoạt'}

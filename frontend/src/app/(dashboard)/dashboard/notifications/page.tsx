@@ -116,7 +116,7 @@ export default function NotificationsPage() {
         '/notifications',
         { page: 1, limit: PAGE_SIZE },
       );
-      // Ho tro ca 2 shape — array hoac {data, meta}
+      // Hỗ trợ ca 2 shape — array hoac {data, meta}
       const list = Array.isArray(res)
         ? res
         : ((res as PaginatedResponse<Notification>).data ?? []);
@@ -185,11 +185,11 @@ export default function NotificationsPage() {
     setItems((prev) => prev.map((n) => ({ ...n, is_read: true })));
     try {
       await apiClient.patch('/notifications/read-all');
-      toast('Da danh dau tat ca da doc', undefined, 'success');
+      toast('Da danh dau tat ca Đã đọc', undefined, 'success');
     } catch (err) {
       setItems(snapshot);
       const msg =
-        err instanceof ApiError ? err.message : 'That bai, thu lai';
+        err instanceof ApiError ? err.message : 'Thất bại, thu lai';
       toast('Loi', msg, 'destructive');
     } finally {
       setBusy(null);
@@ -207,12 +207,12 @@ export default function NotificationsPage() {
       const res = await apiClient.delete<
         { data?: { deletedCount: number }; deletedCount?: number } | null
       >('/notifications/read');
-      // Ho tro ca 2 shape — wrapped ({data}) hoac flat
+      // Hỗ trợ ca 2 shape — wrapped ({data}) hoac flat
       const deleted =
         (res && 'data' in res && res.data?.deletedCount) ??
         (res && 'deletedCount' in res ? res.deletedCount : undefined) ??
         snapshot.filter((n) => n.is_read).length;
-      toast('Da xoa thong bao da doc', `${deleted} muc`, 'success');
+      toast('Da xoa thong bao Đã đọc', `${deleted} muc`, 'success');
     } catch (err) {
       // Rollback va reload de dong bo
       setItems(snapshot);
@@ -256,7 +256,7 @@ export default function NotificationsPage() {
             ) : (
               <CheckCheck className="mr-2 h-4 w-4" />
             )}
-            Danh dau tat ca da doc
+            Danh dau tat ca Đã đọc
           </Button>
           <Button
             variant="outline"
@@ -269,7 +269,7 @@ export default function NotificationsPage() {
             ) : (
               <Trash2 className="mr-2 h-4 w-4" />
             )}
-            Xóa da doc
+            Xóa Đã đọc
           </Button>
         </div>
       </div>
@@ -290,7 +290,7 @@ export default function NotificationsPage() {
             </span>
           </TabsTrigger>
           <TabsTrigger value="read">
-            Da doc
+            Đã đọc
             <span className="ml-1.5 text-xs text-muted-foreground">
               {readCount}
             </span>

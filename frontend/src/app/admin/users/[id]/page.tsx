@@ -19,10 +19,10 @@ import { formatDate } from '@/lib/utils/format';
 import type { ApiResponse, User, AccessLog } from '@/lib/types';
 
 const userSchema = z.object({
-  name: z.string().min(2, 'Ten toi thieu 2 ky tu').max(100, 'Toi da 100 ky tu'),
+  name: z.string().min(2, 'Tên tối thiểu 2 ký tự').max(100, 'Tối đa 100 ký tự'),
   phone: z
     .string()
-    .regex(/^0\d{9,10}$/, 'So dien thoai khong hop le')
+    .regex(/^0\d{9,10}$/, 'Số điện thoại không hợp lệ')
     .optional()
     .or(z.literal('')),
   role: z.enum(['ADMIN', 'MANAGER', 'EDITOR', 'USER']),
@@ -155,7 +155,7 @@ export default function UserDetailPage() {
         {/* Form chinh */}
         <div className="lg:col-span-2 space-y-6">
           <Card>
-            <CardHeader><CardTitle>Thong tin co ban</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Thông tin cơ bản</CardTitle></CardHeader>
             <CardContent className="space-y-4">
               <FormField label="Email">
                 <Input value={user?.email ?? ''} disabled readOnly />
@@ -163,7 +163,7 @@ export default function UserDetailPage() {
               <FormField label="Họ tên" error={errors.name} required>
                 <Input value={form.name} onChange={(e) => updateField('name', e.target.value)} />
               </FormField>
-              <FormField label="So dien thoai" error={errors.phone}>
+              <FormField label="Số điện thoại" error={errors.phone}>
                 <Input
                   value={form.phone ?? ''}
                   onChange={(e) => updateField('phone', e.target.value)}
@@ -177,7 +177,7 @@ export default function UserDetailPage() {
                   placeholder="https://..."
                 />
               </FormField>
-              <FormField label="Vai tro" error={errors.role} required>
+              <FormField label="Vai trò" error={errors.role} required>
                 <Select value={form.role} onValueChange={(v) => updateField('role', v as UserForm['role'])}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
@@ -197,7 +197,7 @@ export default function UserDetailPage() {
                 />
               </div>
               <div className="flex items-center justify-between">
-                <span className="text-sm font-medium">Da xac thuc email</span>
+                <span className="text-sm font-medium">Đã xác thực email</span>
                 <Switch
                   checked={form.is_email_verified}
                   onCheckedChange={(c) => updateField('is_email_verified', c)}
@@ -208,12 +208,12 @@ export default function UserDetailPage() {
 
           {/* Bao mat */}
           <Card>
-            <CardHeader><CardTitle>Bao mat</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Bảo mật</CardTitle></CardHeader>
             <CardContent className="space-y-3">
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium">Reset mat khau</p>
-                  <p className="text-xs text-gray-500">Gửi email cho phep nguoi dung dat lai mat khau</p>
+                  <p className="text-sm font-medium">Reset mật khẩu</p>
+                  <p className="text-xs text-gray-500">Gửi email cho phép người dùng đặt lại mật khẩu</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setConfirm('reset')}>
                   <KeyRound className="h-4 w-4 mr-2" /> Reset
@@ -237,8 +237,8 @@ export default function UserDetailPage() {
               </div>
               <div className="flex items-center justify-between gap-4">
                 <div>
-                  <p className="text-sm font-medium">Phien dang nhap</p>
-                  <p className="text-xs text-gray-500">Vô hiệu hóa tat ca phien dang nhap cua user nay</p>
+                  <p className="text-sm font-medium">Phiên đăng nhập</p>
+                  <p className="text-xs text-gray-500">Vô hiệu hóa tất cả phiên đăng nhập của user này</p>
                 </div>
                 <Button variant="outline" size="sm" onClick={() => setConfirm('revokeSessions')}>
                   <LogOut className="h-4 w-4 mr-2" /> Revoke
@@ -249,7 +249,7 @@ export default function UserDetailPage() {
 
           {/* Audit log */}
           <Card>
-            <CardHeader><CardTitle>Lich su truy cap (10 gan nhat)</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Lịch sử truy cập (10 gần nhất)</CardTitle></CardHeader>
             <CardContent>
               {logs.loading ? (
                 <Skeleton className="h-32" />
@@ -258,7 +258,7 @@ export default function UserDetailPage() {
                   <table className="w-full text-sm">
                     <thead className="text-left text-gray-500 border-b">
                       <tr>
-                        <th className="py-2">Thoi gian</th>
+                        <th className="py-2">Thời gian</th>
                         <th>Method</th>
                         <th>Path</th>
                         <th>IP</th>

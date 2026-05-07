@@ -14,7 +14,7 @@ import { authApi } from '@/lib/api/modules/auth.api';
 import { ApiError } from '@/lib/api/client';
 
 /**
- * Trang dat lai mat khau — token tu URL, form new password.
+ * Trang dat lai Mật khẩu — token tu URL, form new password.
  * Xu ly UX rieng khi token het han/invalid → goi y gui lai link.
  */
 export default function ResetPasswordPage() {
@@ -108,7 +108,7 @@ export default function ResetPasswordPage() {
                 <Input
                   {...register('password')}
                   type={showPassword ? 'text' : 'password'}
-                  placeholder="It nhat 8 ky tu"
+                  placeholder="It nhat 8 Ký tự"
                   autoComplete="new-password"
                 />
                 <button
@@ -126,12 +126,12 @@ export default function ResetPasswordPage() {
 
             <div>
               <label className="block text-sm font-medium text-gray-700 mb-1">
-                Xác nhận mat khau
+                Xác nhận Mật khẩu
               </label>
               <Input
                 {...register('confirmPassword')}
                 type="password"
-                placeholder="Nhap lai mat khau"
+                placeholder="Nháp lai Mật khẩu"
                 autoComplete="new-password"
               />
               {errors.confirmPassword && (

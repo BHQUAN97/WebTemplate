@@ -1,10 +1,10 @@
-import type { Metadata } from 'next';
+﻿import type { Metadata } from 'next';
 import { FaqClient } from './faq-client';
 
 export const metadata: Metadata = {
-  title: 'Cau hoi thuong gap - WebTemplate',
+  title: 'Câu hỏi thuong gap - WebTemplate',
   description:
-    'Tim cau tra loi cho nhung cau hoi thuong gap ve san pham, don hang, thanh toan va giao hang.',
+    'Tim cau Trả lời cho nhung Câu hỏi thuong gap ve Sản phẩm, Đơn hàng, Thanh toán va Giao hàng.',
 };
 
 export default function FaqPage() {

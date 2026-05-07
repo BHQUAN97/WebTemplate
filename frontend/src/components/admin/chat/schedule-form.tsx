@@ -37,17 +37,17 @@ const DAYS = [
 ];
 
 const MODE_OPTIONS: Array<{ value: ChatMode; label: string }> = [
-  { value: 'ai', label: 'AI tu dong' },
+  { value: 'ai', label: 'AI tự động' },
   { value: 'human', label: 'Nhân viên' },
-  { value: 'hybrid', label: 'Ket hop' },
+  { value: 'hybrid', label: 'Kết hợp' },
   { value: 'offline', label: 'Offline' },
 ];
 
 export const scheduleSchema = z.object({
-  name: z.string().min(2, 'Toi thieu 2 ky tu').max(100),
-  daysOfWeek: z.array(z.number()).min(1, 'Chon it nhat 1 ngay'),
-  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Dinh dang HH:mm'),
-  endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Dinh dang HH:mm'),
+  name: z.string().min(2, 'Tối thiểu 2 Ký tự').max(100),
+  daysOfWeek: z.array(z.number()).min(1, 'Chọn ít nhất 1 ngày'),
+  startTime: z.string().regex(/^\d{2}:\d{2}$/, 'Định dạng HH:mm'),
+  endTime: z.string().regex(/^\d{2}:\d{2}$/, 'Định dạng HH:mm'),
   mode: z.enum(['ai', 'human', 'hybrid', 'offline']),
   timezone: z.string().optional(),
   priority: z.coerce.number().int().min(0).max(1000).default(100),
@@ -108,7 +108,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
 
     // Check startTime < endTime
     if (parsed.data.startTime >= parsed.data.endTime) {
-      setErrors({ endTime: 'Gio ket thuc phai sau gio bat dau' });
+      setErrors({ endTime: 'Giờ kết thúc phải sau giờ bắt đầu' });
       return;
     }
 
@@ -120,7 +120,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
         router.push('/admin/chat-schedules');
       }
     } catch (err) {
-      toast('Lưu that bai', (err as Error).message, 'destructive');
+      toast('Lưu Thất bại', (err as Error).message, 'destructive');
     } finally {
       setSubmitting(false);
     }
@@ -131,18 +131,18 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
       <div className="space-y-6 lg:col-span-2">
         <Card>
           <CardHeader>
-            <CardTitle>Thong tin khung gio</CardTitle>
+            <CardTitle>Thông tin khung giờ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Ten khung gio" error={errors.name} required>
+            <FormField label="Tên khung giờ" error={errors.name} required>
               <Input
                 value={values.name}
                 onChange={(e) => update('name', e.target.value)}
-                placeholder="Vd: Gio hanh chinh"
+                placeholder="Vd: Giờ hành chính"
               />
             </FormField>
 
-            <FormField label="Ngay trong tuan" error={errors.daysOfWeek} required>
+            <FormField label="Ngày trong tuần" error={errors.daysOfWeek} required>
               <div className="flex flex-wrap gap-2">
                 {DAYS.map((d) => {
                   const checked = values.daysOfWeek.includes(d.value);
@@ -169,20 +169,20 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
                   Tất cả
                 </Button>
                 <Button type="button" variant="outline" size="sm" onClick={() => update('daysOfWeek', [0, 6])}>
-                  Cuoi tuan
+                  Cuối tuần
                 </Button>
               </div>
             </FormField>
 
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Gio bat dau" error={errors.startTime} required>
+              <FormField label="Giờ bắt đầu" error={errors.startTime} required>
                 <Input
                   type="time"
                   value={values.startTime}
                   onChange={(e) => update('startTime', e.target.value)}
                 />
               </FormField>
-              <FormField label="Gio ket thuc" error={errors.endTime} required>
+              <FormField label="Giờ kết thúc" error={errors.endTime} required>
                 <Input
                   type="time"
                   value={values.endTime}
@@ -203,10 +203,10 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
 
         <Card>
           <CardHeader>
-            <CardTitle>Che do</CardTitle>
+            <CardTitle>Chế độ</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Che do xu ly">
+            <FormField label="Chế độ xử lý">
               <Select value={values.mode} onValueChange={(v) => update('mode', v as ChatMode)}>
                 <SelectTrigger>
                   <SelectValue />
@@ -222,7 +222,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
             </FormField>
 
             <FormField
-              label="Tin nhan mac dinh"
+              label="Tin nhắn mặc định"
               error={errors.fallbackMessage}
               description="Hiện khi không có nhân viên online (nếu mode = offline)"
             >
@@ -230,7 +230,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
                 rows={3}
                 value={values.fallbackMessage ?? ''}
                 onChange={(e) => update('fallbackMessage', e.target.value)}
-                placeholder="Chung toi se phan hoi trong gio lam viec..."
+                placeholder="Chúng tôi sẽ phản hồi trong giờ làm việc..."
               />
             </FormField>
           </CardContent>
@@ -240,10 +240,10 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
       <div className="space-y-6">
         <Card>
           <CardHeader>
-            <CardTitle>Cau hinh</CardTitle>
+            <CardTitle>Cấu hình</CardTitle>
           </CardHeader>
           <CardContent className="space-y-4">
-            <FormField label="Do uu tien" error={errors.priority} description="So lon hon = uu tien hon">
+            <FormField label="Độ ưu tiên" error={errors.priority} description="Số lớn hơn = ưu tiên hơn">
               <Input
                 type="number"
                 min={0}
@@ -255,7 +255,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
             <div className="flex items-center justify-between rounded-lg border border-gray-200 p-3 dark:border-gray-800">
               <div>
                 <p className="text-sm font-medium">Kích hoạt</p>
-                <p className="text-xs text-gray-500">Khung gio co hieu luc</p>
+                <p className="text-xs text-gray-500">Khung giờ có hiệu lực</p>
               </div>
               <Switch checked={values.isActive} onCheckedChange={(c) => update('isActive', c)} />
             </div>
@@ -268,7 +268,7 @@ export function ScheduleForm({ initial, onSubmit }: Props) {
             Lưu
           </Button>
           <Button variant="ghost" className="w-full" onClick={() => router.push('/admin/chat-schedules')}>
-            Huy
+            Hủy
           </Button>
         </div>
       </div>

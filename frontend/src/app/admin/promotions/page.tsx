@@ -21,22 +21,22 @@ import { formatPrice, formatDate } from '@/lib/utils/format';
 import type { ApiResponse, Promotion } from '@/lib/types';
 
 const promotionSchema = z.object({
-  code: z.string().min(1, 'Ma khuyen mai la bat buoc').max(50, 'Toi da 50 ky tu'),
-  name: z.string().min(1, 'Ten la bat buoc').max(100, 'Toi da 100 ky tu'),
+  code: z.string().min(1, 'Mã khuyến mãi là bắt buộc').max(50, 'Tối đa 50 ký tự'),
+  name: z.string().min(1, 'Tên là bắt buộc').max(100, 'Tối đa 100 ký tự'),
   description: z.string().optional(),
-  discount_type: z.enum(['PERCENTAGE', 'FIXED'], { error: 'Chon loai giam gia' }),
-  discount_value: z.number({ error: 'Gia tri phai la so' }).min(0, 'Gia tri khong duoc am'),
+  discount_type: z.enum(['PERCENTAGE', 'FIXED'], { error: 'Chọn loại giảm giá' }),
+  discount_value: z.number({ error: 'Giá trị phải là số' }).min(0, 'Giá trị không được âm'),
   min_order_amount: z.number().min(0, 'Không được âm').optional().nullable(),
   max_discount: z.number().min(0, 'Không được âm').optional().nullable(),
   usage_limit: z.number().min(0, 'Không được âm').optional().nullable(),
-  start_date: z.string().min(1, 'Ngay bat dau la bat buoc'),
-  end_date: z.string().min(1, 'Ngay ket thuc la bat buoc'),
+  start_date: z.string().min(1, 'Ngày bắt đầu là bắt buộc'),
+  end_date: z.string().min(1, 'Ngày kết thúc là bắt buộc'),
   is_active: z.boolean(),
 });
 
 type PromotionForm = z.infer<typeof promotionSchema>;
 
-/** Quan ly khuyen mai */
+/** Quản lý Khuyến mãi */
 export default function PromotionsPage() {
   const [search, setSearch] = useState('');
   const [sort, setSort] = useState('created_at');
@@ -63,37 +63,37 @@ export default function PromotionsPage() {
   const saveMutation = useMutation(editingId ? 'PUT' : 'POST', editingId ? `/admin/promotions/${editingId}` : '/admin/promotions');
   const deleteMutation = useMutation('DELETE', `/admin/promotions/${deleteId}`);
 
-  // Tinh trang thai khuyen mai
+  // Tinh Trạng thái Khuyến mãi
   const getPromoStatus = (promo: Promotion): { status: string; label: string } => {
     if (!promo.is_active) return { status: 'inactive', label: 'Tắt' };
     const now = new Date();
-    if (new Date(promo.start_date) > now) return { status: 'PENDING', label: 'Chua bat dau' };
-    if (new Date(promo.end_date) < now) return { status: 'CLOSED', label: 'Het han' };
-    if (promo.usage_limit && promo.used_count >= promo.usage_limit) return { status: 'CLOSED', label: 'Het luot' };
+    if (new Date(promo.start_date) > now) return { status: 'PENDING', label: 'Chưa bắt đầu' };
+    if (new Date(promo.end_date) < now) return { status: 'CLOSED', label: 'Hết hạn' };
+    if (promo.usage_limit && promo.used_count >= promo.usage_limit) return { status: 'CLOSED', label: 'Hết lượt' };
     return { status: 'active', label: 'Đang hoạt động' };
   };
 
   const columns: ColumnDef<Promotion>[] = [
     {
       key: 'code',
-      header: 'Ma',
+      header: 'Mã',
       render: (row) => (
         <span className="font-mono font-medium text-blue-600">{row.code}</span>
       ),
     },
-    { key: 'name', header: 'Ten', sortable: true },
+    { key: 'name', header: 'Tên', sortable: true },
     {
       key: 'discount_type',
-      header: 'Loai',
+      header: 'Loại',
       render: (row) => (
         <Badge variant={row.discount_type === 'PERCENTAGE' ? 'default' : 'success'}>
-          {row.discount_type === 'PERCENTAGE' ? 'Phan tram' : 'Co dinh'}
+          {row.discount_type === 'PERCENTAGE' ? 'Phần trăm' : 'Cố định'}
         </Badge>
       ),
     },
     {
       key: 'discount_value',
-      header: 'Gia tri',
+      header: 'Giá trị',
       render: (row) => (
         row.discount_type === 'PERCENTAGE'
           ? `${row.discount_value}%`
@@ -102,12 +102,12 @@ export default function PromotionsPage() {
     },
     {
       key: 'usage',
-      header: 'Su dung',
+      header: 'Sử dụng',
       render: (row) => `${row.used_count}/${row.usage_limit ?? '∞'}`,
     },
     {
       key: 'status',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => {
         const s = getPromoStatus(row);
         return <StatusBadge status={s.status} label={s.label} />;
@@ -115,7 +115,7 @@ export default function PromotionsPage() {
     },
     {
       key: 'dates',
-      header: 'Thoi gian',
+      header: 'Thời gian',
       render: (row) => (
         <div className="text-xs">
           <p>{formatDate(row.start_date)}</p>
@@ -184,15 +184,15 @@ export default function PromotionsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly khuyen mai"
+        title="Quản lý Khuyến mãi"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Khuyen mai' },
+          { label: 'Khuyến mãi' },
         ]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Tạo ma giam gia
+            Tạo Mã giảm giá
           </Button>
         }
       />
@@ -206,14 +206,14 @@ export default function PromotionsPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo ma, ten..."
+        searchPlaceholder="Tìm theo mã, tên..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
         actions={actions}
       />
 
-      {/* Dialog tao/sua khuyen mai */}
+      {/* Dialog tao/sua Khuyến mãi */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
         <DialogContent className="sm:max-w-lg max-h-[90vh] overflow-y-auto">
           <DialogHeader>
@@ -221,7 +221,7 @@ export default function PromotionsPage() {
           </DialogHeader>
           <div className="space-y-4 py-2">
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Ma khuyen mai" error={errors.code} required>
+              <FormField label="Mã Khuyến mãi" error={errors.code} required>
                 <Input
                   value={form.code}
                   onChange={(e) => { setForm((p) => ({ ...p, code: e.target.value.toUpperCase() })); setErrors((p) => ({ ...p, code: '' })); }}
@@ -229,43 +229,43 @@ export default function PromotionsPage() {
                   className="font-mono"
                 />
               </FormField>
-              <FormField label="Ten" error={errors.name} required>
+              <FormField label="Tên" error={errors.name} required>
                 <Input value={form.name} onChange={(e) => { setForm((p) => ({ ...p, name: e.target.value })); setErrors((p) => ({ ...p, name: '' })); }} />
               </FormField>
             </div>
-            <FormField label="Mo ta" error={errors.description}>
+            <FormField label="Mô tả" error={errors.description}>
               <Textarea value={form.description ?? ''} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2} />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Loai giam gia" error={errors.discount_type} required>
+              <FormField label="Loại giảm giá" error={errors.discount_type} required>
                 <Select value={form.discount_type} onValueChange={(val) => setForm((p) => ({ ...p, discount_type: val as 'PERCENTAGE' | 'FIXED' }))}>
                   <SelectTrigger><SelectValue /></SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="PERCENTAGE">Phan tram (%)</SelectItem>
-                    <SelectItem value="FIXED">So tien co dinh</SelectItem>
+                    <SelectItem value="PERCENTAGE">Phần trăm (%)</SelectItem>
+                    <SelectItem value="FIXED">Số tiền cố định</SelectItem>
                   </SelectContent>
                 </Select>
               </FormField>
-              <FormField label="Gia tri" error={errors.discount_value} required>
+              <FormField label="Giá trị" error={errors.discount_value} required>
                 <Input type="number" value={form.discount_value} onChange={(e) => setForm((p) => ({ ...p, discount_value: parseFloat(e.target.value) || 0 }))} />
               </FormField>
             </div>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Đơn hàng toi thieu" error={errors.min_order_amount}>
+              <FormField label="Đơn hàng Tối thiểu" error={errors.min_order_amount}>
                 <Input type="number" value={form.min_order_amount ?? ''} onChange={(e) => setForm((p) => ({ ...p, min_order_amount: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="0" />
               </FormField>
-              <FormField label="Giam toi da" error={errors.max_discount}>
+              <FormField label="Giam Tối đa" error={errors.max_discount}>
                 <Input type="number" value={form.max_discount ?? ''} onChange={(e) => setForm((p) => ({ ...p, max_discount: e.target.value ? parseFloat(e.target.value) : null }))} placeholder="Không giới hạn" />
               </FormField>
             </div>
-            <FormField label="Gioi han luot dung" error={errors.usage_limit}>
+            <FormField label="Giới hạn lượt dùng" error={errors.usage_limit}>
               <Input type="number" value={form.usage_limit ?? ''} onChange={(e) => setForm((p) => ({ ...p, usage_limit: e.target.value ? parseInt(e.target.value) : null }))} placeholder="Không giới hạn" />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Ngay bat dau" error={errors.start_date} required>
+              <FormField label="Ngày bắt đầu" error={errors.start_date} required>
                 <Input type="date" value={form.start_date} onChange={(e) => { setForm((p) => ({ ...p, start_date: e.target.value })); setErrors((p) => ({ ...p, start_date: '' })); }} />
               </FormField>
-              <FormField label="Ngay ket thuc" error={errors.end_date} required>
+              <FormField label="Ngày kết thúc" error={errors.end_date} required>
                 <Input type="date" value={form.end_date} onChange={(e) => { setForm((p) => ({ ...p, end_date: e.target.value })); setErrors((p) => ({ ...p, end_date: '' })); }} />
               </FormField>
             </div>
@@ -275,7 +275,7 @@ export default function PromotionsPage() {
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
               {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -286,8 +286,8 @@ export default function PromotionsPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa khuyen mai"
-        description="Ban co chac chan muon xoa ma khuyen mai nay?"
+        title="Xóa Khuyến mãi"
+        description="Bạn có chắc chắn muốn xóa mã Khuyến mãi này?"
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

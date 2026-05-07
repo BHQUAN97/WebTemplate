@@ -23,7 +23,7 @@ export default function DashboardError({
         Không thể tải dữ liệu
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Co loi khi tai thong tin tai khoan cua ban. Vui lòng thử lại.
+        Co loi khi tai thong tin Tài khoản cua ban. Vui lòng thử lại.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">
@@ -33,7 +33,7 @@ export default function DashboardError({
       <div className="flex flex-col gap-2 sm:flex-row">
         <Button onClick={() => unstable_retry()}>Thu lai</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/')}>
-          Ve trang chu
+          Ve Trang chủ
         </Button>
       </div>
     </div>

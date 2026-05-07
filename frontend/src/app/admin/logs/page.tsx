@@ -23,13 +23,13 @@ const CHANGELOG_TYPE_VARIANTS: Record<string, 'default' | 'success' | 'warning' 
 };
 
 const CHANGELOG_TYPE_LABELS: Record<string, string> = {
-  FEATURE: 'Tinh nang moi',
-  FIX: 'Sua loi',
-  IMPROVEMENT: 'Cai tien',
-  BREAKING: 'Thay doi lon',
+  FEATURE: 'Tính năng mới',
+  FIX: 'Sửa lỗi',
+  IMPROVEMENT: 'Cải tiến',
+  BREAKING: 'Thay đổi lớn',
 };
 
-/** Nhat ky he thong */
+/** Nhật ký Hệ thống */
 export default function LogsPage() {
   const [activeTab, setActiveTab] = useState('audit');
 
@@ -76,15 +76,15 @@ export default function LogsPage() {
       header: 'Người dùng',
       render: (row) => row.user?.name ?? row.user_id,
     },
-    { key: 'action', header: 'Hanh dong', sortable: true },
+    { key: 'action', header: 'Hành động', sortable: true },
     {
       key: 'entity',
-      header: 'Doi tuong',
+      header: 'Đối tượng',
       render: (row) => `${row.entity_type} #${row.entity_id.slice(0, 8)}`,
     },
     {
       key: 'created_at',
-      header: 'Thoi gian',
+      header: 'Thời gian',
       sortable: true,
       render: (row) => formatDateTime(row.created_at),
     },
@@ -109,7 +109,7 @@ export default function LogsPage() {
     },
     {
       key: 'response_time',
-      header: 'Thoi gian (ms)',
+      header: 'Thời gian (ms)',
       render: (row) => (
         <span className={row.response_time > 1000 ? 'text-red-600' : ''}>{row.response_time}ms</span>
       ),
@@ -117,7 +117,7 @@ export default function LogsPage() {
     { key: 'ip_address', header: 'IP' },
     {
       key: 'created_at',
-      header: 'Thoi gian',
+      header: 'Thời gian',
       sortable: true,
       render: (row) => formatDateTime(row.created_at),
     },
@@ -126,10 +126,10 @@ export default function LogsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Nhat ky he thong"
+        title="Nhật ký Hệ thống"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Nhat ky' },
+          { label: 'Nhật ký' },
         ]}
       />
 
@@ -151,7 +151,7 @@ export default function LogsPage() {
           <div className="flex flex-col sm:flex-row gap-3 mb-4">
             <Select value={auditAction} onValueChange={setAuditAction}>
               <SelectTrigger className="w-full sm:w-48">
-                <SelectValue placeholder="Hanh dong" />
+                <SelectValue placeholder="Hành động" />
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="all">Tất cả</SelectItem>
@@ -177,7 +177,7 @@ export default function LogsPage() {
             onPageChange={auditPagination.setPage}
             search={auditSearch}
             onSearch={setAuditSearch}
-            searchPlaceholder="Tim theo nguoi dung, hanh dong..."
+            searchPlaceholder="Tìm theo Người dùng, Hành động..."
           />
         </TabsContent>
 
@@ -192,7 +192,7 @@ export default function LogsPage() {
             onPageChange={accessPagination.setPage}
             search={accessSearch}
             onSearch={setAccessSearch}
-            searchPlaceholder="Tim theo URL, IP..."
+            searchPlaceholder="Tìm theo URL, IP..."
           />
         </TabsContent>
 
@@ -211,7 +211,7 @@ export default function LogsPage() {
                 </Card>
               ))
             ) : (changelogData?.data ?? []).length === 0 ? (
-              <div className="text-center py-12 text-gray-500">Chua co thay doi nao</div>
+              <div className="text-center py-12 text-gray-500">Chưa có thay đổi nào</div>
             ) : (
               (changelogData?.data ?? []).map((entry) => (
                 <Card key={entry.id}>

@@ -16,7 +16,7 @@ import { useAuthStore } from '@/lib/stores/auth-store';
 import { cn } from '@/lib/utils';
 
 /**
- * Trang dang ky — form, password strength, terms checkbox
+ * Trang Đăng ký — form, password strength, terms checkbox
  */
 export default function RegisterPage() {
   const router = useRouter();
@@ -36,7 +36,7 @@ export default function RegisterPage() {
 
   const password = watch('password', '');
 
-  // Tinh do manh mat khau
+  // Tinh do manh Mật khẩu
   const passwordStrength = useMemo(() => {
     if (!password) return { score: 0, label: '', color: '' };
     let score = 0;
@@ -167,12 +167,12 @@ export default function RegisterPage() {
           {/* Confirm password */}
           <div>
             <label className="block text-sm font-medium text-gray-700 mb-1">
-              Xác nhận mat khau
+              Xác nhận Mật khẩu
             </label>
             <Input
               {...register('confirmPassword')}
               type="password"
-              placeholder="Nhap lai mat khau"
+              placeholder="Nháp lai Mật khẩu"
               autoComplete="new-password"
             />
             {errors.confirmPassword && (

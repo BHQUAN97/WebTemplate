@@ -14,12 +14,12 @@ import { formatDate } from '@/lib/utils/format';
 import type { ApiResponse, Article } from '@/lib/types';
 
 const STATUS_LABELS: Record<string, string> = {
-  DRAFT: 'Nhap',
-  PUBLISHED: 'Da xuat ban',
+  DRAFT: 'Nháp',
+  PUBLISHED: 'Đã xuất bản',
   ARCHIVED: 'Lưu trữ',
 };
 
-/** Danh sach bai viet */
+/** Danh sach Bài viết */
 export default function ArticlesPage() {
   const [search, setSearch] = useState('');
   const [statusFilter, setStatusFilter] = useState('all');
@@ -58,7 +58,7 @@ export default function ArticlesPage() {
     },
     {
       key: 'title',
-      header: 'Tieu de',
+      header: 'Tiêu đề',
       sortable: true,
       render: (row) => (
         <div className="max-w-xs">
@@ -74,12 +74,12 @@ export default function ArticlesPage() {
     },
     {
       key: 'status',
-      header: 'Trang thai',
+      header: 'Trạng thái',
       render: (row) => <StatusBadge status={row.status} label={STATUS_LABELS[row.status] ?? row.status} />,
     },
     {
       key: 'published_at',
-      header: 'Ngay xuat ban',
+      header: 'Ngay Xuất bản',
       sortable: true,
       render: (row) => row.published_at ? formatDate(row.published_at) : '---',
     },
@@ -109,7 +109,7 @@ export default function ArticlesPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly bai viet"
+        title="Quản lý Bài viết"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Bài viết' },
@@ -127,12 +127,12 @@ export default function ArticlesPage() {
       <div className="flex flex-col sm:flex-row gap-3 print:hidden">
         <Select value={statusFilter} onValueChange={setStatusFilter}>
           <SelectTrigger className="w-full sm:w-48">
-            <SelectValue placeholder="Trang thai" />
+            <SelectValue placeholder="Trạng thái" />
           </SelectTrigger>
           <SelectContent>
             <SelectItem value="all">Tất cả</SelectItem>
-            <SelectItem value="DRAFT">Nhap</SelectItem>
-            <SelectItem value="PUBLISHED">Da xuat ban</SelectItem>
+            <SelectItem value="DRAFT">Nháp</SelectItem>
+            <SelectItem value="PUBLISHED">Đã xuất bản</SelectItem>
             <SelectItem value="ARCHIVED">Lưu trữ</SelectItem>
           </SelectContent>
         </Select>
@@ -147,7 +147,7 @@ export default function ArticlesPage() {
         onPageChange={pagination.setPage}
         search={search}
         onSearch={setSearch}
-        searchPlaceholder="Tim theo tieu de..."
+        searchPlaceholder="Tìm theo Tiêu đề..."
         sort={sort}
         order={order}
         onSort={(s, o) => { setSort(s); setOrder(o); }}
@@ -157,8 +157,8 @@ export default function ArticlesPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa bai viet"
-        description="Ban co chac chan muon xoa bai viet nay? Hanh dong nay khong the hoan tac."
+        title="Xóa Bài viết"
+        description="Ban co chac chan muon xoa Bài viết nay? Hành động nay khong the hoan tac."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

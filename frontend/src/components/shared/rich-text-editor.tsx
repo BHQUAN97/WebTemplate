@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import * as React from 'react';
 import { useEditor, EditorContent } from '@tiptap/react';
@@ -26,14 +26,14 @@ interface RichTextEditorProps {
 
 /**
  * Rich text editor dung Tiptap.
- * - Ho tro Bold/Italic/Strike/Code/Heading/List/Blockquote
- * - Ho tro Link, Image, Youtube, Table, TextAlign
+ * - Hỗ trợ Bold/Italic/Strike/Code/Heading/List/Blockquote
+ * - Hỗ trợ Link, Image, Youtube, Table, TextAlign
  * - Custom IframeEmbed cho Google Form va cac embed domain an toan
  */
 export function RichTextEditor({
   value = '',
   onChange,
-  placeholder = 'Nhap noi dung...',
+  placeholder = 'Nháp Nội dung...',
   className,
   disabled = false,
 }: RichTextEditorProps) {

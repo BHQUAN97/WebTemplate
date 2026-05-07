@@ -69,7 +69,7 @@ export function TwoFactorSetup({
 
   const handleVerify = async () => {
     if (verifyCode.length !== 6) {
-      setVerifyError('Ma xac thuc phai co 6 chu so');
+      setVerifyError('Mã xác thực phải có 6 chữ số');
       return;
     }
     const res = await enableMutation.mutate({ code: verifyCode });
@@ -78,9 +78,9 @@ export function TwoFactorSetup({
       setSetupData(null);
       setVerifyCode('');
       refetch();
-      toast('Da kich hoat 2FA', undefined, 'success');
+      toast('Đã kích hoạt 2FA', undefined, 'success');
     } else {
-      setVerifyError('Ma khong dung hoac het han');
+      setVerifyError('Mã không đúng hoặc hết hạn');
     }
   };
 
@@ -91,13 +91,13 @@ export function TwoFactorSetup({
     }
     const res = await disableMutation.mutate({ password: disablePassword });
     if (res !== null) {
-      toast('Da tat 2FA', undefined, 'success');
+      toast('Đã tắt 2FA', undefined, 'success');
       setDisableOpen(false);
       setDisablePassword('');
       setDisableError('');
       refetch();
     } else {
-      setDisableError(disableMutation.error ?? 'That bai');
+      setDisableError(disableMutation.error ?? 'Thất bại');
     }
   };
 
@@ -112,23 +112,23 @@ export function TwoFactorSetup({
       setRegenOpen(false);
       setRegenPassword('');
       setRegenError('');
-      toast('Da tao backup codes moi', undefined, 'success');
+      toast('Đã tạo backup codes mới', undefined, 'success');
     } else {
-      setRegenError(regenMutation.error ?? 'That bai');
+      setRegenError(regenMutation.error ?? 'Thất bại');
     }
   };
 
   const copy = async (text: string) => {
     try {
       await navigator.clipboard.writeText(text);
-      toast('Da copy', undefined, 'success');
+      toast('Đã copy', undefined, 'success');
     } catch {
-      toast('Copy that bai', undefined, 'destructive');
+      toast('Copy Thất bại', undefined, 'destructive');
     }
   };
 
   const downloadCodes = (codes: string[]) => {
-    const content = `# Backup codes 2FA\n# Lưu giu bi mat — moi ma chi dung duoc 1 lan\n\n${codes.join('\n')}\n`;
+    const content = `# Backup codes 2FA\n# Lưu giữ bí mật — mỗi mã chỉ dùng được 1 lần\n\n${codes.join('\n')}\n`;
     const blob = new Blob([content], { type: 'text/plain' });
     const url = URL.createObjectURL(blob);
     const a = document.createElement('a');
@@ -150,8 +150,8 @@ export function TwoFactorSetup({
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Xác thực hai yeu to (2FA)"
-        description="Tang cuong bao mat bang ma OTP tu ung dung Authenticator"
+        title="Xác thực hai yếu tố (2FA)"
+        description="Tăng cường Bảo mật bằng mã OTP từ ứng dụng Authenticator"
         breadcrumbs={[
           breadcrumbRoot,
           { label: 'Cài đặt', href: settingsHref },
@@ -161,7 +161,7 @@ export function TwoFactorSetup({
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
         <div className="lg:col-span-2 space-y-6">
-          {/* Trang thai */}
+          {/* Trạng thái */}
           <Card>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -172,14 +172,14 @@ export function TwoFactorSetup({
                     <Shield className="h-8 w-8 text-gray-400" />
                   )}
                   <div>
-                    <CardTitle>Trang thai 2FA</CardTitle>
+                    <CardTitle>Trạng thái 2FA</CardTitle>
                     <CardDescription>
                       {is2faEnabled ? 'Đang bảo vệ tài khoản của bạn' : 'Chưa kích hoạt'}
                     </CardDescription>
                   </div>
                 </div>
                 <Badge variant={is2faEnabled ? 'success' : 'secondary'}>
-                  {is2faEnabled ? 'Da bat' : 'Da tat'}
+                  {is2faEnabled ? 'Đã bật' : 'Đã tắt'}
                 </Badge>
               </div>
             </CardHeader>
@@ -188,12 +188,12 @@ export function TwoFactorSetup({
                 <>
                   {typeof status?.data?.backup_codes_remaining === 'number' && (
                     <p className="text-sm text-gray-600">
-                      Backup codes con lai: <strong>{status.data.backup_codes_remaining}</strong>
+                      Backup codes còn lại: <strong>{status.data.backup_codes_remaining}</strong>
                     </p>
                   )}
                   <div className="flex flex-col sm:flex-row gap-2">
                     <Button variant="outline" onClick={() => setRegenOpen(true)}>
-                      <RefreshCw className="h-4 w-4 mr-2" /> Tạo lai backup codes
+                      <RefreshCw className="h-4 w-4 mr-2" /> Tạo lại backup codes
                     </Button>
                     <Button variant="destructive" onClick={() => setDisableOpen(true)}>
                       <ShieldOff className="h-4 w-4 mr-2" /> Tắt 2FA
@@ -203,8 +203,8 @@ export function TwoFactorSetup({
               ) : (
                 <>
                   <p className="text-sm text-gray-600">
-                    2FA yeu cau ma OTP 6 so tu ung dung Google Authenticator, Authy, 1Password...
-                    moi khi dang nhap. Ke ca khi mat khau bi lo, ke tan cong khong the dang nhap ma khong co dien thoai cua ban.
+                    2FA yêu cầu mã OTP 6 số từ ứng dụng Google Authenticator, Authy, 1Password...
+                    mỗi khi Đăng nhập. Kể cả khi Mật khẩu bị lộ, kẻ tấn công không thể Đăng nhập mà không có điện thoại của bạn.
                   </p>
                   {!setupData && (
                     <Button onClick={handleStartSetup} disabled={setupMutation.loading}>
@@ -221,9 +221,9 @@ export function TwoFactorSetup({
           {setupData && !is2faEnabled && (
             <Card>
               <CardHeader>
-                <CardTitle>Buoc 1 — Quet QR code</CardTitle>
+                <CardTitle>Bước 1 — Quét QR code</CardTitle>
                 <CardDescription>
-                  Mo ung dung Authenticator va quet ma QR ben duoi
+                  Mở ứng dụng Authenticator và quét mã QR bên dưới
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4">
@@ -239,7 +239,7 @@ export function TwoFactorSetup({
                     )}
                   </div>
                   <div className="flex-1 space-y-2">
-                    <p className="text-xs text-gray-500">Hoac nhap tay secret:</p>
+                    <p className="text-xs text-gray-500">Hoặc nhập tay secret:</p>
                     <div className="flex gap-2">
                       <Input
                         value={setupData.secret}
@@ -251,14 +251,14 @@ export function TwoFactorSetup({
                       </Button>
                     </div>
                     <p className="text-xs text-gray-500">
-                      Sau khi quet, ung dung se hien ma OTP 6 so thay doi moi 30 giay
+                      Sau khi quét, ứng dụng sẽ hiện mã OTP 6 số thay đổi mỗi 30 giây
                     </p>
                   </div>
                 </div>
 
                 <div className="pt-4 border-t">
-                  <p className="font-semibold mb-2">Buoc 2 — Nhap ma xac thuc</p>
-                  <FormField label="Ma 6 chu so" error={verifyError} required>
+                  <p className="font-semibold mb-2">Bước 2 — Nhập mã xác thực</p>
+                  <FormField label="Mã 6 chữ số" error={verifyError} required>
                     <Input
                       value={verifyCode}
                       onChange={(e) => { setVerifyCode(e.target.value.replace(/\D/g, '').slice(0, 6)); setVerifyError(''); }}
@@ -273,7 +273,7 @@ export function TwoFactorSetup({
                       {enableMutation.loading ? 'Đang xác minh...' : 'Xác minh và kích hoạt'}
                     </Button>
                     <Button variant="ghost" onClick={() => { setSetupData(null); setVerifyCode(''); }}>
-                      Huy
+                      Hủy
                     </Button>
                   </div>
                 </div>
@@ -284,12 +284,12 @@ export function TwoFactorSetup({
 
         <div className="space-y-6">
           <Card>
-            <CardHeader><CardTitle>Loi khuyen bao mat</CardTitle></CardHeader>
+            <CardHeader><CardTitle>Lời khuyên Bảo mật</CardTitle></CardHeader>
             <CardContent className="text-sm text-gray-600 space-y-2">
-              <p>- Lưu backup codes o noi an toan (password manager)</p>
+              <p>- Lưu backup codes ở nơi an toàn (password manager)</p>
               <p>- Không chia sẻ secret với ai</p>
-              <p>- Moi backup code chi dung duoc 1 lan</p>
-              <p>- Neu mat dien thoai, dung backup code de dang nhap va tat 2FA</p>
+              <p>- Mỗi backup code chỉ dùng được 1 lần</p>
+              <p>- Nếu mất điện thoại, dùng backup code để Đăng nhập và tắt 2FA</p>
             </CardContent>
           </Card>
         </div>
@@ -301,12 +301,12 @@ export function TwoFactorSetup({
           <DialogHeader>
             <DialogTitle>Backup codes</DialogTitle>
             <DialogDescription>
-              Lưu lai ngay bay gio — <strong>chi hien 1 lan.</strong> Moi code chi dung duoc 1 lan.
+              Lưu lại ngay bây giờ — <strong>chỉ hiện 1 lần.</strong> Mỗi code chỉ dùng được 1 lần.
             </DialogDescription>
           </DialogHeader>
           <div className="space-y-3 py-2">
             <div className="bg-yellow-50 border border-yellow-200 rounded p-3 text-sm text-yellow-800">
-              Neu mat codes, ban phai tao lai (se invalidate codes cu).
+              Nếu mất codes, bạn phải tạo lại (sẽ invalidate codes cũ).
             </div>
             <div className="grid grid-cols-2 gap-2 font-mono text-sm bg-gray-50 p-3 rounded">
               {backupCodes?.map((c, i) => (
@@ -321,18 +321,18 @@ export function TwoFactorSetup({
                 className="flex-1"
                 onClick={() => backupCodes && copy(backupCodes.join('\n'))}
               >
-                <Copy className="h-4 w-4 mr-2" /> Copy tat ca
+                <Copy className="h-4 w-4 mr-2" /> Copy tất cả
               </Button>
               <Button
                 className="flex-1"
                 onClick={() => backupCodes && downloadCodes(backupCodes)}
               >
-                <Download className="h-4 w-4 mr-2" /> Tai .txt
+                <Download className="h-4 w-4 mr-2" /> Tải .txt
               </Button>
             </div>
           </div>
           <DialogFooter>
-            <Button variant="ghost" onClick={() => setBackupCodes(null)}>Da luu</Button>
+            <Button variant="ghost" onClick={() => setBackupCodes(null)}>Đã lưu</Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>
@@ -342,10 +342,10 @@ export function TwoFactorSetup({
         <DialogContent>
           <DialogHeader>
             <DialogTitle>Tắt 2FA</DialogTitle>
-            <DialogDescription>Nhập mật khẩu hien tai de xac nhan</DialogDescription>
+            <DialogDescription>Nhập mật khẩu hiện tại để Xác nhận</DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <FormField label="Mật khẩu hien tai" error={disableError} required>
+            <FormField label="Mật khẩu hiện tại" error={disableError} required>
               <Input
                 type="password"
                 value={disablePassword}
@@ -354,7 +354,7 @@ export function TwoFactorSetup({
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setDisableOpen(false); setDisablePassword(''); setDisableError(''); }}>Huy</Button>
+            <Button variant="outline" onClick={() => { setDisableOpen(false); setDisablePassword(''); setDisableError(''); }}>Hủy</Button>
             <Button variant="destructive" onClick={handleDisable} disabled={disableMutation.loading}>
               <ShieldOff className="h-4 w-4 mr-2" />
               {disableMutation.loading ? 'Đang tắt...' : 'Tắt 2FA'}
@@ -367,13 +367,13 @@ export function TwoFactorSetup({
       <Dialog open={regenOpen} onOpenChange={setRegenOpen}>
         <DialogContent>
           <DialogHeader>
-            <DialogTitle>Tạo lai backup codes</DialogTitle>
+            <DialogTitle>Tạo lại backup codes</DialogTitle>
             <DialogDescription>
-              Codes cu se bi vo hieu. Nhập mật khẩu de xac nhan.
+              Codes cũ sẽ bị vô hiệu. Nhập mật khẩu để Xác nhận.
             </DialogDescription>
           </DialogHeader>
           <div className="py-2">
-            <FormField label="Mật khẩu hien tai" error={regenError} required>
+            <FormField label="Mật khẩu hiện tại" error={regenError} required>
               <Input
                 type="password"
                 value={regenPassword}
@@ -382,7 +382,7 @@ export function TwoFactorSetup({
             </FormField>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => { setRegenOpen(false); setRegenPassword(''); setRegenError(''); }}>Huy</Button>
+            <Button variant="outline" onClick={() => { setRegenOpen(false); setRegenPassword(''); setRegenError(''); }}>Hủy</Button>
             <Button onClick={handleRegenerate} disabled={regenMutation.loading}>
               <RefreshCw className="h-4 w-4 mr-2" />
               {regenMutation.loading ? 'Đang tạo...' : 'Tạo mới'}

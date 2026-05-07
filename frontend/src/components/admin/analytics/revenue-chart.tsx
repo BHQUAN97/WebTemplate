@@ -42,7 +42,7 @@ export function RevenueChart({
         className="flex items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground"
         style={{ height }}
       >
-        Chua co du lieu doanh thu cho khoang thoi gian nay
+        Chưa có dữ liệu doanh thu cho khoảng thời gian này
       </div>
     );
   }

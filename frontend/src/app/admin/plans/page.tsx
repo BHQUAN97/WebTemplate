@@ -20,12 +20,12 @@ import { formatPrice, slugify } from '@/lib/utils/format';
 import type { ApiResponse, Plan } from '@/lib/types';
 
 const planSchema = z.object({
-  name: z.string().min(1, 'Ten goi la bat buoc').max(50, 'Toi da 50 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
+  name: z.string().min(1, 'Tên gói là bắt buộc').max(50, 'Tối đa 50 ký tự'),
+  slug: z.string().min(1, 'Slug là bắt buộc'),
   description: z.string().optional(),
-  price_monthly: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
-  price_yearly: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
-  max_users: z.number().min(1, 'Toi thieu 1 nguoi dung'),
+  price_monthly: z.number({ error: 'Giá phải là số' }).min(0, 'Giá không được âm'),
+  price_yearly: z.number({ error: 'Giá phải là số' }).min(0, 'Giá không được âm'),
+  max_users: z.number().min(1, 'Tối thiểu 1 người dùng'),
   max_products: z.number().min(0, 'Không được âm'),
   max_storage_mb: z.number().min(0, 'Không được âm'),
   is_active: z.boolean(),
@@ -33,7 +33,7 @@ const planSchema = z.object({
 
 type PlanForm = z.infer<typeof planSchema>;
 
-/** Quan ly goi dich vu */
+/** Quản lý gói dịch vụ */
 export default function PlansPage() {
   const [dialogOpen, setDialogOpen] = useState(false);
   const [editingId, setEditingId] = useState<string | null>(null);
@@ -93,15 +93,15 @@ export default function PlansPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Quan ly goi dich vu"
+        title="Quản lý gói dịch vụ"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
-          { label: 'Goi dich vu' },
+          { label: 'Gói dịch vụ' },
         ]}
         actions={
           <Button onClick={openCreate}>
             <Plus className="h-4 w-4 mr-2" />
-            Tạo goi moi
+            Tạo gói mới
           </Button>
         }
       />
@@ -112,9 +112,9 @@ export default function PlansPage() {
         </div>
       ) : plans.length === 0 ? (
         <div className="text-center py-16 text-gray-500">
-          <p>Chua co goi dich vu nao</p>
+          <p>Chưa có gói dịch vụ nào</p>
           <Button className="mt-4" onClick={openCreate}>
-            <Plus className="h-4 w-4 mr-2" /> Tạo goi dau tien
+            <Plus className="h-4 w-4 mr-2" /> Tạo gói đầu tiên
           </Button>
         </div>
       ) : (
@@ -126,7 +126,7 @@ export default function PlansPage() {
                   <CardTitle>{plan.name}</CardTitle>
                   <StatusBadge
                     status={plan.is_active ? 'active' : 'inactive'}
-                    label={plan.is_active ? 'Hoat dong' : 'Tắt'}
+                    label={plan.is_active ? 'Hoạt động' : 'Tắt'}
                   />
                 </div>
                 {plan.description && (
@@ -136,9 +136,9 @@ export default function PlansPage() {
               <CardContent className="flex-1">
                 <div className="text-center mb-4">
                   <p className="text-3xl font-bold">{formatPrice(plan.price_monthly)}</p>
-                  <p className="text-sm text-gray-500">/thang</p>
+                  <p className="text-sm text-gray-500">/tháng</p>
                   <p className="text-xs text-gray-400 mt-1">
-                    hoac {formatPrice(plan.price_yearly)}/nam
+                    hoặc {formatPrice(plan.price_yearly)}/năm
                   </p>
                 </div>
                 <div className="space-y-2 text-sm">
@@ -158,7 +158,7 @@ export default function PlansPage() {
               </CardContent>
               <CardFooter className="flex gap-2">
                 <Button variant="outline" size="sm" className="flex-1" onClick={() => openEdit(plan)}>
-                  <Pencil className="h-4 w-4 mr-1" /> Sua
+                  <Pencil className="h-4 w-4 mr-1" /> Sửa
                 </Button>
                 <Button variant="outline" size="sm" className="text-red-600" onClick={() => setDeleteId(plan.id)}>
                   <Trash2 className="h-4 w-4" />
@@ -176,7 +176,7 @@ export default function PlansPage() {
             <DialogTitle>{editingId ? 'Chỉnh sửa gói dịch vụ' : 'Tạo gói dịch vụ mới'}</DialogTitle>
           </DialogHeader>
           <div className="space-y-4 py-2">
-            <FormField label="Ten goi" error={errors.name} required>
+            <FormField label="Tên gói" error={errors.name} required>
               <Input
                 value={form.name}
                 onChange={(e) => {
@@ -188,14 +188,14 @@ export default function PlansPage() {
             <FormField label="Slug" error={errors.slug} required>
               <Input value={form.slug} onChange={(e) => setForm((p) => ({ ...p, slug: e.target.value }))} />
             </FormField>
-            <FormField label="Mo ta" error={errors.description}>
+            <FormField label="Mô tả" error={errors.description}>
               <Textarea value={form.description ?? ''} onChange={(e) => setForm((p) => ({ ...p, description: e.target.value }))} rows={2} />
             </FormField>
             <div className="grid grid-cols-2 gap-4">
-              <FormField label="Gia thang" error={errors.price_monthly} required>
+              <FormField label="Giá tháng" error={errors.price_monthly} required>
                 <Input type="number" value={form.price_monthly} onChange={(e) => setForm((p) => ({ ...p, price_monthly: parseFloat(e.target.value) || 0 }))} />
               </FormField>
-              <FormField label="Gia nam" error={errors.price_yearly} required>
+              <FormField label="Giá năm" error={errors.price_yearly} required>
                 <Input type="number" value={form.price_yearly} onChange={(e) => setForm((p) => ({ ...p, price_yearly: parseFloat(e.target.value) || 0 }))} />
               </FormField>
             </div>
@@ -211,12 +211,12 @@ export default function PlansPage() {
               </FormField>
             </div>
             <div className="flex items-center justify-between">
-              <span className="text-sm font-medium">Hoat dong</span>
+              <span className="text-sm font-medium">Hoạt động</span>
               <Switch checked={form.is_active} onCheckedChange={(c) => setForm((p) => ({ ...p, is_active: c }))} />
             </div>
           </div>
           <DialogFooter>
-            <Button variant="outline" onClick={() => setDialogOpen(false)}>Huy</Button>
+            <Button variant="outline" onClick={() => setDialogOpen(false)}>Hủy</Button>
             <Button onClick={handleSave} disabled={saveMutation.loading}>
               {saveMutation.loading ? 'Đang lưu...' : 'Lưu'}
             </Button>
@@ -227,8 +227,8 @@ export default function PlansPage() {
       <ConfirmDialog
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
-        title="Xóa goi dich vu"
-        description="Ban co chac chan muon xoa goi dich vu nay? Cac subscribers hien tai se bi anh huong."
+        title="Xóa gói dịch vụ"
+        description="Bạn có chắc chắn muốn xóa gói dịch vụ này? Các subscribers hiện tại sẽ bị ảnh hưởng."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

@@ -19,7 +19,7 @@ const contactInfo = [
 ];
 
 /**
- * Trang lien he — form + info + map placeholder
+ * Trang Liên hệ — form + info + map placeholder
  */
 export function ContactClient() {
   const [submitted, setSubmitted] = useState(false);
@@ -47,9 +47,9 @@ export function ContactClient() {
 
   return (
     <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 sm:py-12">
-      <h1 className="text-2xl sm:text-3xl font-bold mb-2">Lien he</h1>
+      <h1 className="text-2xl sm:text-3xl font-bold mb-2">Liên hệ</h1>
       <p className="text-gray-500 mb-8">
-        Ban co cau hoi? Hay gui tin nhan cho chung toi.
+        Bạn có câu hỏi? Hãy gửi tin nhắn cho chúng tôi.
       </p>
 
       <div className="grid grid-cols-1 lg:grid-cols-3 gap-8">
@@ -60,13 +60,13 @@ export function ContactClient() {
               <CardContent className="p-0">
                 <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
                 <h2 className="text-xl font-bold mb-2">
-                  Gửi thanh cong!
+                  Gửi thành công!
                 </h2>
                 <p className="text-gray-500 mb-4">
-                  Cam on ban da lien he. Chung toi se phan hoi trong vong 24h.
+                  Cảm ơn bạn đã liên hệ. Chúng tôi sẽ phản hồi trong vòng 24h.
                 </p>
                 <Button variant="outline" onClick={() => setSubmitted(false)}>
-                  Gửi tin nhắn khac
+                  Gửi tin nhắn khác
                 </Button>
               </CardContent>
             </Card>
@@ -92,7 +92,7 @@ export function ContactClient() {
                   </label>
                   <Input
                     {...register('email')}
-                    placeholder="Nhap email"
+                    placeholder="Nhập email"
                     type="email"
                     inputMode="email"
                     autoComplete="email"
@@ -106,7 +106,7 @@ export function ContactClient() {
               <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1">
-                    So dien thoai
+                    Số điện thoại
                   </label>
                   <Input
                     {...register('phone')}

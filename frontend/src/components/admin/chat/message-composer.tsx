@@ -69,7 +69,7 @@ export function MessageComposer({
         value={value}
         onChange={(e) => setValue(e.target.value)}
         onKeyDown={handleKeyDown}
-        placeholder="Nhap tin nhan... (Enter de gui, Shift+Enter de xuong dong)"
+        placeholder="Nháp tin nhan... (Enter de gui, Shift+Enter de xuong dong)"
         rows={2}
         disabled={disabled}
         className="min-h-[56px] resize-none"

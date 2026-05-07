@@ -17,9 +17,9 @@ import { slugify } from '@/lib/utils/format';
 
 // Zod schema voi thong bao tieng Viet
 const productSchema = z.object({
-  name: z.string().min(1, 'Ten san pham la bat buoc').max(255, 'Ten san pham toi da 255 ky tu'),
-  slug: z.string().min(1, 'Slug la bat buoc'),
-  short_description: z.string().max(500, 'Mo ta ngan toi da 500 ky tu').optional(),
+  name: z.string().min(1, 'Ten Sản phẩm la Bắt buộc').max(255, 'Ten Sản phẩm Tối đa 255 Ký tự'),
+  slug: z.string().min(1, 'Slug la Bắt buộc'),
+  short_description: z.string().max(500, 'Mô tả ngan Tối đa 500 Ký tự').optional(),
   description: z.string().optional(),
   price: z.number({ error: 'Gia phai la so' }).min(0, 'Gia khong duoc am'),
   compare_at_price: z.number().min(0, 'Gia so sanh khong duoc am').optional().nullable(),
@@ -28,8 +28,8 @@ const productSchema = z.object({
   sku: z.string().optional().nullable(),
   is_active: z.boolean(),
   is_featured: z.boolean(),
-  seo_title: z.string().max(70, 'SEO title toi da 70 ky tu').optional(),
-  seo_description: z.string().max(160, 'SEO description toi da 160 ky tu').optional(),
+  seo_title: z.string().max(70, 'SEO title Tối đa 70 Ký tự').optional(),
+  seo_description: z.string().max(160, 'SEO description Tối đa 160 Ký tự').optional(),
 });
 
 type ProductFormData = z.infer<typeof productSchema>;
@@ -41,7 +41,7 @@ interface VariantRow {
   attributes: string;
 }
 
-/** Tạo san pham moi */
+/** Tạo Sản phẩm moi */
 export default function NewProductPage() {
   const router = useRouter();
   const [errors, setErrors] = useState<Record<string, string>>({});
@@ -122,11 +122,11 @@ export default function NewProductPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Thêm sản phẩm moi"
+        title="Thêm sản phẩm mới"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Sản phẩm', href: '/admin/products' },
-          { label: 'Thêm moi' },
+          { label: 'Thêm mới' },
         ]}
       />
 
@@ -136,14 +136,14 @@ export default function NewProductPage() {
           <div className="lg:col-span-2 space-y-6">
             {/* Thong tin co ban */}
             <Card>
-              <CardHeader><CardTitle>Thong tin co ban</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Thông tin cơ bản</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="Ten san pham" error={errors.name} required htmlFor="name">
+                <FormField label="Ten Sản phẩm" error={errors.name} required htmlFor="name">
                   <Input
                     id="name"
                     value={form.name}
                     onChange={(e) => updateField('name', e.target.value)}
-                    placeholder="Nhap ten san pham"
+                    placeholder="Nhập tên sản phẩm"
                   />
                 </FormField>
                 <FormField label="Slug" error={errors.slug} required htmlFor="slug">
@@ -153,22 +153,22 @@ export default function NewProductPage() {
                     onChange={(e) => updateField('slug', e.target.value)}
                   />
                 </FormField>
-                <FormField label="Mo ta ngan" error={errors.short_description} htmlFor="short_description">
+                <FormField label="Mô tả ngan" error={errors.short_description} htmlFor="short_description">
                   <Textarea
                     id="short_description"
                     value={form.short_description ?? ''}
                     onChange={(e) => updateField('short_description', e.target.value)}
                     rows={2}
-                    placeholder="Mo ta ngan gon ve san pham"
+                    placeholder="Mô tả ngắn gọn về sản phẩm"
                   />
                 </FormField>
-                <FormField label="Mo ta chi tiet" error={errors.description} htmlFor="description">
+                <FormField label="Mô tả Chi tiết" error={errors.description} htmlFor="description">
                   <Textarea
                     id="description"
                     value={form.description ?? ''}
                     onChange={(e) => updateField('description', e.target.value)}
                     rows={6}
-                    placeholder="Mo ta chi tiet san pham"
+                    placeholder="Mô tả chi tiết sản phẩm"
                   />
                 </FormField>
               </CardContent>
@@ -176,10 +176,10 @@ export default function NewProductPage() {
 
             {/* Gia */}
             <Card>
-              <CardHeader><CardTitle>Gia ca</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Giá cả</CardTitle></CardHeader>
               <CardContent>
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
-                  <FormField label="Gia ban" error={errors.price} required htmlFor="price">
+                  <FormField label="Giá bán" error={errors.price} required htmlFor="price">
                     <Input
                       id="price"
                       type="number"
@@ -209,14 +209,14 @@ export default function NewProductPage() {
 
             {/* Media */}
             <Card>
-              <CardHeader><CardTitle>Hinh anh</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Hình ảnh</CardTitle></CardHeader>
               <CardContent>
                 <div className="border-2 border-dashed border-gray-300 rounded-lg p-8 text-center">
                   <p className="text-gray-400 text-sm">
-                    Keo tha hinh anh vao day hoac click de chon file
+                    Kéo thả hình ảnh vào đây hoặc click để chọn file
                   </p>
                   <Button type="button" variant="outline" className="mt-3" size="sm">
-                    Chon hinh anh
+                    Chọn hình ảnh
                   </Button>
                 </div>
               </CardContent>
@@ -225,16 +225,16 @@ export default function NewProductPage() {
             {/* Bien the */}
             <Card>
               <CardHeader className="flex flex-row items-center justify-between">
-                <CardTitle>Bien the san pham</CardTitle>
+                <CardTitle>Biến thể sản phẩm</CardTitle>
                 <Button type="button" variant="outline" size="sm" onClick={addVariant}>
                   <Plus className="h-4 w-4 mr-1" />
-                  Thêm bien the
+                  Thêm biến thể
                 </Button>
               </CardHeader>
               <CardContent>
                 {variants.length === 0 ? (
                   <p className="text-sm text-gray-500 text-center py-4">
-                    Chua co bien the nao. Nhan &quot;Thêm bien the&quot; de tao.
+                    Chưa có biến thể nào. Nhấn &quot;Thêm biến thể&quot; để tạo.
                   </p>
                 ) : (
                   <div className="space-y-3">
@@ -285,7 +285,7 @@ export default function NewProductPage() {
             <Card>
               <CardHeader><CardTitle>SEO</CardTitle></CardHeader>
               <CardContent className="space-y-4">
-                <FormField label="SEO Title" error={errors.seo_title} htmlFor="seo_title" description="Toi da 70 ky tu">
+                <FormField label="SEO Title" error={errors.seo_title} htmlFor="seo_title" description="Tối đa 70 Ký tự">
                   <Input
                     id="seo_title"
                     value={form.seo_title ?? ''}
@@ -293,7 +293,7 @@ export default function NewProductPage() {
                     maxLength={70}
                   />
                 </FormField>
-                <FormField label="SEO Description" error={errors.seo_description} htmlFor="seo_description" description="Toi da 160 ky tu">
+                <FormField label="SEO Description" error={errors.seo_description} htmlFor="seo_description" description="Tối đa 160 Ký tự">
                   <Textarea
                     id="seo_description"
                     value={form.seo_description ?? ''}
@@ -318,7 +318,7 @@ export default function NewProductPage() {
                     onValueChange={(val) => updateField('category_id', val || null)}
                   >
                     <SelectTrigger>
-                      <SelectValue placeholder="Chon danh muc" />
+                      <SelectValue placeholder="Chon Danh mục" />
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="none">Không có</SelectItem>
@@ -336,9 +336,9 @@ export default function NewProductPage() {
               </CardContent>
             </Card>
 
-            {/* Trang thai */}
+            {/* Trạng thái */}
             <Card>
-              <CardHeader><CardTitle>Trang thai</CardTitle></CardHeader>
+              <CardHeader><CardTitle>Trạng thái</CardTitle></CardHeader>
               <CardContent className="space-y-4">
                 <div className="flex items-center justify-between">
                   <span className="text-sm font-medium">Đang bán</span>
@@ -348,7 +348,7 @@ export default function NewProductPage() {
                   />
                 </div>
                 <div className="flex items-center justify-between">
-                  <span className="text-sm font-medium">Noi bat</span>
+                  <span className="text-sm font-medium">Nổi bật</span>
                   <Switch
                     checked={form.is_featured}
                     onCheckedChange={(checked) => updateField('is_featured', checked)}

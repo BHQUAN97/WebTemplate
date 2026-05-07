@@ -32,7 +32,7 @@ import { useToast } from '@/lib/hooks/use-toast';
 import { formatFileSize, formatDate } from '@/lib/utils/format';
 import type { ApiResponse, MediaFile } from '@/lib/types';
 
-/** Thu vien media */
+/** Thư viện media */
 export default function MediaPage() {
   const { toast } = useToast();
   const [viewMode, setViewMode] = useState<'grid' | 'list'>('grid');
@@ -99,7 +99,7 @@ export default function MediaPage() {
 
   const copyUrl = (url: string) => {
     navigator.clipboard.writeText(url);
-    toast('Da sao chep URL', undefined, 'success');
+    toast('Đã sao chép URL', undefined, 'success');
   };
 
   const toggleSelect = (id: string) => {
@@ -120,9 +120,9 @@ export default function MediaPage() {
     try {
       const blob = await mediaApi.downloadBulk(ids);
       saveAs(blob, `media-bundle-${Date.now()}.zip`);
-      toast('Da tao ZIP', `${ids.length} file`, 'success');
+      toast('Đã tạo ZIP', `${ids.length} file`, 'success');
     } catch (err) {
-      toast('Tải ZIP that bai', (err as Error).message, 'destructive');
+      toast('Tải ZIP Thất bại', (err as Error).message, 'destructive');
     } finally {
       setBulkLoading(false);
     }
@@ -159,27 +159,27 @@ export default function MediaPage() {
     for (const file of incoming) {
       if (!isMimeAllowed(file.type)) {
         toast(
-          'Loai file khong ho tro',
+          'Loại file không hỗ trợ',
           `${file.name} (${file.type || 'unknown'})`,
           'destructive',
         );
         initialQueue.push({
           name: file.name,
           status: 'error',
-          message: 'Loai file khong ho tro',
+          message: 'Loại file không hỗ trợ',
         });
         continue;
       }
       if (file.size > MAX_FILE_SIZE) {
         toast(
-          'File vuot qua 10MB',
+          'File vượt quá 10MB',
           `${file.name} — ${formatFileSize(file.size)}`,
           'destructive',
         );
         initialQueue.push({
           name: file.name,
           status: 'error',
-          message: 'Vuot qua 10MB',
+          message: 'Vượt quá 10MB',
         });
         continue;
       }
@@ -210,8 +210,8 @@ export default function MediaPage() {
           ),
         );
       } catch (err) {
-        const msg = (err as Error).message || 'Upload that bai';
-        toast('Upload that bai', `${file.name}: ${msg}`, 'destructive');
+        const msg = (err as Error).message || 'Upload Thất bại';
+        toast('Upload Thất bại', `${file.name}: ${msg}`, 'destructive');
         setUploadQueue((prev) =>
           prev.map((e) =>
             e.name === file.name && e.status === 'uploading'
@@ -226,7 +226,7 @@ export default function MediaPage() {
     if (inputRef.current) inputRef.current.value = '';
 
     if (anySuccess) {
-      toast('Tai len thanh cong', undefined, 'success');
+      toast('Tải lên thành công', undefined, 'success');
       refetch();
     }
   };
@@ -259,7 +259,7 @@ export default function MediaPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Thu vien media"
+        title="Thư viện media"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Media' },
@@ -267,7 +267,7 @@ export default function MediaPage() {
         actions={
           <Button onClick={openFileDialog}>
             <Upload className="h-4 w-4 mr-2" />
-            Tai len
+            Tải lên
           </Button>
         }
       />
@@ -312,7 +312,7 @@ export default function MediaPage() {
       {selectedIds.size > 0 && (
         <div className="flex items-center justify-between gap-3 p-3 rounded-lg border border-blue-200 bg-blue-50">
           <span className="text-sm text-blue-900">
-            Da chon {selectedIds.size} file
+            Đã chọn {selectedIds.size} file
           </span>
           <div className="flex items-center gap-2">
             <Button
@@ -324,7 +324,7 @@ export default function MediaPage() {
               {bulkLoading ? 'Đang tạo ZIP...' : 'Tải ZIP'}
             </Button>
             <Button size="sm" variant="outline" onClick={clearSelection}>
-              Bo chon
+              Bỏ chọn
             </Button>
           </div>
         </div>
@@ -345,10 +345,10 @@ export default function MediaPage() {
       >
         <Upload className="h-8 w-8 mx-auto text-gray-400 mb-2" />
         <p className="text-sm text-gray-500">
-          Keo tha file vao day hoac click de chon
+          Kéo thả file vào đây hoặc click để chọn
         </p>
         <p className="text-xs text-gray-400 mt-1">
-          Ho tro: JPG, PNG, GIF, SVG, PDF, MP4 (toi da 10MB)
+          Hỗ trợ: JPG, PNG, GIF, SVG, PDF, MP4 (Tối đa 10MB)
         </p>
       </div>
 
@@ -357,14 +357,14 @@ export default function MediaPage() {
         <div className="rounded-lg border border-gray-200 bg-white p-3 space-y-2">
           <div className="flex items-center justify-between">
             <p className="text-sm font-medium text-gray-700">
-              Tien trinh tai len ({uploadQueue.length})
+              Tiến trình tải lên ({uploadQueue.length})
             </p>
             <button
               type="button"
               className="text-xs text-gray-500 hover:text-gray-700"
               onClick={() => setUploadQueue([])}
             >
-              An
+              Ẩn
             </button>
           </div>
           <ul className="space-y-1">
@@ -419,7 +419,7 @@ export default function MediaPage() {
             </div>
           ) : files.length === 0 ? (
             <div className="text-center py-16 text-gray-500">
-              <p>Chua co file nao</p>
+              <p>Chưa có file nào</p>
             </div>
           ) : viewMode === 'grid' ? (
             <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 lg:grid-cols-6 gap-4">
@@ -454,7 +454,7 @@ export default function MediaPage() {
                       e.stopPropagation();
                       openPreview(file);
                     }}
-                    title="Xem truoc"
+                    title="Xem trước"
                   >
                     <Eye className="h-4 w-4 text-gray-700" />
                   </button>
@@ -552,7 +552,7 @@ export default function MediaPage() {
                       e.stopPropagation();
                       openPreview(file);
                     }}
-                    title="Xem truoc"
+                    title="Xem trước"
                   >
                     <Eye className="h-4 w-4" />
                   </Button>
@@ -602,7 +602,7 @@ export default function MediaPage() {
 
                 <div className="space-y-2 text-sm">
                   <div>
-                    <p className="text-gray-500 text-xs">Ten file</p>
+                    <p className="text-gray-500 text-xs">Tên file</p>
                     <p className="font-medium truncate">
                       {selectedFile.original_name}
                     </p>
@@ -625,11 +625,11 @@ export default function MediaPage() {
                   </div>
                   <div className="grid grid-cols-2 gap-2">
                     <div>
-                      <p className="text-gray-500 text-xs">Kich thuoc</p>
+                      <p className="text-gray-500 text-xs">Kích thước</p>
                       <p>{formatFileSize(selectedFile.size)}</p>
                     </div>
                     <div>
-                      <p className="text-gray-500 text-xs">Ngay tai len</p>
+                      <p className="text-gray-500 text-xs">Ngày tải lên</p>
                       <p>{formatDate(selectedFile.created_at)}</p>
                     </div>
                   </div>
@@ -642,7 +642,7 @@ export default function MediaPage() {
                   <Input
                     value={altText}
                     onChange={(e) => setAltText(e.target.value)}
-                    placeholder="Mo ta hinh anh"
+                    placeholder="Mô tả hình ảnh"
                     className="text-sm"
                   />
                 </div>
@@ -655,7 +655,7 @@ export default function MediaPage() {
                     onClick={() => openPreview(selectedFile)}
                   >
                     <Eye className="h-4 w-4 mr-2" />
-                    Xem truoc
+                    Xem trước
                   </Button>
                   <Button
                     variant="destructive"
@@ -677,7 +677,7 @@ export default function MediaPage() {
         open={!!deleteId}
         onOpenChange={(open) => !open && setDeleteId(null)}
         title="Xóa file"
-        description="Ban co chac chan muon xoa file nay? Hanh dong nay khong the hoan tac."
+        description="Bạn có chắc chắn muốn xóa file này? Hành động này không thể hoàn tác."
         onConfirm={handleDelete}
         confirmLabel="Xóa"
         variant="danger"

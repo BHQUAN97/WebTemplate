@@ -42,7 +42,7 @@ export default function DashboardPage() {
   const stats = [
     {
       icon: Package,
-      label: 'Tong don hang',
+      label: 'Tong Đơn hàng',
       value: orders.length,
       color: 'text-blue-600 bg-blue-100',
     },
@@ -134,7 +134,7 @@ export default function DashboardPage() {
             </div>
           ) : (
             <p className="text-center text-gray-500 py-8">
-              Ban chua co don hang nao
+              Ban chua co Đơn hàng nao
             </p>
           )}
         </CardContent>

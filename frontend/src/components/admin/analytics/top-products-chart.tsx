@@ -1,4 +1,4 @@
-'use client';
+﻿'use client';
 
 import {
   BarChart,
@@ -24,12 +24,12 @@ interface TopProductsChartProps {
   data: TopProduct[];
   loading?: boolean;
   height?: number;
-  /** Hien theo doanh thu hay so luong ban — mac dinh 'sold' */
+  /** Hiện theo doanh thu hay số lượng bán — mặc định 'sold' */
   metric?: 'sold' | 'revenue';
 }
 
 /**
- * Horizontal BarChart — top san pham.
+ * Horizontal BarChart — top Sản phẩm.
  */
 export function TopProductsChart({
   data,
@@ -47,12 +47,12 @@ export function TopProductsChart({
         className="flex items-center justify-center rounded-xl border border-dashed text-sm text-muted-foreground"
         style={{ height }}
       >
-        Chua co du lieu san pham
+        Chưa có dữ liệu Sản phẩm
       </div>
     );
   }
 
-  const label = metric === 'revenue' ? 'Doanh thu' : 'So luong ban';
+  const label = metric === 'revenue' ? 'Doanh thu' : 'Số lượng bán';
   const fmt = (v: number) =>
     metric === 'revenue' ? formatCurrency(v, true) : formatNumber(v);
 

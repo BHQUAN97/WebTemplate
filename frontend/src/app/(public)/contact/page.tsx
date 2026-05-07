@@ -2,7 +2,7 @@
 import { ContactClient } from './contact-client';
 
 export const metadata: Metadata = {
-  title: 'Lien he - WebTemplate',
+  title: 'Liên hệ - WebTemplate',
   description:
     'Liên hệ với WebTemplate — gửi yêu cầu, câu hỏi hoặc phản hồi của bạn.',
 };

@@ -31,11 +31,11 @@ export function BottomTabBar() {
   if (!cta.bottomTab) return null;
 
   const tabs: TabItem[] = [
-    { href: '/', label: 'Trang chu', icon: Home },
+    { href: '/', label: 'Trang chủ', icon: Home },
     { href: '/search', label: 'Tìm kiếm', icon: Search },
     {
       href: '/cart',
-      label: 'Gio hang',
+      label: 'Giỏ hàng',
       icon: ShoppingCart,
       badge: hydrated ? itemCount : 0,
     },
@@ -53,7 +53,7 @@ export function BottomTabBar() {
 
   return (
     <nav
-      aria-label="Dieu huong chinh"
+      aria-label="Điều hướng chính"
       className="md:hidden fixed bottom-0 inset-x-0 z-40 bg-background border-t border-border print:hidden"
       style={{ paddingBottom: 'env(safe-area-inset-bottom, 0px)' }}
     >

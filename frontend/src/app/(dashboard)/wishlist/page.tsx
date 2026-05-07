@@ -62,10 +62,10 @@ export default function WishlistPage() {
         <h1 className="text-2xl font-bold">Sản phẩm yeu thich</h1>
         <div className="flex flex-col items-center justify-center py-16 text-center">
           <Heart className="h-16 w-16 text-gray-300 mb-4" />
-          <h2 className="text-xl font-semibold text-gray-600 mb-2">Chua co san pham yeu thich</h2>
-          <p className="text-gray-400 mb-6">Hay them san pham vao danh sach yeu thich de xem lai sau.</p>
+          <h2 className="text-xl font-semibold text-gray-600 mb-2">Chua co Sản phẩm yeu thich</h2>
+          <p className="text-gray-400 mb-6">Hay them Sản phẩm vao danh sach yeu thich de xem lai sau.</p>
           <Button asChild>
-            <a href="/products">Khám pha san pham</a>
+            <a href="/products">Khám pha Sản phẩm</a>
           </Button>
         </div>
       </div>
@@ -76,7 +76,7 @@ export default function WishlistPage() {
     <div className="space-y-4">
       <div className="flex items-center justify-between">
         <h1 className="text-2xl font-bold">Sản phẩm yeu thich</h1>
-        <span className="text-sm text-gray-500">{items.length} san pham</span>
+        <span className="text-sm text-gray-500">{items.length} Sản phẩm</span>
       </div>
 
       <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">

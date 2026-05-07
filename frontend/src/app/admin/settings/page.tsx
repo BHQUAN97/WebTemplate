@@ -20,37 +20,37 @@ import { apiClient } from '@/lib/api/client';
 const MODULES = [
   { key: 'auth', name: 'Xác thực (Auth)', description: 'Đăng nhập, đăng ký, JWT, 2FA' },
   { key: 'users', name: 'Người dùng', description: 'Quản lý tài khoản, vai trò' },
-  { key: 'products', name: 'Sản phẩm', description: 'Quản lý sản phẩm, bien the' },
+  { key: 'products', name: 'Sản phẩm', description: 'Quản lý sản phẩm, biến thể' },
   { key: 'categories', name: 'Danh mục', description: 'Phân loại sản phẩm, bài viết' },
-  { key: 'inventory', name: 'Ton kho', description: 'Quan ly kho hang, so luong' },
-  { key: 'cart', name: 'Gio hang', description: 'Gio hang mua sam' },
+  { key: 'inventory', name: 'Tồn kho', description: 'Quản lý kho hàng, số lượng' },
+  { key: 'cart', name: 'Giỏ hàng', description: 'Giỏ hàng mua sắm' },
   { key: 'orders', name: 'Đơn hàng', description: 'Xử lý đơn hàng, trạng thái' },
-  { key: 'payments', name: 'Thanh toan', description: 'Thanh toan online, COD' },
+  { key: 'payments', name: 'Thanh toán', description: 'Thanh toán online, COD' },
   { key: 'reviews', name: 'Đánh giá', description: 'Đánh giá sản phẩm, phê duyệt' },
-  { key: 'promotions', name: 'Khuyen mai', description: 'Ma giam gia, uu dai' },
-  { key: 'articles', name: 'Bài viết', description: 'Quan ly noi dung CMS' },
-  { key: 'pages', name: 'Trang', description: 'Trang tinh, landing page' },
-  { key: 'navigation', name: 'Menu', description: 'Menu dieu huong, footer' },
-  { key: 'seo', name: 'SEO', description: 'Toi uu hoa cong cu tim kiem' },
-  { key: 'media', name: 'Media', description: 'Thu vien hinh anh, file' },
-  { key: 'notifications', name: 'Thông báo', description: 'Thông báo he thong, push' },
-  { key: 'analytics', name: 'Phan tich', description: 'Thong ke, bao cao' },
+  { key: 'promotions', name: 'Khuyến mãi', description: 'Mã giảm giá, ưu đãi' },
+  { key: 'articles', name: 'Bài viết', description: 'Quản lý nội dung CMS' },
+  { key: 'pages', name: 'Trang', description: 'Trang tĩnh, landing page' },
+  { key: 'navigation', name: 'Menu', description: 'Menu điều hướng, footer' },
+  { key: 'seo', name: 'SEO', description: 'Tối ưu hóa công cụ tìm kiếm' },
+  { key: 'media', name: 'Media', description: 'Thư viện hình ảnh, file' },
+  { key: 'notifications', name: 'Thông báo', description: 'Thông báo hệ thống, push' },
+  { key: 'analytics', name: 'Phân tích', description: 'Thống kê, báo cáo' },
   { key: 'search', name: 'Tìm kiếm', description: 'Tìm kiếm nâng cao, full-text' },
-  { key: 'export_import', name: 'Xuat/Nhap', description: 'Export/Import du lieu' },
-  { key: 'i18n', name: 'Da ngon ngu', description: 'Ho tro nhieu ngon ngu' },
-  { key: 'contacts', name: 'Lien he', description: 'Form lien he, phan hoi' },
-  { key: 'faq', name: 'FAQ', description: 'Cau hoi thuong gap' },
-  { key: 'tenants', name: 'Multi-tenant', description: 'Quan ly nhieu cua hang' },
-  { key: 'plans', name: 'Goi dich vu', description: 'SaaS plan, billing' },
-  { key: 'api_keys', name: 'API Keys', description: 'Quan ly API key' },
+  { key: 'export_import', name: 'Xuất/Nhập', description: 'Export/Import dữ liệu' },
+  { key: 'i18n', name: 'Đa ngôn ngữ', description: 'Hỗ trợ nhiều ngôn ngữ' },
+  { key: 'contacts', name: 'Liên hệ', description: 'Form liên hệ, phản hồi' },
+  { key: 'faq', name: 'FAQ', description: 'Câu hỏi thường gặp' },
+  { key: 'tenants', name: 'Multi-tenant', description: 'Quản lý nhiều cửa hàng' },
+  { key: 'plans', name: 'Gói dịch vụ', description: 'SaaS plan, billing' },
+  { key: 'api_keys', name: 'API Keys', description: 'Quản lý API key' },
   { key: 'webhooks', name: 'Webhooks', description: 'Webhook endpoint' },
   { key: 'email_templates', name: 'Email Template', description: 'Mau email tu dong' },
-  { key: 'settings', name: 'Cài đặt', description: 'Cài đặt he thong' },
-  { key: 'logs', name: 'Nhat ky', description: 'Log audit, access' },
-  { key: 'changelog', name: 'Changelog', description: 'Lich su thay doi' },
+  { key: 'settings', name: 'Cài đặt', description: 'Cài đặt hệ thống' },
+  { key: 'logs', name: 'Nhật ký', description: 'Log audit, access' },
+  { key: 'changelog', name: 'Changelog', description: 'Lịch sử thay đổi' },
 ];
 
-/** Cài đặt he thong */
+/** Cài đặt Hệ thống */
 export default function SettingsPage() {
   const [activeTab, setActiveTab] = useState('general');
   const [moduleStates, setModuleStates] = useState<Record<string, boolean>>(
@@ -162,7 +162,7 @@ export default function SettingsPage() {
   return (
     <div className="space-y-6">
       <PageHeader
-        title="Cài đặt he thong"
+        title="Cài đặt Hệ thống"
         breadcrumbs={[
           { label: 'Dashboard', href: '/admin' },
           { label: 'Cài đặt' },
@@ -173,7 +173,7 @@ export default function SettingsPage() {
         <TabsList className="flex-wrap">
           <TabsTrigger value="general">Chung</TabsTrigger>
           <TabsTrigger value="email">Email</TabsTrigger>
-          <TabsTrigger value="payment">Thanh toan</TabsTrigger>
+          <TabsTrigger value="payment">Thanh toán</TabsTrigger>
           <TabsTrigger value="seo">SEO</TabsTrigger>
           <TabsTrigger value="cta">CTA</TabsTrigger>
           <TabsTrigger value="modules">Modules</TabsTrigger>
@@ -187,7 +187,7 @@ export default function SettingsPage() {
               <FormField label="Ten website" required>
                 <Input value={siteName} onChange={(e) => setSiteName(e.target.value)} placeholder="VD: My Store" />
               </FormField>
-              <FormField label="Mo ta website">
+              <FormField label="Mô tả website">
                 <Textarea value={siteDescription} onChange={(e) => setSiteDescription(e.target.value)} rows={3} />
               </FormField>
               <FormField label="Logo">
@@ -231,7 +231,7 @@ export default function SettingsPage() {
           <Card>
             <CardHeader>
               <CardTitle>Cau hinh Email</CardTitle>
-              <CardDescription>Cài đặt SMTP de gui email tu he thong</CardDescription>
+              <CardDescription>Cài đặt SMTP de gui email tu Hệ thống</CardDescription>
             </CardHeader>
             <CardContent className="space-y-4 max-w-2xl">
               <div className="grid grid-cols-2 gap-4">
@@ -260,12 +260,12 @@ export default function SettingsPage() {
         <TabsContent value="payment">
           <Card>
             <CardHeader>
-              <CardTitle>Cong thanh toan</CardTitle>
-              <CardDescription>Cau hinh cac phuong thuc thanh toan</CardDescription>
+              <CardTitle>Cong Thanh toán</CardTitle>
+              <CardDescription>Cau hinh cac phuong thuc Thanh toán</CardDescription>
             </CardHeader>
             <CardContent className="space-y-6 max-w-2xl">
               {[
-                { name: 'COD (Thanh toan khi nhan hang)', key: 'cod' },
+                { name: 'COD (Thanh toán khi nhan hang)', key: 'cod' },
                 { name: 'VNPay', key: 'vnpay' },
                 { name: 'MoMo', key: 'momo' },
                 { name: 'ZaloPay', key: 'zalopay' },
@@ -292,10 +292,10 @@ export default function SettingsPage() {
           <Card>
             <CardHeader><CardTitle>Cài đặt SEO</CardTitle></CardHeader>
             <CardContent className="space-y-4 max-w-2xl">
-              <FormField label="Meta Title mac dinh" description="Toi da 70 ky tu">
+              <FormField label="Meta Title mac dinh" description="Tối đa 70 Ký tự">
                 <Input value={metaTitle} onChange={(e) => setMetaTitle(e.target.value)} maxLength={70} />
               </FormField>
-              <FormField label="Meta Description mac dinh" description="Toi da 160 ky tu">
+              <FormField label="Meta Description mac dinh" description="Tối đa 160 Ký tự">
                 <Textarea value={metaDescription} onChange={(e) => setMetaDescription(e.target.value)} rows={3} maxLength={160} />
               </FormField>
               <FormField label="Google Analytics ID">
@@ -322,7 +322,7 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <MessageCircle className="h-5 w-5" /> Nut lien he noi (Floating CTA)
+                  <MessageCircle className="h-5 w-5" /> Nut Liên hệ noi (Floating CTA)
                 </CardTitle>
                 <CardDescription>
                   Cac nut noi goc duoi phai man hinh. Bo trong so/URL se tu an du co bat.
@@ -338,7 +338,7 @@ export default function SettingsPage() {
                     </div>
                     <Switch checked={ctaZaloEnabled} onCheckedChange={setCtaZaloEnabled} />
                   </div>
-                  <FormField label="So dien thoai Zalo" description="VD: 0901234567 hoac 84901234567">
+                  <FormField label="Số điện thoại Zalo" description="VD: 0901234567 hoac 84901234567">
                     <Input
                       type="tel"
                       inputMode="tel"
@@ -443,10 +443,10 @@ export default function SettingsPage() {
             <Card>
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
-                  <LayoutGrid className="h-5 w-5" /> Dieu huong & tien ich
+                  <LayoutGrid className="h-5 w-5" /> Điều hướng & tien ich
                 </CardTitle>
                 <CardDescription>
-                  Cac tien ich UX chung cho trang khach hang.
+                  Cac tien ich UX chung cho trang Khách hàng.
                 </CardDescription>
               </CardHeader>
               <CardContent className="space-y-4 max-w-2xl">
@@ -463,7 +463,7 @@ export default function SettingsPage() {
                   <div>
                     <p className="font-medium">Bottom tab bar mobile</p>
                     <p className="text-xs text-gray-500">
-                      Thanh dieu huong duoi mobile: Home / Search / Cart / Account
+                      Thanh Điều hướng duoi mobile: Home / Search / Cart / Account
                     </p>
                   </div>
                   <Switch checked={ctaBottomTabEnabled} onCheckedChange={setCtaBottomTabEnabled} />
@@ -485,8 +485,8 @@ export default function SettingsPage() {
         <TabsContent value="modules">
           <Card>
             <CardHeader>
-              <CardTitle>Quan ly Modules</CardTitle>
-              <CardDescription>Bật/tat cac module cua he thong. Module bi tat se khong hoat dong.</CardDescription>
+              <CardTitle>Quản lý Modules</CardTitle>
+              <CardDescription>Bật/tat cac module cua Hệ thống. Module bi tat se khong hoat dong.</CardDescription>
             </CardHeader>
             <CardContent>
               <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-3">
