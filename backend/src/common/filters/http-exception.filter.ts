@@ -91,6 +91,14 @@ export class AllExceptionsFilter implements ExceptionFilter {
     if (exception instanceof QueryFailedError) {
       const err = exception as any;
 
+      // Log chi tiet loi de debug
+      this.logger.error('Database query failed:', {
+        code: err.code,
+        errno: err.errno,
+        sqlMessage: err.sqlMessage,
+        sql: err.sql,
+      });
+
       // MySQL duplicate entry
       if (err.code === 'ER_DUP_ENTRY' || err.errno === 1062) {
         return {
@@ -107,9 +115,18 @@ export class AllExceptionsFilter implements ExceptionFilter {
         };
       }
 
+      // Tra ve chi tiet trong dev mode
+      const isDev = process.env.NODE_ENV !== 'production';
+      const showDetails = isDev || process.env.DEBUG_SQL === 'true';
+
       return {
         status: HttpStatus.BAD_REQUEST,
-        message: 'Database query error.',
+        message: showDetails
+          ? `Database error: ${err.sqlMessage || err.message}`
+          : 'Database query error.',
+        errors: showDetails
+          ? { code: err.code, errno: err.errno, sql: err.sql?.substring(0, 200) }
+          : undefined,
       };
     }
 
