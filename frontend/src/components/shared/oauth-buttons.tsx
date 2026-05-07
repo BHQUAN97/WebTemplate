@@ -20,14 +20,8 @@ const API_URL = process.env.NEXT_PUBLIC_API_URL;
  * Cho phep component hoat dong ngay ca khi messages chua co namespace auth.oauth.
  */
 function useSafeT(namespace: string) {
-  let t: ((key: string) => string) | null = null;
-  try {
-    t = useTranslations(namespace);
-  } catch {
-    t = null;
-  }
+  const t = useTranslations(namespace);
   return (key: string, fallback: string): string => {
-    if (!t) return fallback;
     try {
       const v = t(key);
       // next-intl tra ve "namespace.key" neu khong tim thay

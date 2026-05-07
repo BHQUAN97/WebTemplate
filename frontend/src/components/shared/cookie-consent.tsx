@@ -32,14 +32,8 @@ type ConsentCategory = 'analytics' | 'marketing' | 'preferences';
  * Translation helper an toan — fallback khi namespace 'cookies' chua co trong messages.
  */
 function useSafeT(namespace: string) {
-  let t: ((key: string) => string) | null = null;
-  try {
-    t = useTranslations(namespace);
-  } catch {
-    t = null;
-  }
+  const t = useTranslations(namespace);
   return (key: string, fallback: string): string => {
-    if (!t) return fallback;
     try {
       const v = t(key);
       if (!v || v === `${namespace}.${key}`) return fallback;
