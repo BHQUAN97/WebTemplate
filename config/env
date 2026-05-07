@@ -1,0 +1,31 @@
+# ============================================
+# WebTemplate Production — template.bhquan.store
+# NON-SENSITIVE config only.
+# Sensitive values luu trong GitHub Actions Secrets.
+# ============================================
+
+# -- Domain --
+DOMAIN=template.bhquan.store
+
+# -- API URL --
+API_URL=https://template.bhquan.store
+
+# -- Backend DB connection (qua docker network) --
+DB_HOST=shared-mysql
+DB_PORT=3306
+DB_USERNAME=webtemplate
+DB_NAME=webtemplate
+
+# -- Redis (shared container) --
+REDIS_HOST=shared-redis
+REDIS_PORT=6379
+
+# -- JWT expiration --
+JWT_EXPIRATION=900
+REFRESH_TOKEN_EXPIRATION=604800
+
+# -- Storage (S3/R2) --
+S3_REGION=auto
+
+# -- ISR Revalidation URL --
+NEXT_REVALIDATE_URL=http://wt-frontend:6000

@@ -1,0 +1,222 @@
+name: Restore Backup
+
+on:
+  workflow_dispatch:
+    inputs:
+      date:
+        description: 'Backup date (YYYY-MM-DD), empty = latest'
+        required: false
+        default: ''
+      restore_db:
+        description: 'Restore database?'
+        required: true
+        type: boolean
+        default: true
+      restore_uploads:
+        description: 'Restore uploads?'
+        required: true
+        type: boolean
+        default: true
+      run_migrations:
+        description: 'Run TypeORM migrations after restore?'
+        required: true
+        type: boolean
+        default: true
+
+env:
+  INFRA_DIR: /opt/infra
+  APP_DIR: /opt/webtemplate
+  BACKUP_REPO: BHQUAN97/webphoto
+
+jobs:
+  restore:
+    name: "Restore WebTemplate (${{ inputs.date || 'latest' }})"
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Setup SSH
+        run: |
+          sudo apt-get update -qq && sudo apt-get install -y -qq sshpass > /dev/null
+          mkdir -p ~/.ssh
+          ssh-keyscan -p ${{ secrets.VPS_PORT }} -H ${{ secrets.VPS_HOST }} >> ~/.ssh/known_hosts 2>/dev/null
+          echo "SSHPASS=${{ secrets.VPS_PASSWORD }}" >> $GITHUB_ENV
+
+      - name: Resolve backup date
+        id: resolve
+        env:
+          GITHUB_TOKEN: ${{ secrets.CROSS_REPO_TOKEN }}
+        run: |
+          git clone --depth 1 --single-branch --branch backups \
+            "https://x-access-token:${GITHUB_TOKEN}@github.com/${BACKUP_REPO}.git" /tmp/backups-repo || {
+            echo "Cannot access backups branch in ${BACKUP_REPO}"
+            echo "Check if branch exists and CROSS_REPO_TOKEN has repo access"
+            exit 1
+          }
+
+          cd /tmp/backups-repo
+
+          if [ -n "${{ inputs.date }}" ]; then
+            DATE="${{ inputs.date }}"
+          else
+            DATE=$(ls -d webtemplate/????-??-?? 2>/dev/null | sort -r | head -1 | xargs basename 2>/dev/null || echo "")
+          fi
+
+          if [ -z "$DATE" ]; then
+            echo "No WebTemplate backup found!"
+            exit 1
+          fi
+
+          echo "date=${DATE}" >> $GITHUB_OUTPUT
+          echo "Backup date: ${DATE}"
+
+          echo ""
+          echo "=== Available files ==="
+          if [ -d "webtemplate/${DATE}" ]; then
+            ls -lh webtemplate/${DATE}/
+          else
+            echo "webtemplate/${DATE}/ — NOT FOUND"
+            exit 1
+          fi
+
+          mkdir -p /tmp/restore
+          cp -r webtemplate/${DATE} /tmp/restore/webtemplate
+
+      - name: Decrypt backups
+        run: |
+          ENCRYPT_KEY="${{ secrets.BACKUP_ENCRYPT_KEY }}"
+          GPG_COUNT=$(find /tmp/restore -name '*.gpg' -type f 2>/dev/null | wc -l)
+          if [ "$GPG_COUNT" -eq 0 ]; then
+            echo "No encrypted files — skip"
+            exit 0
+          fi
+          if [ -z "$ENCRYPT_KEY" ]; then
+            echo "ERROR: Found .gpg files but BACKUP_ENCRYPT_KEY not set!"
+            exit 1
+          fi
+          for f in $(find /tmp/restore -name '*.gpg' -type f); do
+            OUTPUT="${f%.gpg}"
+            gpg --batch --yes --passphrase "${ENCRYPT_KEY}" \
+              --decrypt --output "$OUTPUT" "$f"
+            rm -f "$f"
+            echo "Decrypted: $(basename "$OUTPUT")"
+          done
+
+      - name: Upload backup to VPS
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          sshpass -e ssh -p $PORT $VPS "mkdir -p /tmp/restore/webtemplate"
+          sshpass -e scp -P $PORT /tmp/restore/webtemplate/* $VPS:/tmp/restore/webtemplate/
+          echo "Uploaded WebTemplate backup files"
+
+      - name: Restore database
+        if: inputs.restore_db
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          sshpass -e ssh -p $PORT $VPS "
+            set -e
+            DUMP=/tmp/restore/webtemplate/webtemplate.sql.gz
+            if [ ! -f \$DUMP ]; then
+              echo 'No DB dump found — skip'
+              exit 0
+            fi
+
+            WT_PWD=\$(grep '^DB_PASSWORD=' ${APP_DIR}/.env | cut -d= -f2-)
+
+            echo 'Restoring webtemplate database...'
+
+            docker exec shared-mysql bash -c \"
+              INIT_SQL=\\\"CREATE DATABASE IF NOT EXISTS webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;
+              CREATE USER IF NOT EXISTS 'webtemplate'@'%' IDENTIFIED BY '\${WT_PWD}';
+              GRANT ALL PRIVILEGES ON webtemplate.* TO 'webtemplate'@'%';
+              FLUSH PRIVILEGES;\\\"
+              echo \\\"\$INIT_SQL\\\" | MYSQL_PWD=\\\"\\\$MYSQL_ROOT_PASSWORD\\\" mysql -u root
+            \" 2>&1
+
+            PRE_RESTORE=/tmp/pre-restore-webtemplate-\$(date +%Y%m%d_%H%M%S).sql.gz
+            echo \"Creating safety backup → \${PRE_RESTORE}\"
+            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysqldump -u root --single-transaction --quick webtemplate 2>/dev/null' | gzip > \${PRE_RESTORE}
+            echo \"Safety backup: \$(du -h \${PRE_RESTORE} | cut -f1)\"
+
+            docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root -e \"DROP DATABASE webtemplate; CREATE DATABASE webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"'
+
+            if gunzip -c \$DUMP | docker exec -i shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root webtemplate'; then
+              echo 'Database restored!'
+              rm -f \${PRE_RESTORE}
+            else
+              echo 'RESTORE FAILED — rolling back from safety backup...'
+              docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root -e \"DROP DATABASE IF EXISTS webtemplate; CREATE DATABASE webtemplate CHARACTER SET utf8mb4 COLLATE utf8mb4_unicode_ci;\"'
+              gunzip -c \${PRE_RESTORE} | docker exec -i shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root webtemplate'
+              echo 'Rollback complete. Original data preserved.'
+              exit 1
+            fi
+
+            TABLES=\$(docker exec shared-mysql bash -c 'MYSQL_PWD=\"\$MYSQL_ROOT_PASSWORD\" mysql -u root -N -e \"SELECT COUNT(*) FROM information_schema.tables WHERE table_schema=\\\"webtemplate\\\"\"' 2>/dev/null)
+            echo \"Tables: \${TABLES}\"
+            if [ \"\${TABLES}\" -lt 1 ]; then
+              echo 'WARNING: No tables found after restore!'
+              exit 1
+            fi
+          "
+
+      - name: Run TypeORM migrations
+        if: inputs.run_migrations && inputs.restore_db
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          sshpass -e ssh -p $PORT $VPS "
+            if docker ps --filter name=wt-backend --format '{{.Names}}' | grep -q wt-backend; then
+              echo 'Running TypeORM migrations...'
+              docker exec wt-backend node dist/scripts/migrate.js 2>/dev/null || \
+              docker exec wt-backend npm run migration:run 2>/dev/null || \
+              echo 'Migration script not found — skip (may need manual run)'
+            else
+              echo 'wt-backend not running — skip migrations'
+            fi
+          "
+
+      - name: Restart services
+        if: inputs.restore_db
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+
+          sshpass -e ssh -p $PORT $VPS "
+            if [ -f ${APP_DIR}/docker-compose.prod.yml ]; then
+              echo 'Restarting WebTemplate...'
+              cd ${APP_DIR} && docker compose -f docker-compose.prod.yml restart backend frontend
+              echo 'OK'
+            else
+              echo 'WebTemplate not deployed — skip'
+            fi
+          "
+
+      - name: Cleanup
+        if: always()
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sshpass -e ssh -p $PORT $VPS "rm -rf /tmp/restore" 2>/dev/null || true
+
+      - name: Health check
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          sleep 8
+          sshpass -e ssh -p $PORT $VPS "curl -sf http://localhost:6001/api/health" && echo " WebTemplate: OK" || echo " WebTemplate: DOWN"
+
+      - name: Summary
+        run: |
+          echo "======================================="
+          echo "Restore completed"
+          echo "  Project:    WebTemplate"
+          echo "  Date:       ${{ steps.resolve.outputs.date }}"
+          echo "  DB:         ${{ inputs.restore_db }}"
+          echo "  Uploads:    ${{ inputs.restore_uploads }}"
+          echo "  Migrations: ${{ inputs.run_migrations }}"
+          echo "======================================="

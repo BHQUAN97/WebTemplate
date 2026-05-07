@@ -1,6 +1,6 @@
 # WebTemplate — File Index & Project Map
 
-Toan bo file trong project, phan loai theo chuc nang. Tong cong ~190 files (khong tinh node_modules, .git, package-lock.json).
+Toan bo file trong project, phan loai theo chuc nang (khong tinh node_modules, .git, package-lock.json).
 
 ---
 
@@ -13,39 +13,55 @@ Toan bo file trong project, phan loai theo chuc nang. Tong cong ~190 files (khon
 - `deploy.sh` — Deploy script: dev/staging/prod/shared modes
 - `docker-compose.yml` — Dev infrastructure: MySQL 8 (6002) + Redis 7 (6003)
 
-## Docker Compose (3 files)
+## Docker Compose (4 files)
 
-- `docker-compose.prod.yml` — Production stack: MySQL + Redis + Backend + Frontend + Nginx (5 services, healthchecks, volumes)
+- `docker-compose.dev.yml` — Dev override: volume mount hot-reload cho backend + frontend
+- `docker-compose.prod.yml` — Production standalone: MySQL + Redis + Backend + Frontend + Nginx
 - `docker-compose.shared-vps.yml` — Shared VPS: chi Backend + Frontend, dung shared-net external network
-- `docker-compose.shared-infra.yml` — Shared infrastructure: MySQL + Redis + Nginx + Certbot cho nhieu project
+- `infra/docker-compose.yml` — Shared infrastructure (deploy len /opt/infra VPS): MySQL + Redis + Nginx + Certbot
 
-## Scripts (6 files)
+## Scripts
 
 - `scripts/setup-dev.sh` — One-command dev setup: check deps, copy .env, install, start DB, migrate, seed
 - `scripts/init-first-time.sh` — VPS first-time setup: Docker, user deploy, UFW, fail2ban, swap, Node.js
 - `scripts/init-ssl.sh` — SSL setup: certbot ACME challenge, request cert, copy to volume, cron auto-renew
-- `scripts/backup.sh` — Backup MySQL dump + uploads, rotate (giu 7 ngay)
+- `scripts/backup-mysql.sh` — Backup MySQL dump + uploads, rotate (giu 7 ngay)
+- `scripts/restore-mysql.sh` — Restore MySQL dump tu backup
+- `scripts/backup-gdrive.sh` / `restore-gdrive.sh` — Sync backup len/tu Google Drive
 - `scripts/migrate.sh` — Migration CLI: run/revert/generate/seed commands
-- `scripts/init-databases.sql` — SQL init databases cho shared MySQL (WebTemplate + placeholder cho projects khac)
+- `scripts/generate-module.js` — Generator: tao scaffold module moi (entity, dto, service, controller)
+- `scripts/init-databases.sql` — SQL init databases cho shared MySQL
+- `scripts/docker-cleanup.sh` — Don dep Docker images + containers cu
+- `scripts/ws-smoke-test.mjs` — WebSocket smoke test
+- `scripts/crontab.example` — Mau crontab cho backup tu dong
+- `scripts/secrets/` — Encrypt/decrypt + sync secrets vao GitHub Actions
 
-## Nginx Config (4 files)
+## Nginx Config
 
-- `nginx/nginx.conf` — Default nginx: HTTP, gzip, rate limiting, proxy to frontend/backend, static cache
-- `nginx/nginx.prod.conf` — Production nginx: HTTPS + HTTP redirect, SSL (Let's Encrypt), HSTS, security headers
-- `nginx/shared-nginx.conf` — Shared VPS main nginx: certbot challenge, include conf.d/*.conf
-- `nginx/conf.d/webtemplate.conf` — Per-project server block: upstream, SSL, rate limiting, proxy rules
+- `nginx/nginx.conf` — Dev nginx: HTTP, gzip, rate limiting, proxy to frontend/backend
+- `nginx/nginx.prod.conf` — Production nginx standalone: HTTPS + HTTP redirect, SSL, HSTS
+- `nginx/conf.d/webtemplate.conf` — Template server block (placeholder, thay yourdomain.com)
+- `infra/nginx/nginx.conf` — Shared VPS nginx: certbot challenge, rate limiting, include conf.d/
+- `infra/nginx/conf.d/template.bhquan.store.conf` — Production server block (upload len VPS via CI/CD)
 
-## Documentation (8 files)
+## Documentation
 
+- `DEPLOY.md` — Quick ops reference: VPS architecture, secrets checklist, troubleshooting
 - `docs/API.md` — API endpoints reference
-- `docs/ARCHITECTURE.md` — System architecture overview
+- `docs/ARCHITECTURE.md` — Code architecture: module structure, auth flow, caching, queue workers
+- `docs/BASE-PATTERNS.md` — BaseEntity, BaseService, coding patterns
+- `docs/BUSINESS-FEATURES.md` — Feature list va business logic
 - `docs/CHANGELOG.md` — Change log
 - `docs/DATABASE.md` — Database schema documentation
-- `docs/DEPLOY-GUIDE.md` — Step-by-step deployment guide (4 modes)
-- `docs/DEPLOYMENT.md` — Deployment overview
+- `docs/DEPLOY-GUIDE.md` — Step-by-step deployment guide (4 modes: dev/prod/shared-vps/docker)
+- `docs/DESIGN-SYSTEM.md` — UI design system documentation
+- `docs/erd.md` — Entity relationship diagram
+- `docs/FLOWS.md` — Business flows (order, payment, auth)
 - `docs/INDEX.md` — This file: project file index
 - `docs/MODULES.md` — Backend modules documentation
+- `docs/TECH-OVERVIEW.md` — Tech stack choices, component roles, scaling
 - `docs/WORKFLOW.md` — Developer workflow guide
+- `docs/adr/` — Architecture Decision Records (13 ADRs)
 
 ---
 

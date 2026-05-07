@@ -69,7 +69,7 @@ jobs:
           echo ""
           echo "=== Upload nginx config BEFORE starting nginx ==="
           sshpass -e ssh -p $PORT $VPS "mkdir -p /opt/infra/nginx/conf.d"
-          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf \
+          sshpass -e scp -P $PORT infra/nginx/conf.d/template.bhquan.store.conf \
             $VPS:/opt/infra/nginx/conf.d/template.bhquan.store.conf
 
           echo ""

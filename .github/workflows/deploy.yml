@@ -198,7 +198,7 @@ jobs:
             sshpass -e ssh -p $PORT $VPS "tar xzf - -C ${APP_DIR}/"
 
           echo "  Uploading nginx conf.d + db..."
-          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
+          sshpass -e scp -P $PORT infra/nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
           sshpass -e scp -P $PORT -r db/ $VPS:${APP_DIR}/db/ 2>/dev/null || true
 
           echo "[OK] Full project uploaded"
@@ -458,7 +458,7 @@ jobs:
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
           sshpass -e ssh -p $PORT $VPS "mkdir -p ${INFRA_DIR}/nginx/conf.d"
-          sshpass -e scp -P $PORT nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
+          sshpass -e scp -P $PORT infra/nginx/conf.d/template.bhquan.store.conf $VPS:${INFRA_DIR}/nginx/conf.d/template.bhquan.store.conf
           sshpass -e ssh -p $PORT $VPS "
             DC='docker compose -f ${INFRA_DIR}/docker-compose.yml'
             CERT_VALID=\$(\$DC run --rm --entrypoint '' certbot sh -c \

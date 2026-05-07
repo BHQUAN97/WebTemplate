@@ -1,0 +1,48 @@
+version: "3.8"
+
+# ─────────────────────────────────────────────────────────────
+# DEV OVERRIDE — hot-reload backend + frontend
+# Dùng khi chạy BE/FE trong Docker có volume mount (hot-reload)
+#
+# Cách dùng:
+#   docker compose -f docker-compose.yml -f docker-compose.dev.yml up -d
+#
+# Khi chạy BE/FE natively (npm run start:dev):
+#   docker compose up mysql redis -d  (chỉ cần infra)
+# ─────────────────────────────────────────────────────────────
+
+services:
+  mysql:
+    ports:
+      - "127.0.0.1:6002:3306"
+
+  redis:
+    ports:
+      - "127.0.0.1:6003:6379"
+
+  backend:
+    build:
+      context: ./backend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ./backend/src:/app/src:ro
+    environment:
+      NODE_ENV: development
+    command: npm run start:dev
+    ports:
+      - "127.0.0.1:6001:6001"
+
+  frontend:
+    build:
+      context: ./frontend
+      dockerfile: Dockerfile
+      target: development
+    volumes:
+      - ./frontend/src:/app/src:ro
+    environment:
+      NODE_ENV: development
+      NEXT_TELEMETRY_DISABLED: "1"
+    command: npm run dev
+    ports:
+      - "127.0.0.1:6000:6000"

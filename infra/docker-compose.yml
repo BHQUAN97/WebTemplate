@@ -1,0 +1,83 @@
+# ============================================
+# SHARED INFRASTRUCTURE — MySQL + Redis + Nginx + Certbot
+# Dung chung cho tat ca projects (WebPhoto, VietNet, FashionEcom, LeQuyDon, WebTemplate)
+# Deploy tai /opt/infra/ tren VPS — bat ky project nao deploy truoc se start infra nay
+# ============================================
+
+services:
+
+  mysql:
+    image: mysql:8.0
+    container_name: shared-mysql
+    restart: always
+    environment:
+      MYSQL_ROOT_PASSWORD: ${MYSQL_ROOT_PASSWORD}
+    volumes:
+      - mysql_data:/var/lib/mysql
+    command: >
+      --default-authentication-plugin=mysql_native_password
+      --innodb-buffer-pool-size=256M
+      --max-connections=100
+      --character-set-server=utf8mb4
+      --collation-server=utf8mb4_unicode_ci
+    healthcheck:
+      test: ['CMD', 'mysqladmin', 'ping', '-h', 'localhost']
+      interval: 10s
+      timeout: 5s
+      retries: 10
+    networks:
+      - webphoto_backend
+
+  redis:
+    image: redis:7-alpine
+    container_name: shared-redis
+    restart: always
+    command: redis-server --maxmemory 128mb --maxmemory-policy noeviction --appendonly yes
+    volumes:
+      - redis_data:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 10s
+      timeout: 5s
+      retries: 5
+    networks:
+      - webphoto_backend
+
+  nginx:
+    image: nginx:1.27-alpine
+    container_name: shared-nginx
+    restart: always
+    ports:
+      - '80:80'
+      - '443:443'
+    volumes:
+      - ./nginx/nginx.conf:/etc/nginx/nginx.conf:ro
+      - ./nginx/conf.d:/etc/nginx/conf.d:ro
+      - /opt/webphoto/photo-storage/dist:/usr/share/nginx/html:ro
+      - shared_certbot_data:/etc/letsencrypt:ro
+      - certbot_webroot:/var/www/certbot:ro
+    networks:
+      - webphoto_backend
+
+  certbot:
+    image: certbot/certbot
+    container_name: infra-certbot
+    volumes:
+      - shared_certbot_data:/etc/letsencrypt
+      - certbot_webroot:/var/www/certbot
+    entrypoint: "/bin/sh -c 'trap exit TERM; while :; do certbot renew; sleep 12h & wait $${!}; done;'"
+
+volumes:
+  mysql_data:
+    name: shared_mysql_data
+  redis_data:
+    name: shared_redis_data
+  shared_certbot_data:
+    name: shared_certbot_data
+  certbot_webroot:
+    name: certbot_webroot
+
+networks:
+  webphoto_backend:
+    name: webphoto_backend
+    external: true

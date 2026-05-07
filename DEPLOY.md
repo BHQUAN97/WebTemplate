@@ -1,6 +1,38 @@
 # WEB TEMPLATE — DEPLOYMENT GUIDE
 
-> Deploy: SSH password auth | Stack: Static/template project
+> Domain: template.bhquan.store | VPS: 134.122.21.251 | Stack: NestJS + Next.js + MySQL + Redis
+
+---
+
+## Kiến trúc Production
+
+```
+  VPS Ubuntu (134.122.21.251)
+  ┌──────────────────────────────────────────────┐
+  │  shared-nginx (Docker) :80/:443               │
+  │  └─ template.bhquan.store → wt-backend + fe  │
+  │                                               │
+  │  WebTemplate (/opt/webtemplate)               │
+  │  ├─ wt-backend  :6001 (NestJS)               │
+  │  └─ wt-frontend :6000 (Next.js)              │
+  │                                               │
+  │  Shared infra (/opt/infra)                    │
+  │  ├─ shared-mysql  :3306                        │
+  │  │   └─ DB: webtemplate                        │
+  │  └─ shared-redis  :6379                        │
+  │                                               │
+  │  Docker Networks                              │
+  │  ├─ webphoto_backend      (mysql, redis)      │
+  │  └─ webtemplate_frontend  (nginx, wt)         │
+  └──────────────────────────────────────────────┘
+```
+
+### Nginx routing
+
+Config: `/opt/infra/nginx/conf.d/template.bhquan.store.conf`
+- `/api/*` → `http://wt-backend:6001`
+- `/_next/static/*` → `http://wt-frontend:6000` (365d cache)
+- `/*` → `http://wt-frontend:6000`
 
 ---
 
@@ -14,18 +46,23 @@ Secrets được lưu trong **repo settings** — không commit lên git.
 | `VPS_PORT` | SSH port: `22` |
 | `VPS_USER` | SSH user: `root` |
 | `VPS_PASSWORD` | Mật khẩu SSH VPS |
-| `DEPLOY_PATH` | Path trên VPS (vd: `/opt/webtemplate`) |
+| `MYSQL_ROOT_PASSWORD` | Root password shared-mysql |
+| `WT_DB_PASSWORD` | Password user `webtemplate` trong MySQL |
+| `JWT_ACCESS_SECRET` | JWT access token secret |
+| `JWT_REFRESH_SECRET` | JWT refresh token secret |
+| `JWT_RESET_SECRET` | JWT reset password secret |
+| `RESEND_API_KEY` | Resend email API key |
+| `S3_ENDPOINT` | Cloudflare R2 endpoint |
+| `WT_S3_BUCKET` | R2 bucket name |
+| `S3_ACCESS_KEY` | R2 access key |
+| `S3_SECRET_KEY` | R2 secret key |
+| `WT_S3_PUBLIC_URL` | R2 public URL |
 
 ### Thêm/cập nhật secret nhanh qua CLI
 
 ```bash
-# Không cần vào GitHub UI — dùng gh CLI
 gh secret set VPS_PASSWORD --body "mat_khau_moi" --repo BHQUAN97/WebTemplate
-
-# Thêm secret mới
-gh secret set DEPLOY_PATH --body "/opt/webtemplate" --repo BHQUAN97/WebTemplate
-
-# Xem danh sách secrets (chỉ thấy tên, không thấy giá trị)
+gh secret set WT_DB_PASSWORD --body "db_pass_moi" --repo BHQUAN97/WebTemplate
 gh secret list --repo BHQUAN97/WebTemplate
 ```
 
@@ -33,7 +70,7 @@ gh secret list --repo BHQUAN97/WebTemplate
 
 ## Checklist trước khi deploy
 
-- [ ] `gh secret list --repo BHQUAN97/WebTemplate` hiện đủ 5 secrets
+- [ ] `gh secret list --repo BHQUAN97/WebTemplate` hiện đủ 15 secrets
 - [ ] Push code lên `main` → Actions chạy tự động
 - [ ] Xem progress: `gh run watch --repo BHQUAN97/WebTemplate`
 
@@ -43,14 +80,34 @@ gh secret list --repo BHQUAN97/WebTemplate
 
 ## Deploy
 
-### Tự động
+### Tự động (Khuyên dùng)
 
-- **Push tag `v*`** (vd: `git tag v1.0.0 && git push --tags`) → deploy lên `prod`
-- **Manual**: GitHub Actions tab → Deploy → Run workflow → chọn `staging` hoặc `prod`
+Push lên nhánh `main` → GitHub Actions tự động chạy:
+1. Typecheck FE + BE (song song)
+2. Detect changes (init vs update)
+3. Upload + build + start trên VPS
+4. DB migrations (TypeORM)
+5. Health check
 
-### Cách deploy
+### Lần đầu deploy (INIT mode)
 
-Workflow sẽ SSH vào VPS, `git pull`, rồi chạy `./deploy.sh <env>`. Script `deploy.sh` ở trong repo — tùy chỉnh theo nhu cầu.
+Khi `/opt/webtemplate/docker-compose.prod.yml` chưa tồn tại trên VPS, pipeline sẽ tự động:
+- Upload toàn bộ source code
+- Start shared-mysql + shared-redis (nếu chưa chạy)
+- Tạo DB `webtemplate` và user
+- Lấy SSL cert cho `template.bhquan.store`
+- Build và start `wt-backend` + `wt-frontend`
+- Chạy TypeORM migrations
+
+### Cập nhật code (UPDATE mode)
+
+Chỉ upload và rebuild phần thay đổi (FE / BE / infra / DB).
+
+### Manual — không cần push code
+
+```bash
+gh workflow run deploy.yml --repo BHQUAN97/WebTemplate
+```
 
 ---
 
@@ -60,9 +117,39 @@ Workflow sẽ SSH vào VPS, `git pull`, rồi chạy `./deploy.sh <env>`. Script
 ssh root@134.122.21.251
 cd /opt/webtemplate
 
-# Xem trạng thái
-git log --oneline -5
+# Xem logs
+docker logs wt-backend --tail 50 -f
+docker logs wt-frontend --tail 50 -f
 
-# Chạy deploy thủ công
-./deploy.sh prod
+# Restart
+docker compose -f docker-compose.prod.yml restart backend frontend
+
+# DB access
+docker exec -it shared-mysql mysql -u webtemplate -p webtemplate
+
+# Nginx reload
+docker exec shared-nginx nginx -t && docker exec shared-nginx nginx -s reload
+```
+
+---
+
+## Troubleshooting
+
+```bash
+# Backend không start
+docker logs wt-backend --tail 30
+docker inspect wt-backend --format '{{.State.Status}} ExitCode:{{.State.ExitCode}}'
+
+# 502 Bad Gateway — kiểm tra network
+docker inspect shared-nginx --format '{{range $k,$v := .NetworkSettings.Networks}}{{$k}} {{end}}'
+# Phải có: webtemplate_frontend
+# Nếu thiếu:
+docker network connect webtemplate_frontend shared-nginx
+docker exec shared-nginx nginx -s reload
+
+# SSL cert hết hạn
+gh workflow run ssl-renew.yml --repo BHQUAN97/WebTemplate
+
+# Nginx crash toàn bộ (ảnh hưởng mọi site)
+gh workflow run fix-nginx.yml --repo BHQUAN97/WebTemplate
 ```

@@ -50,6 +50,14 @@ desktop.ini
 uploads/
 backups/
 
+# Logs directory
+logs/
+# Exception: admin logs page is source code, not logs
+!frontend/src/app/admin/logs/
+
+# Test artifacts
+frontend/test-results/
+
 # Secrets
 *.pem
 *.key
