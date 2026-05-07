@@ -15,10 +15,7 @@ import { BaseEntity } from '../../../common/entities/base.entity.js';
 @Index(['tenant_id', 'status'])
 export class Page extends BaseEntity {
   @Column({ type: 'varchar', length: 200 })
-  title: string;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 220, unique: true })
+  title: string;  @Column({ type: 'varchar', length: 220, unique: true })
   slug: string;
 
   @Column({ type: 'longtext' })

@@ -5,9 +5,7 @@ import { BaseEntity } from '../../../common/entities/base.entity.js';
  * Locale — ngon ngu duoc ho tro trong he thong.
  */
 @Entity('locales')
-export class Locale extends BaseEntity {
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 10, unique: true })
+export class Locale extends BaseEntity {  @Column({ type: 'varchar', length: 10, unique: true })
   code: string;
 
   @Column({ type: 'varchar', length: 50 })

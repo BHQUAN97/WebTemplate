@@ -7,9 +7,7 @@ import { BaseEntity } from '../../../common/entities/base.entity.js';
 @Entity('promotions')
 @Index(['tenant_id', 'is_active'])
 @Index(['start_date', 'end_date'])
-export class Promotion extends BaseEntity {
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, unique: true })
+export class Promotion extends BaseEntity {  @Column({ type: 'varchar', length: 50, unique: true })
   code: string;
 
   @Column({ type: 'varchar', length: 200 })

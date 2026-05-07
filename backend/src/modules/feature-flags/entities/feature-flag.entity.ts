@@ -10,9 +10,7 @@ import { BaseEntity } from '../../../common/entities/base.entity.js';
  *  - key='beta_admin_ui', enabled=true, target_roles=['admin'] -> chi admin thay
  */
 @Entity('feature_flags')
-export class FeatureFlag extends BaseEntity {
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 100, unique: true })
+export class FeatureFlag extends BaseEntity {  @Column({ type: 'varchar', length: 100, unique: true })
   key: string;
 
   @Column({ type: 'boolean', default: false })

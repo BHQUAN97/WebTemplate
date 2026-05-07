@@ -11,20 +11,14 @@ import { ProductVariant } from './product-variant.entity.js';
 @Index(['category_id', 'is_active'])
 export class Product extends BaseEntity {
   @Column({ type: 'varchar', length: 200 })
-  name: string;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 220, unique: true })
+  name: string;  @Column({ type: 'varchar', length: 220, unique: true })
   slug: string;
 
   @Column({ type: 'text' })
   description: string;
 
   @Column({ type: 'varchar', length: 500, nullable: true })
-  short_description: string | null;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
+  short_description: string | null;  @Column({ type: 'varchar', length: 50, unique: true, nullable: true })
   sku: string | null;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })

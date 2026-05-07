@@ -10,10 +10,7 @@ import { ArticleStatus } from '../../../common/constants/index.js';
 @Index(['tenant_id', 'published_at'])
 export class Article extends BaseEntity {
   @Column({ type: 'varchar', length: 300 })
-  title: string;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 320, unique: true })
+  title: string;  @Column({ type: 'varchar', length: 320, unique: true })
   slug: string;
 
   @Column({ type: 'longtext' })

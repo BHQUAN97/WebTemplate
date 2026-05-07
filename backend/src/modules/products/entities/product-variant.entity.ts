@@ -13,10 +13,7 @@ export class ProductVariant extends BaseEntity {
   product_id: string;
 
   @Column({ type: 'varchar', length: 200 })
-  name: string;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 50, unique: true })
+  name: string;  @Column({ type: 'varchar', length: 50, unique: true })
   sku: string;
 
   @Column({ type: 'decimal', precision: 12, scale: 2 })

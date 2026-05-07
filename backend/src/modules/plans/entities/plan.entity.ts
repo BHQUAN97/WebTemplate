@@ -29,10 +29,7 @@ export interface PlanFeatures {
 @Entity('plans')
 export class Plan extends BaseEntity {
   @Column({ type: 'varchar', length: 100 })
-  name: string;
-
-  @Index({ unique: true })
-  @Column({ type: 'varchar', length: 120, unique: true })
+  name: string;  @Column({ type: 'varchar', length: 120, unique: true })
   slug: string;
 
   @Column({ type: 'text', nullable: true })
