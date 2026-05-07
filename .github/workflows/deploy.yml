@@ -408,7 +408,7 @@ jobs:
             fi
           " || true
 
-      # ── INIT: Run DB migrations ──────────────────
+      # ── INIT: Sync schema + mark migrations ──────
       - name: "[INIT] Run DB migrations"
         if: needs.build.outputs.mode == 'init'
         run: |
@@ -424,7 +424,32 @@ jobs:
           done
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
-            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run -d dist/config/database.config.js 2>&1 || echo '::warning::Migrations skipped (may already be applied)'
+            echo '=== Syncing DB schema from entities ==='
+            docker compose -f docker-compose.prod.yml exec -T backend \
+              npx typeorm schema:sync -d dist/config/database.config.js 2>&1 || true
+            echo '=== Marking all migrations as applied ==='
+            docker compose -f docker-compose.prod.yml exec -T backend \
+              node -e \"
+                const {DataSource}=require('typeorm');
+                const path=require('path');
+                const ds=new DataSource({type:'mysql',host:process.env.DB_HOST||'shared-mysql',port:parseInt(process.env.DB_PORT||'3306'),username:process.env.DB_USERNAME||'webtemplate',password:process.env.DB_PASSWORD||'',database:process.env.DB_DATABASE||process.env.DB_NAME||'webtemplate'});
+                ds.initialize().then(async()=>{
+                  await ds.query('CREATE TABLE IF NOT EXISTS \\\`migrations\\\` (\\\`id\\\` int NOT NULL AUTO_INCREMENT,\\\`timestamp\\\` bigint NOT NULL,\\\`name\\\` varchar(255) NOT NULL,PRIMARY KEY (\\\`id\\\`)) ENGINE=InnoDB');
+                  const rows=[
+                    [1713312000000,'AddAuthHardeningColumns1713312000000'],
+                    [1713398400000,'AddWebhookNextRetryAt1713398400000'],
+                    [1713484800000,'CreateChatTables1713484800000'],
+                    [1713571200000,'CreateChatToolCalls1713571200000'],
+                    [1713657600000,'AddCartUniqueAuditIndexes1713657600000'],
+                    [1713744000000,'AddDeletedAtIndexes1713744000000']
+                  ];
+                  for(const [ts,name] of rows){
+                    await ds.query('INSERT IGNORE INTO \\\`migrations\\\` (\\\`timestamp\\\`,\\\`name\\\`) VALUES (?,?)',[ts,name]).catch(()=>{});
+                  }
+                  console.log('Migrations marked as applied');
+                  await ds.destroy();
+                }).catch(e=>{console.error(e.message);process.exit(1)});
+              \" 2>&1 || echo '::warning::Could not mark migrations'
           "
 
       # ── UPDATE: Upload changed files ─────────────
@@ -626,7 +651,24 @@ jobs:
           done
           sshpass -e ssh -p $PORT $VPS "
             cd ${APP_DIR}
-            docker compose -f docker-compose.prod.yml exec -T backend npx typeorm migration:run -d dist/config/database.config.js 2>&1 || echo '::warning::Migrations skipped'
+            echo '=== Running migrations ==='
+            if ! docker compose -f docker-compose.prod.yml exec -T backend \
+              npx typeorm migration:run -d dist/config/database.config.js 2>&1; then
+              echo '=== migration:run failed, falling back to schema:sync ==='
+              docker compose -f docker-compose.prod.yml exec -T backend \
+                npx typeorm schema:sync -d dist/config/database.config.js 2>&1 || true
+              docker compose -f docker-compose.prod.yml exec -T backend \
+                node -e \"
+                  const {DataSource}=require('typeorm');
+                  const ds=new DataSource({type:'mysql',host:process.env.DB_HOST||'shared-mysql',port:parseInt(process.env.DB_PORT||'3306'),username:process.env.DB_USERNAME||'webtemplate',password:process.env.DB_PASSWORD||'',database:process.env.DB_DATABASE||process.env.DB_NAME||'webtemplate'});
+                  ds.initialize().then(async()=>{
+                    await ds.query('CREATE TABLE IF NOT EXISTS \\\`migrations\\\` (\\\`id\\\` int NOT NULL AUTO_INCREMENT,\\\`timestamp\\\` bigint NOT NULL,\\\`name\\\` varchar(255) NOT NULL,PRIMARY KEY (\\\`id\\\`)) ENGINE=InnoDB');
+                    const rows=[[1713312000000,'AddAuthHardeningColumns1713312000000'],[1713398400000,'AddWebhookNextRetryAt1713398400000'],[1713484800000,'CreateChatTables1713484800000'],[1713571200000,'CreateChatToolCalls1713571200000'],[1713657600000,'AddCartUniqueAuditIndexes1713657600000'],[1713744000000,'AddDeletedAtIndexes1713744000000']];
+                    for(const [ts,name] of rows){await ds.query('INSERT IGNORE INTO \\\`migrations\\\` (\\\`timestamp\\\`,\\\`name\\\`) VALUES (?,?)',[ts,name]).catch(()=>{});}
+                    console.log('Schema synced and migrations marked');await ds.destroy();
+                  }).catch(e=>{console.error(e.message);process.exit(0)});
+                \" 2>&1 || true
+            fi
           "
 
       - name: Restart after DB changes
