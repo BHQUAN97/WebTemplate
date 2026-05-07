@@ -25,10 +25,10 @@ export function getDatabaseConfig(): TypeOrmModuleOptions {
     synchronize:
       process.env.NODE_ENV === 'development' &&
       process.env.TYPEORM_SYNC === 'true',
-    // Migrations path — can thiet de migrationsRun:true tim duoc file .js da compile
+    // Migrations path — can thiet cho CLI (typeorm migration:run -d dist/config/database.config.js)
+    // migrationsRun:false vi chua co initial migration cho base tables — CI chay migration rieng
     migrations: [join(__dirname, '..', 'database', 'migrations', '*.js')],
-    // Tu dong chay migration khi khoi dong production — dam bao schema luon up-to-date
-    migrationsRun: process.env.NODE_ENV === 'production',
+    migrationsRun: false,
     logging: process.env.DB_LOGGING === 'true',
     timezone: '+07:00',
   };
