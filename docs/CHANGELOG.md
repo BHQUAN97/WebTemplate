@@ -4,6 +4,19 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.2] - 2026-05-07 — CI robustness: docker cp + admin seed automation
+
+### Fixed
+
+**INIT deploy (fresh VPS)**
+- `.github/workflows/deploy.yml`: thay thế inline Node.js `\\\`` escaping trong SSH bằng `docker cp` script file — tránh hoàn toàn shell escaping issues trong nested SSH → docker exec chains
+- `.github/workflows/deploy.yml` (INIT): thêm bước seed admin user sau `schema:sync` — trước đây fresh VPS không có user nào, không thể login ngay sau deploy
+
+**UPDATE deploy**
+- `.github/workflows/deploy.yml`: cùng fix `docker cp` approach cho UPDATE fallback migration-marking script
+
+---
+
 ## [1.2.1] - 2026-05-07 — Deploy & bootstrap fixes
 
 ### Fixed
