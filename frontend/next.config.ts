@@ -8,6 +8,7 @@ const withNextIntl = createNextIntlPlugin('./src/i18n/request.ts');
 const nextConfig: NextConfig = {
   // Standalone output cho Docker deploy
   output: 'standalone',
+  // Force rebuild 2026-05-07
 
   // Allowed image domains — chi cho phep CDN tin cay (chong SSRF + tranh proxy abuse).
   // Override via env IMAGE_HOSTS (comma-separated) cho prod custom CDN.
