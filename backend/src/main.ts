@@ -22,6 +22,8 @@ async function bootstrap() {
   const env = configService.get<string>('app.env') || 'development';
   const logger = new Logger('Bootstrap');
 
+  // Force rebuild on 2026-05-07 — recover unhealthy backend
+
   // Security headers — cho phep iframe tu cung domain
   app.use(
     helmet({
