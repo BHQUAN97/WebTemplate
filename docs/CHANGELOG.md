@@ -4,6 +4,26 @@ All notable changes to this project will be documented in this file.
 
 The format is based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.2.1] - 2026-05-07 — Deploy & bootstrap fixes
+
+### Fixed
+
+**Production deploy**
+- `frontend/Dockerfile`: xóa hardcode `NEXT_PUBLIC_API_URL=http://backend:6001/api` (internal Docker hostname — browser không resolve được); thay bằng `ARG NEXT_PUBLIC_API_URL=/api` nhận từ build arg, mặc định `/api` cho nginx proxy
+- `frontend/lib/api/client.ts`: `buildUrl()` dùng `new URL(endpoint, relativeBase)` ném `TypeError` khi base không phải absolute URL; thay bằng string concat `${base}${path}` — fix toàn bộ API call từ browser
+- `backend/config/database.config.ts`: thêm `migrations` path vào `getDatabaseConfig()` (cần cho TypeORM CLI); đổi `migrationsRun: true → false` — `migrationsRun: true` crash NestJS trên DB trống vì `AddAuthHardeningColumns` chạy trước khi `users` table tồn tại
+- `.github/workflows/deploy.yml`: thêm `-d dist/config/database.config.js` vào `typeorm migration:run` (thiếu flag → CLI không biết DataSource, migration không bao giờ chạy)
+- `.github/workflows/deploy.yml`: fix pattern phát hiện thay đổi DB — thêm `backend/src/database/migrations/` vào regex (trước chỉ có `entity` files) → migration mới không trigger migration step
+- `.github/workflows/deploy.yml`: migration step chạy cả khi `be=true` (không chỉ `db=true`)
+
+**DB bootstrap (empty database)**
+- `.github/workflows/deploy.yml`: thêm fallback `schema:sync` khi `migration:run` fail — tạo toàn bộ schema từ entities rồi INSERT IGNORE records vào `migrations` table để future migrations chạy đúng; áp dụng cả INIT lẫn UPDATE flow
+
+**UI**
+- `frontend/components/ui/input.tsx`: thêm `text-gray-900` — Tailwind v4 không auto-inherit text color vào `<input>` từ `body`, gây chữ trắng trên nền trắng
+
+---
+
 ## [1.2.0] - 2026-04-17 — Comprehensive review + hardening (6 rounds, ~80 fixes)
 
 Audit toàn diện kiến trúc, syntax, logic, nghiệp vụ, hiệu năng, security, UX qua 6 rounds với multiple AI agents song song. **Tất cả Critical/High đã fix; backend + frontend typecheck pass.**
