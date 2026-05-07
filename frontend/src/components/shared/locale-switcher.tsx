@@ -34,6 +34,7 @@ export function LocaleSwitcher() {
     if (next === locale) return;
 
     // Luu vao cookie — next-intl se doc o request tiep theo
+    // eslint-disable-next-line react-hooks/immutability
     document.cookie = `NEXT_LOCALE=${next}; path=/; max-age=31536000; SameSite=Lax`;
 
     // Sync Zustand store

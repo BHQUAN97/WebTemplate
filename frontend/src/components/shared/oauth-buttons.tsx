@@ -106,6 +106,7 @@ export function OAuthButtons({ mode = 'login', className }: OAuthButtonsProps) {
     if (disabled || loading) return;
     setLoading(provider);
     // Redirect toan trang — state loading giu den khi browser roi khoi page
+    // eslint-disable-next-line react-hooks/immutability
     window.location.href = `${API_URL}/api/auth/oauth/${provider}`;
   };
 
