@@ -27,8 +27,6 @@ const eslintConfig = defineConfig([
       "@next/next/no-html-link-for-pages": "warn",
       // standard hydration pattern: useEffect(() => setState(x), []) is valid
       "react-hooks/set-state-in-effect": "warn",
-      // react compiler optimization hints — not blocking
-      "react-compiler/react-compiler": "warn",
     },
   },
 ]);

@@ -141,6 +141,7 @@ export default function NavigationPage() {
   const topLevelItems = items
     .filter((i) => !i.parent_id)
     .sort((a, b) => a.sort_order - b.sort_order);
+  // eslint-disable-next-line react-compiler/react-compiler
   const childrenByParent = useMemo(() => {
     const m = new Map<string, NavigationItem[]>();
     items.forEach((i) => {

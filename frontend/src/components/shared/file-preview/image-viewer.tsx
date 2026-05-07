@@ -108,6 +108,7 @@ export function ImageViewer({ url, alt }: ImageViewerProps) {
           className="max-w-full max-h-[70vh] select-none"
           style={{
             transform: `translate(${pos.x}px, ${pos.y}px) scale(${scale}) rotate(${rotation}deg)`,
+            // eslint-disable-next-line react-compiler/react-compiler
             transition: dragState.current.dragging ? 'none' : 'transform 0.1s',
           }}
           draggable={false}
