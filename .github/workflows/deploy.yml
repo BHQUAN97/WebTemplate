@@ -554,6 +554,9 @@ jobs:
             exit 1
           fi
           sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d backend 2>&1"
+          echo "=== Backend status after restart ==="
+          sleep 3
+          sshpass -e ssh -p $PORT $VPS "docker ps -a --filter name=wt-backend --format 'table {{.Names}}\t{{.Status}}' && docker logs wt-backend --tail 30" 2>&1
 
       - name: "[UPDATE] Rebuild frontend"
         if: needs.build.outputs.mode == 'update' && (needs.build.outputs.fe == 'true' || needs.build.outputs.infra == 'true')
@@ -569,6 +572,9 @@ jobs:
             exit 1
           fi
           sshpass -e ssh -p $PORT $VPS "cd ${APP_DIR} && docker compose -f docker-compose.prod.yml up -d frontend 2>&1"
+          echo "=== Container status after frontend restart ==="
+          sleep 3
+          sshpass -e ssh -p $PORT $VPS "docker ps -a --filter name=wt- --format 'table {{.Names}}\t{{.Status}}' && echo '=== Frontend logs ===' && docker logs wt-frontend --tail 20" 2>&1
 
       - name: "[UPDATE] Ensure nginx connected"
         if: needs.build.outputs.mode == 'update'

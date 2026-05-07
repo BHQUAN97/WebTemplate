@@ -39,7 +39,7 @@ export class CustomValidationPipe extends ValidationPipe {
     super({
       transform: true,
       whitelist: true,
-      forbidNonWhitelisted: true,
+      // forbidNonWhitelisted: true, // Too strict — strip unknown fields instead of rejecting
       transformOptions: {
         enableImplicitConversion: true,
       },
