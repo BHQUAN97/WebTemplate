@@ -17,7 +17,6 @@ import { RefreshToken } from '../../auth/entities/refresh-token.entity.js';
 @Entity('users')
 @Index(['tenant_id'])
 @Index(['role'])
-@Index(['deleted_at'])
 export class User extends BaseEntity {
   @Column({ type: 'varchar', length: 255, unique: true })
   email: string;
