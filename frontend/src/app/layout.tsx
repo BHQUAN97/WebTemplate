@@ -4,7 +4,7 @@ import { NextIntlClientProvider } from 'next-intl';
 import { getLocale, getMessages } from 'next-intl/server';
 import './globals.css';
 import { Toaster } from '@/components/ui/toaster';
-import { ThêmeProvider } from '@/components/providers/theme-provider';
+import { ThemeProvider } from '@/components/providers/theme-provider';
 import { CommandPaletteProvider } from '@/components/providers/command-palette-provider';
 import { ServiceWorkerProvider } from '@/components/providers/service-worker-provider';
 import { CookieConsent } from '@/components/shared/cookie-consent';
@@ -88,7 +88,7 @@ export default async function RootLayout({
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <JsonLd data={organizationJsonLd()} />
         <JsonLd data={websiteJsonLd()} />
-        <ThêmeProvider>
+        <ThemeProvider>
           <NextIntlClientProvider locale={locale} messages={messages}>
             <CommandPaletteProvider>
               <ServiceWorkerProvider>{children}</ServiceWorkerProvider>
@@ -97,7 +97,7 @@ export default async function RootLayout({
             <PWAInstallPrompt />
             <Toaster />
           </NextIntlClientProvider>
-        </ThêmeProvider>
+        </ThemeProvider>
       </body>
     </html>
   );

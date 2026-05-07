@@ -4,7 +4,7 @@ import Link from 'next/link';
 import { useState } from 'react';
 import { ShoppingCart, User, Menu, X, Search } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { ThêmeToggle } from '@/components/shared/theme-toggle';
+import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { useCartStore } from '@/lib/stores/cart-store';
 import { useAuthStore } from '@/lib/stores/auth-store';
 
@@ -55,7 +55,7 @@ export function PublicHeader() {
               </Button>
             </Link>
 
-            <ThêmeToggle />
+            <ThemeToggle />
 
             <Link href="/cart" className="relative">
               <Button variant="ghost" size="icon" aria-label="Gio hang">

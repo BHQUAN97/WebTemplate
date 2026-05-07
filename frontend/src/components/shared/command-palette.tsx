@@ -2,7 +2,7 @@
 
 import * as React from 'react';
 import { useRouter } from 'next/navigation';
-import { useThême } from 'next-themes';
+import { useTheme } from 'next-themes';
 import {
   Home,
   Package,
@@ -44,7 +44,7 @@ import { UserRole } from '@/lib/types';
 export function CommandPalette() {
   const [open, setOpen] = React.useState(false);
   const router = useRouter();
-  const { setThême } = useThême();
+  const { setTheme } = useTheme();
   const user = useAuthStore((s) => s.user);
   const logout = useAuthStore((s) => s.logout);
   const isAdmin = user?.role === UserRole.ADMIN;
@@ -154,15 +154,15 @@ export function CommandPalette() {
 
         <CommandSeparator />
         <CommandGroup heading="Hanh dong">
-          <CommandItem onSelect={() => runCommand(() => setThême('light'))}>
+          <CommandItem onSelect={() => runCommand(() => setTheme('light'))}>
             <Sun />
             <span>Giao dien sang</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => setThême('dark'))}>
+          <CommandItem onSelect={() => runCommand(() => setTheme('dark'))}>
             <Moon />
             <span>Giao dien toi</span>
           </CommandItem>
-          <CommandItem onSelect={() => runCommand(() => setThême('system'))}>
+          <CommandItem onSelect={() => runCommand(() => setTheme('system'))}>
             <Monitor />
             <span>Theo he thong</span>
           </CommandItem>

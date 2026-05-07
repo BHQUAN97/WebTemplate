@@ -13,7 +13,7 @@ import {
   DropdownMenuSeparator,
   DropdownMenuLabel,
 } from '@/components/ui/dropdown-menu';
-import { ThêmeToggle } from '@/components/shared/theme-toggle';
+import { ThemeToggle } from '@/components/shared/theme-toggle';
 import { NotificationBell } from '@/components/shared/notification-bell';
 import { useAuthStore } from '@/lib/stores/auth-store';
 import { useUIStore } from '@/lib/stores/ui.store';
@@ -49,7 +49,7 @@ export function AdminTopbar() {
 
       {/* Right side */}
       <div className="flex items-center gap-2 ml-auto">
-        <ThêmeToggle />
+        <ThemeToggle />
 
         {/* Notifications bell voi dropdown */}
         <NotificationBell />
