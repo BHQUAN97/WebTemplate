@@ -28,11 +28,9 @@ export class Order extends BaseEntity {
   @Column({ type: 'varchar', length: 20, unique: true })
   order_number: string;
 
-  @Index()
   @Column({ type: 'char', length: 26 })
   user_id: string;
 
-  @Index()
   @Column({
     type: 'enum',
     enum: OrderStatus,
@@ -79,7 +77,6 @@ export class Order extends BaseEntity {
   @Column({ type: 'timestamp', nullable: true })
   delivered_at: Date | null;
 
-  @Index()
   @Column({ type: 'char', length: 26, nullable: true })
   tenant_id: string | null;
 
