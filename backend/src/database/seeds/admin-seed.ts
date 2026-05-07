@@ -1,12 +1,11 @@
 import { DataSource } from 'typeorm';
-import { User } from '../../modules/users/entities/user.entity.js';
 import { UserRole } from '../../common/constants/index.js';
 import { hashPassword } from '../../common/utils/hash.js';
 import { generateUlid } from '../../common/utils/ulid.js';
 
 /**
  * Seed admin user mac dinh.
- * Chay: npx ts-node src/database/seeds/admin-seed.ts
+ * Dung raw SQL de tranh TypeORM metadata issues.
  */
 async function seedAdmin() {
   const dataSource = new DataSource({
@@ -16,19 +15,16 @@ async function seedAdmin() {
     username: process.env.DB_USERNAME || 'root',
     password: process.env.DB_PASSWORD || '',
     database: process.env.DB_DATABASE || 'webtemplate',
-    entities: [User],
-    synchronize: true,
   });
 
   await dataSource.initialize();
   console.log('Database connected');
 
-  const userRepo = dataSource.getRepository(User);
-
   // Kiem tra admin da ton tai chua
-  const existing = await userRepo.findOne({
-    where: { email: 'admin@webtemplate.com' },
-  });
+  const [existing] = await dataSource.query(
+    'SELECT id FROM users WHERE email = ? LIMIT 1',
+    ['admin@webtemplate.com']
+  );
 
   if (existing) {
     console.log('Admin user already exists, skipping seed');
@@ -36,19 +32,16 @@ async function seedAdmin() {
     return;
   }
 
+  const id = generateUlid();
   const passwordHash = await hashPassword('Admin@123');
+  const now = new Date();
 
-  const admin = userRepo.create({
-    id: generateUlid(),
-    email: 'admin@webtemplate.com',
-    password_hash: passwordHash,
-    name: 'Admin',
-    role: UserRole.ADMIN,
-    is_active: true,
-    is_email_verified: true,
-  });
+  await dataSource.query(
+    `INSERT INTO users (id, email, password_hash, name, role, is_active, is_email_verified, created_at, updated_at)
+     VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+    [id, 'admin@webtemplate.com', passwordHash, 'Admin', UserRole.ADMIN, true, true, now, now]
+  );
 
-  await userRepo.save(admin);
   console.log('Admin user created: admin@webtemplate.com / Admin@123');
 
   await dataSource.destroy();
