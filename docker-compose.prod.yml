@@ -22,7 +22,7 @@ services:
       DB_HOST: shared-mysql
       DB_PORT: 3306
       DB_NAME: webtemplate
-      DB_USER: webtemplate
+      DB_USERNAME: webtemplate
       DB_PASSWORD: ${DB_PASSWORD}
       REDIS_HOST: shared-redis
       REDIS_PORT: 6379

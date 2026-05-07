@@ -149,7 +149,7 @@ jobs:
             echo "DB_HOST=shared-mysql"
             echo "DB_PORT=3306"
             echo "DB_NAME=webtemplate"
-            echo "DB_USER=webtemplate"
+            echo "DB_USERNAME=webtemplate"
             echo "DB_PASSWORD=${WT_DB_PASSWORD}"
             echo "REDIS_HOST=shared-redis"
             echo "REDIS_PORT=6379"
