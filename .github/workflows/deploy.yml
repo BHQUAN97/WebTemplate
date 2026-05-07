@@ -655,6 +655,9 @@ jobs:
               docker cp /tmp/mark-migrations.js wt-backend:/tmp/mark-migrations.js
               docker exec wt-backend node /tmp/mark-migrations.js 2>&1 || true
               docker exec wt-backend rm -f /tmp/mark-migrations.js
+              echo '=== Seeding admin user ==='
+              docker exec wt-backend node dist/database/seeds/admin-seed.js 2>&1 \
+                || echo '::warning::Admin seed skipped (check dist/database/seeds/admin-seed.js exists)'
             fi
             rm -f /tmp/mark-migrations.js
           "
