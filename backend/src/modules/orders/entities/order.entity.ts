@@ -23,7 +23,6 @@ export interface ShippingAddress {
 @Index(['tenant_id', 'status'])
 @Index(['tenant_id', 'created_at'])
 @Index(['user_id', 'created_at'])
-@Index(['order_number'], { unique: true })
 export class Order extends BaseEntity {
   @Column({ type: 'varchar', length: 20, unique: true })
   order_number: string;
