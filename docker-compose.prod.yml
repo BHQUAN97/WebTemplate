@@ -65,8 +65,7 @@ services:
       NEXT_PUBLIC_SITE_URL: https://template.bhquan.store
       INTERNAL_API_URL: http://wt-backend:6001/api
     depends_on:
-      backend:
-        condition: service_healthy
+      - backend
     healthcheck:
       test: ['CMD-SHELL', 'wget -qO- http://localhost:6000 || exit 1']
       interval: 30s
