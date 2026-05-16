@@ -154,11 +154,11 @@ case "$COMMAND" in
       warn "Admin user already exists — skipping seed"
     else
       info "Creating admin user..."
-      if [ -f "src/database/seeds/admin.seed.ts" ]; then
-        npx ts-node src/database/seeds/admin.seed.ts 2>&1
+      if [ -f "src/database/seeds/admin-seed.ts" ]; then
+        npx ts-node src/database/seeds/admin-seed.ts 2>&1
         log "Admin user seeded"
-      elif [ -f "dist/database/seeds/admin.seed.js" ]; then
-        node dist/database/seeds/admin.seed.js 2>&1
+      elif [ -f "dist/database/seeds/admin-seed.js" ]; then
+        node dist/database/seeds/admin-seed.js 2>&1
         log "Admin user seeded"
       else
         warn "No seed file found — create admin manually"
@@ -168,7 +168,7 @@ case "$COMMAND" in
     if [ -d "src/database/seeds" ]; then
       for seed_file in src/database/seeds/*.seed.ts; do
         [ -f "$seed_file" ] || continue
-        [ "$(basename "$seed_file")" = "admin.seed.ts" ] && continue
+        [ "$(basename "$seed_file")" = "admin-seed.ts" ] && continue
         info "Running seed: $(basename "$seed_file")"
         npx ts-node "$seed_file" 2>/dev/null || warn "Seed failed: $(basename "$seed_file")"
       done

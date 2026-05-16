@@ -11,14 +11,24 @@ import {
   redisConfig,
   storageConfig,
 } from '../src/config/index.js';
+import { TransformInterceptor } from '../src/common/interceptors/transform.interceptor.js';
+import { MockRedisModule, createRedisMock, RedisMock } from './mocks/redis.mock.js';
+import { MockMailModule } from './mocks/mail.mock.js';
+
+export { createRedisMock, RedisMock };
 
 /**
- * Test database config — dung SQLite in-memory de chay nhanh,
- * khong can MySQL thuc.
+ * Test database config — dung MySQL dev container (port 6002).
+ * Drop + sync schema truoc moi test run de dam bao isolation.
+ * SQLite khong ho tro 'char' type cua ULID nen phai dung MySQL.
  */
 export const testDbConfig = {
-  type: 'sqlite' as const,
-  database: ':memory:',
+  type: 'mysql' as const,
+  host: '127.0.0.1',
+  port: 6002,
+  username: 'webtemplate',
+  password: 'devpass_4b97cc16',
+  database: 'webtemplate_test',
   entities: ['src/**/*.entity.ts'],
   synchronize: true,
   dropSchema: true,
@@ -54,6 +64,9 @@ export async function createTestModule(
         secret: 'test-access-secret',
         signOptions: { expiresIn: '15m' },
       }),
+      // Mock modules phai import truoc cac feature modules
+      MockRedisModule,
+      MockMailModule,
       ...modules,
     ],
   });
@@ -71,6 +84,8 @@ export async function createTestModule(
       transform: true,
     }),
   );
+  // Wrap response giong production de test assert dung format
+  app.useGlobalInterceptors(new TransformInterceptor());
 
   await app.init();
 

@@ -1,5 +1,6 @@
 import { INestApplication } from '@nestjs/common';
 import request from 'supertest';
+import { DataSource } from 'typeorm';
 import { AuthModule } from '../src/modules/auth/auth.module.js';
 import { UsersModule } from '../src/modules/users/users.module.js';
 import {
@@ -206,6 +207,101 @@ describe('Auth (e2e)', () => {
         .expect(200);
 
       expect(res.body.data.message).toBe('Logged out successfully');
+    });
+  });
+
+  // ==========================================
+  // ADMIN LOGIN — reproduce VPS bug
+  // Bug: migrate.sh goi admin.seed.ts thay vi admin-seed.ts
+  // → admin user khong ton tai → login tra 401
+  // ==========================================
+  describe('Admin login (reproduce VPS bug)', () => {
+    const ADMIN_EMAIL = 'admin@webtemplate.com';
+    const ADMIN_PASSWORD = 'Admin@123';
+
+    async function seedAdminUser(ds: DataSource) {
+      const bcrypt = await import('bcrypt');
+      const { generateUlid } = await import('../src/common/utils/ulid.js');
+      const id = generateUlid();
+      const hash = await bcrypt.hash(ADMIN_PASSWORD, 10);
+      const now = new Date().toISOString();
+      await ds.query(
+        `INSERT INTO users (id, email, password_hash, name, role, is_active, is_email_verified, created_at, updated_at)
+         VALUES (?, ?, ?, 'Admin', 'admin', 1, 1, ?, ?)`,
+        [id, ADMIN_EMAIL, hash, now, now],
+      );
+    }
+
+    it('should login as admin with correct credentials', async () => {
+      const ds = app.get(DataSource);
+      await seedAdminUser(ds);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+        .expect(200);
+
+      expect(res.body.data).toHaveProperty('accessToken');
+      expect(typeof res.body.data.accessToken).toBe('string');
+
+      const cookies = res.headers['set-cookie'];
+      expect(cookies).toBeDefined();
+      expect(cookies.toString()).toContain('refreshToken');
+    });
+
+    it('admin accessToken payload should contain role=admin', async () => {
+      const ds = app.get(DataSource);
+      await seedAdminUser(ds);
+
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+        .expect(200);
+
+      const token: string = res.body.data.accessToken;
+      // Decode JWT payload (khong verify — chi kiem tra claim)
+      const payload = JSON.parse(
+        Buffer.from(token.split('.')[1], 'base64url').toString('utf8'),
+      );
+      expect(payload.role).toBe('admin');
+    });
+
+    it('should reject admin login with wrong password', async () => {
+      const ds = app.get(DataSource);
+      await seedAdminUser(ds);
+
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: ADMIN_EMAIL, password: 'WrongPassword1!' })
+        .expect(401);
+    });
+
+    it('should reject admin login when user does not exist (VPS scenario)', async () => {
+      // Khong seed → simulate VPS khi admin-seed chua chay
+      await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+        .expect(401);
+    });
+
+    it('should lockout after 5 failed attempts', async () => {
+      const ds = app.get(DataSource);
+      await seedAdminUser(ds);
+
+      // 5 lan sai password
+      for (let i = 0; i < 5; i++) {
+        await request(app.getHttpServer())
+          .post('/api/auth/login')
+          .send({ email: ADMIN_EMAIL, password: 'WrongP@ss1' });
+      }
+
+      // Lan thu 6 phai bi khoa (400, khong phai 401)
+      const res = await request(app.getHttpServer())
+        .post('/api/auth/login')
+        .send({ email: ADMIN_EMAIL, password: ADMIN_PASSWORD })
+        .expect(400);
+
+      expect(res.body.message).toMatch(/khoa|locked|lock/i);
     });
   });
 
