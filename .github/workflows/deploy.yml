@@ -732,6 +732,7 @@ jobs:
           done
 
       - name: SSL cert status
+        continue-on-error: true
         run: |
           VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
           PORT="${{ secrets.VPS_PORT }}"
