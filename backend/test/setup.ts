@@ -15,7 +15,8 @@ import { TransformInterceptor } from '../src/common/interceptors/transform.inter
 import { MockRedisModule, createRedisMock, RedisMock } from './mocks/redis.mock.js';
 import { MockMailModule } from './mocks/mail.mock.js';
 
-export { createRedisMock, RedisMock };
+export { createRedisMock };
+export type { RedisMock };
 
 /**
  * Test database config — dung MySQL dev container (port 6002).

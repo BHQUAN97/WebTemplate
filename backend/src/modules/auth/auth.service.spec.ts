@@ -74,7 +74,7 @@ const mockUsersService = {
 };
 
 const mockJwtService = {
-  sign: jest.fn(() => 'mock.jwt.token'),
+  sign: jest.fn((_payload: any) => 'mock.jwt.token'),
   verify: jest.fn(),
 };
 
