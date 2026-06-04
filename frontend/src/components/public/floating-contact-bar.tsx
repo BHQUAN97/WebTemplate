@@ -1,7 +1,7 @@
 ﻿'use client';
 
 import { useEffect, useState } from 'react';
-import { Phone, Mail, MessageCircle, ArrowUp } from 'lucide-react';
+import { Phone, Mail, MessageCircle, ArrowUp, MapPin } from 'lucide-react';
 import { useCtaSettings } from '@/lib/hooks/use-cta-settings';
 import { siteConfig } from '@/config/site.config';
 
@@ -111,11 +111,15 @@ export function FloatingContactBar() {
         </a>
       )}
 
+      <a href="/contact" aria-label="Liên hệ" className="h-12 w-12 rounded-full bg-violet-600 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95">
+        <MapPin className="h-5 w-5" />
+      </a>
+
       {cta.backToTop && showTop && (
         <button
           type="button"
           onClick={() => window.scrollTo({ top: 0, behavior: 'smooth' })}
-          aria-label="Cuon len dau trang"
+          aria-label="Cuộn lên đầu trang"
           className="h-12 w-12 rounded-full bg-gray-900 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95"
         >
           <ArrowUp className="h-5 w-5" />
