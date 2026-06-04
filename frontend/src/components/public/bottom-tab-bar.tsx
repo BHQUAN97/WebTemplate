@@ -69,7 +69,7 @@ export function BottomTabBar() {
                 className={cn(
                   'relative h-full flex flex-col items-center justify-center gap-0.5 text-[11px] font-medium transition-colors',
                   active
-                    ? 'text-blue-600'
+                    ? 'text-violet-600'
                     : 'text-gray-500 hover:text-gray-800',
                 )}
               >
