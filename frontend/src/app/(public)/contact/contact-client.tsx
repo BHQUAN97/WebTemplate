@@ -10,12 +10,13 @@ import { Textarea } from '@/components/ui/textarea';
 import { Card, CardContent } from '@/components/ui/card';
 import { contactSchema, type ContactFormData } from '@/lib/validations';
 import { contactsApi } from '@/lib/api/modules/contacts.api';
+import { siteConfig } from '@/config/site.config';
 
 const contactInfo = [
-  { icon: MapPin, label: 'Địa chỉ', value: '123 Nguyen Hue, Q1, TP.HCM' },
-  { icon: Phone, label: 'Điện thoại', value: '0900 123 456' },
-  { icon: Mail, label: 'Email', value: 'info@webtemplate.vn' },
-  { icon: Clock, label: 'Giờ làm việc', value: 'T2 - T7: 8:00 - 18:00' },
+  { icon: MapPin, label: 'Địa chỉ', value: siteConfig.contact.address },
+  { icon: Phone, label: 'Điện thoại', value: siteConfig.contact.phoneDisplay },
+  { icon: Mail, label: 'Email', value: siteConfig.contact.email },
+  { icon: Clock, label: 'Giờ làm việc', value: siteConfig.contact.hours },
 ];
 
 /**
@@ -162,7 +163,7 @@ export function ContactClient() {
           {contactInfo.map((item) => (
             <Card key={item.label}>
               <CardContent className="p-4 flex items-start gap-3">
-                <item.icon className="h-5 w-5 text-blue-600 mt-0.5 flex-shrink-0" />
+                <item.icon className="h-5 w-5 text-violet-600 mt-0.5 flex-shrink-0" />
                 <div>
                   <p className="font-medium text-sm">{item.label}</p>
                   <p className="text-sm text-gray-600">{item.value}</p>
@@ -173,10 +174,15 @@ export function ContactClient() {
 
           {/* Map placeholder */}
           <div className="aspect-square rounded-xl bg-gray-200 flex items-center justify-center text-gray-400">
-            <div className="text-center">
-              <MapPin className="h-8 w-8 mx-auto mb-2" />
-              <p className="text-sm">Ban do</p>
-            </div>
+            <a
+              href={siteConfig.contact.googleMapsUrl}
+              target="_blank"
+              rel="noopener noreferrer"
+              className="flex flex-col items-center gap-2 hover:text-violet-600 transition-colors"
+            >
+              <MapPin className="h-8 w-8 mx-auto" />
+              <p className="text-sm">Xem trên Google Maps</p>
+            </a>
           </div>
         </div>
       </div>

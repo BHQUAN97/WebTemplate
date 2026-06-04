@@ -1,105 +1,120 @@
-﻿import type { Metadata } from 'next';
+import type { Metadata } from 'next';
 import Link from 'next/link';
-import { Target, Eye, Heart, Users } from 'lucide-react';
+import { ShoppingBag, LayoutDashboard, FileText, Users, Zap, Shield } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
 
 export const metadata: Metadata = {
-  title: 'Gioi thieu - WebTemplate',
+  title: 'Giới thiệu — Tech Store Demo',
   description:
-    'Tim hieu ve WebTemplate — su menh, tam nhin va doi ngu cua chung toi.',
+    'Tìm hiểu về nền tảng Tech Store Demo — demo đầy đủ tính năng e-commerce, blog và quản trị.',
 };
 
-const teamMembers = [
-  { name: 'Nguyen Van A', role: 'CEO & Founder', avatar: 'A' },
-  { name: 'Tran Thi B', role: 'CTO', avatar: 'B' },
-  { name: 'Le Van C', role: 'Head of Design', avatar: 'C' },
-  { name: 'Pham Thi D', role: 'Marketing Lead', avatar: 'D' },
+const features = [
+  {
+    icon: ShoppingBag,
+    title: 'E-commerce hoàn chỉnh',
+    description: 'Sản phẩm, giỏ hàng, thanh toán, đơn hàng, wishlist — đầy đủ luồng mua sắm.',
+  },
+  {
+    icon: LayoutDashboard,
+    title: 'Admin Dashboard',
+    description: 'Quản lý sản phẩm, đơn hàng, người dùng, cài đặt — giao diện trực quan.',
+  },
+  {
+    icon: FileText,
+    title: 'Blog & Nội dung',
+    description: 'Hệ thống blog đầy đủ — tạo bài, phân loại, SEO, ảnh đại diện.',
+  },
+  {
+    icon: Users,
+    title: 'Xác thực & Phân quyền',
+    description: 'JWT, 2FA, OAuth, phân quyền admin/user — bảo mật đa lớp.',
+  },
+  {
+    icon: Zap,
+    title: 'Hiệu năng cao',
+    description: 'Next.js 14 App Router, server components, tối ưu hình ảnh, lazy loading.',
+  },
+  {
+    icon: Shield,
+    title: 'Bảo mật tích hợp',
+    description: 'CSRF, rate limiting, helmet, sanitize input — tuân thủ OWASP.',
+  },
 ];
 
-/**
- * Trang gioi thieu — company story, mission, team
- */
+const techStack = [
+  { name: 'Next.js 14', category: 'Frontend' },
+  { name: 'React 19', category: 'Frontend' },
+  { name: 'TypeScript', category: 'Frontend' },
+  { name: 'Tailwind CSS 4', category: 'Frontend' },
+  { name: 'NestJS 10', category: 'Backend' },
+  { name: 'TypeORM', category: 'Backend' },
+  { name: 'MySQL 8', category: 'Database' },
+  { name: 'Redis 7', category: 'Cache' },
+  { name: 'BullMQ', category: 'Queue' },
+  { name: 'Docker', category: 'DevOps' },
+];
+
 export default function AboutPage() {
   return (
     <div>
       {/* Hero */}
-      <section className="bg-gradient-to-br from-blue-600 to-blue-800 text-white py-16 sm:py-24">
+      <section className="bg-gradient-to-br from-violet-600 to-violet-800 text-white py-16 sm:py-24">
         <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 text-center">
-          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
-            Ve chung toi
-          </h1>
-          <p className="text-lg text-blue-100 max-w-2xl mx-auto">
-            WebTemplate duoc thanh lap voi su menh mang den trai nghiem mua
-            sam truc tuyen tot nhat cho Người viết Nam.
-          </p>
-        </div>
-      </section>
-
-      {/* Story */}
-      <section className="py-12 sm:py-16 max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
-        <h2 className="text-2xl font-bold mb-6">Cau chuyen cua chung toi</h2>
-        <div className="prose prose-sm sm:prose max-w-none text-gray-600">
-          <p>
-            Bật dau tu nam 2020 voi chi 2 thanh vien, WebTemplate da phat trien
-            thanh mot nen tang thuong mai dien tu hang dau. Chung toi tin rang
-            moi nguoi deu xung dang co duoc Sản phẩm chat luong voi gia ca hop ly.
-          </p>
-          <p>
-            Voi doi ngu hon 50 nhan vien tan tam, chung toi khong ngung cai tien
-            de mang den trai nghiem Mua sắm tuyet voi nhat cho Khách hàng.
-          </p>
-        </div>
-      </section>
-
-      {/* Mission / Vision */}
-      <section className="py-12 sm:py-16 bg-gray-50">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6 sm:gap-8">
-            <Card className="p-6 sm:p-8">
-              <CardContent className="p-0">
-                <Target className="h-10 w-10 text-blue-600 mb-4" />
-                <h3 className="text-xl font-bold mb-3">Su menh</h3>
-                <p className="text-gray-600">
-                  Mang den trai nghiem Mua sắm truc tuyen de dang, an toan va
-                  gia tri nhat cho moi Khách hàng. Chung toi cam ket chat luong
-                  Sản phẩm va dich vu Khách hàng xuat sac.
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="p-6 sm:p-8">
-              <CardContent className="p-0">
-                <Eye className="h-10 w-10 text-blue-600 mb-4" />
-                <h3 className="text-xl font-bold mb-3">Tam nhin</h3>
-                <p className="text-gray-600">
-                  Tro thanh nen tang thuong mai dien tu so 1 Viet Nam, noi moi
-                  nguoi deu co the tim thay Sản phẩm phu hop voi nhu cau va
-                  ngan sach cua minh.
-                </p>
-              </CardContent>
-            </Card>
+          <div className="inline-block rounded-full bg-violet-500/30 px-4 py-1.5 text-sm font-medium mb-4">
+            Bản Demo — Không phải shop thật
           </div>
+          <h1 className="text-3xl sm:text-4xl font-bold mb-4">
+            Tech Store Demo
+          </h1>
+          <p className="text-lg text-violet-100 max-w-2xl mx-auto">
+            Nền tảng web full-stack demo đầy đủ tính năng — được xây dựng để
+            showcase khả năng của stack Next.js + NestJS + MySQL.
+          </p>
         </div>
       </section>
 
-      {/* Team */}
-      <section className="py-12 sm:py-16">
-        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-          <h2 className="text-2xl sm:text-3xl font-bold text-center mb-8">
-            Doi ngu cua chung toi
-          </h2>
-          <div className="grid grid-cols-2 sm:grid-cols-4 gap-6">
-            {teamMembers.map((member) => (
-              <div key={member.name} className="text-center">
-                <div className="w-20 h-20 sm:w-24 sm:h-24 rounded-full bg-blue-100 flex items-center justify-center mx-auto mb-3">
-                  <span className="text-2xl font-bold text-blue-600">
-                    {member.avatar}
-                  </span>
-                </div>
-                <h3 className="font-semibold text-sm sm:text-base">
-                  {member.name}
-                </h3>
-                <p className="text-xs sm:text-sm text-gray-500">{member.role}</p>
+      {/* Demo notice */}
+      <section className="bg-amber-50 border-b border-amber-200">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8 py-4 flex items-start gap-3">
+          <svg className="h-5 w-5 text-amber-600 mt-0.5 flex-shrink-0" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+            <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={2} d="M13 16h-1v-4h-1m1-4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z" />
+          </svg>
+          <p className="text-sm text-amber-800">
+            <strong>Đây là bản demo.</strong> Tất cả sản phẩm, đơn hàng và dữ liệu đều là giả lập.
+            Liên hệ để nhận bản clone riêng cho dự án thực tế.
+          </p>
+        </div>
+      </section>
+
+      {/* Features */}
+      <section className="py-12 sm:py-16 max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+        <h2 className="text-2xl sm:text-3xl font-bold text-center mb-10">
+          Tính năng có trong demo
+        </h2>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {features.map((f) => (
+            <Card key={f.title} className="p-6">
+              <CardContent className="p-0">
+                <f.icon className="h-8 w-8 text-violet-600 mb-3" />
+                <h3 className="font-semibold text-base mb-2">{f.title}</h3>
+                <p className="text-sm text-gray-600">{f.description}</p>
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </section>
+
+      {/* Tech stack */}
+      <section className="py-12 sm:py-16 bg-gray-50">
+        <div className="max-w-4xl mx-auto px-4 sm:px-6 lg:px-8">
+          <h2 className="text-2xl font-bold text-center mb-8">Tech Stack</h2>
+          <div className="flex flex-wrap gap-3 justify-center">
+            {techStack.map((t) => (
+              <div key={t.name} className="flex items-center gap-1.5 rounded-full bg-white border border-gray-200 px-4 py-1.5 text-sm">
+                <span className="font-medium text-gray-900">{t.name}</span>
+                <span className="text-xs text-gray-400">— {t.category}</span>
               </div>
             ))}
           </div>
@@ -107,27 +122,18 @@ export default function AboutPage() {
       </section>
 
       {/* CTA */}
-      <section className="py-12 sm:py-16 bg-blue-600 text-white text-center">
+      <section className="py-12 sm:py-16 bg-violet-600 text-white text-center">
         <div className="max-w-xl mx-auto px-4">
-          <h2 className="text-2xl font-bold mb-4">Sẵn sàng mua sắm?</h2>
-          <p className="text-blue-100 mb-6">
-            Liên hệ với chúng tôi hoặc bắt đầu mua sắm ngay hôm nay.
+          <h2 className="text-2xl font-bold mb-4">Muốn dùng cho dự án thực tế?</h2>
+          <p className="text-violet-100 mb-6">
+            Liên hệ để nhận bản clone riêng, tuỳ chỉnh theo ngành của bạn.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button
-              size="lg"
-              className="bg-white text-blue-600 hover:bg-blue-50"
-              asChild
-            >
-              <Link href="/products">Xem sản phẩm</Link>
+            <Button size="lg" className="bg-white text-violet-600 hover:bg-violet-50" asChild>
+              <Link href="/contact">Liên hệ ngay</Link>
             </Button>
-            <Button
-              size="lg"
-              variant="outline"
-              className="border-white text-white hover:bg-white/10"
-              asChild
-            >
-              <Link href="/contact">Liên hệ</Link>
+            <Button size="lg" variant="outline" className="border-white text-white hover:bg-white/10" asChild>
+              <Link href="/products">Xem demo shop</Link>
             </Button>
           </div>
         </div>

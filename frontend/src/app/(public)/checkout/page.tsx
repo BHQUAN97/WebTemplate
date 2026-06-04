@@ -2,7 +2,7 @@
 import { CheckoutClient } from './checkout-client';
 
 export const metadata: Metadata = {
-  title: 'Thanh toán - WebTemplate',
+  title: 'Thanh toán — Tech Store Demo',
   description: 'Hoan tat Đơn hàng cua ban.',
 };
 

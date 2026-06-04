@@ -120,41 +120,41 @@ export interface SiteConfig {
 export const siteConfig: SiteConfig = {
   // Đổi các trường này khi clone cho KH mới ↓
 
-  name: 'WebTemplate',
-  shortName: 'WT',
-  tagline: 'Một nền tảng. Mọi nhu cầu.',
+  name: 'Tech Store Demo',
+  shortName: 'TSD',
+  tagline: 'Nền tảng web full-stack — E-commerce, Blog & Admin',
   description:
-    'Nền tảng web đầy đủ tính năng — thương mại điện tử, blog, quản trị và hơn thế nữa.',
+    'Demo nền tảng web đầy đủ tính năng: cửa hàng, giỏ hàng, blog, quản trị, phân quyền.',
 
   logo: {
     src: '/logo.png',
     width: 120,
     height: 40,
-    alt: 'WebTemplate',
+    alt: 'Tech Store Demo',
   },
 
   contact: {
-    phone: '0900000000',
-    phoneDisplay: '090 000 0000',
-    email: 'hello@webtemplate.dev',
-    address: 'Hà Nội, Việt Nam',
+    phone: '0909999888',
+    phoneDisplay: '090 999 9888',
+    email: 'demo@bhquan.store',
+    address: '123 Lê Lợi, Quận 1, TP. Hồ Chí Minh',
     hours: '8:00 - 17:30, Thứ 2 - Thứ 7',
-    googleMapsUrl: 'https://maps.google.com',
+    googleMapsUrl: 'https://maps.google.com/?q=123+Le+Loi+Quan+1+Ho+Chi+Minh',
     googleMapsEmbed: '',
     zalo: '',
   },
 
   social: {
-    facebook: 'https://facebook.com/webtemplate',
+    facebook: 'https://facebook.com/bhquan97',
     zalo: '',
     youtube: '',
-    instagram: 'https://instagram.com/webtemplate',
+    instagram: '',
     tiktok: '',
   },
 
-  // Đổi 3 hex này = đổi toàn bộ màu giao diện
+  // Violet — khác biệt với tất cả template con
   theme: {
-    primary: '#2563EB',
+    primary: '#7C3AED',
     secondary: '#0F172A',
     accent: '#F59E0B',
     fontHeading: 'Geist',
