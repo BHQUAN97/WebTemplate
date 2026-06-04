@@ -21,21 +21,21 @@ export default function Error({
   return (
     <div className="flex min-h-[60vh] flex-col items-center justify-center px-4 py-12 text-center">
       <h1 className="mb-2 text-2xl font-semibold text-gray-900 sm:text-3xl">
-        Co loi xay ra
+        Có lỗi xảy ra
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Ung dung gap su co khong mong muon. Ban co the thu lai hoac quay ve
+        Ứng dụng gặp sự cố không mong muốn. Bạn có thể thử lại hoặc quay về
         Trang chủ.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">
-          Ma loi: {error.digest}
+          Mã lỗi: {error.digest}
         </p>
       )}
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button onClick={() => unstable_retry()}>Thu lai</Button>
+        <Button onClick={() => unstable_retry()}>Thử lại</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/')}>
-          Ve Trang chủ
+          Về Trang chủ
         </Button>
       </div>
     </div>

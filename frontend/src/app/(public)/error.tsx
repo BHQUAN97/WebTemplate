@@ -23,17 +23,17 @@ export default function PublicError({
         Không thể tải trang
       </h1>
       <p className="mb-6 max-w-md text-sm text-gray-600 sm:text-base">
-        Xin loi, da co loi xay ra khi tai Nội dung. Ban co the thu lai.
+        Xin lỗi, đã có lỗi khi tải nội dung. Bạn có thể thử lại.
       </p>
       {error.digest && (
         <p className="mb-6 font-mono text-xs text-gray-400">
-          Ma loi: {error.digest}
+          Mã lỗi: {error.digest}
         </p>
       )}
       <div className="flex flex-col gap-2 sm:flex-row">
-        <Button onClick={() => unstable_retry()}>Thu lai</Button>
+        <Button onClick={() => unstable_retry()}>Thử lại</Button>
         <Button variant="outline" onClick={() => (window.location.href = '/')}>
-          Ve Trang chủ
+          Về Trang chủ
         </Button>
       </div>
     </div>
