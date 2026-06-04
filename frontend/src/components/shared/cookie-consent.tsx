@@ -153,7 +153,7 @@ export function CookieConsent() {
       setShowBanner(false);
       return;
     }
-    const timer = window.setTimeout(() => setShowBanner(true), 50);
+    const timer = window.setTimeout(() => setShowBanner(true), 3000);
     return () => window.clearTimeout(timer);
   }, [ready, consent]);
 
