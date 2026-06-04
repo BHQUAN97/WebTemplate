@@ -2,11 +2,11 @@
 
 import Link from 'next/link';
 import {
-  Layers,
-  Hammer,
-  Shield,
+  Globe,
+  Smartphone,
+  Search,
+  Palette,
   BarChart,
-  CheckCircle,
   Headphones,
   ArrowRight,
   type LucideIcon,
@@ -27,47 +27,47 @@ interface ServiceItem {
 
 const services: ServiceItem[] = [
   {
-    icon: Layers,
-    title: 'Tư vấn & Thiết kế',
+    icon: Globe,
+    title: 'Thiết kế & Phát triển Web',
     description:
-      'Đội ngũ chuyên gia giàu kinh nghiệm sẽ tư vấn giải pháp tối ưu và thiết kế phương án phù hợp nhất với nhu cầu của bạn.',
+      'Xây dựng website hiện đại, tối ưu tốc độ và SEO — từ landing page đến hệ thống e-commerce đầy đủ tính năng.',
     featured: true,
-    href: '/services/consulting',
+    href: '/contact',
   },
   {
-    icon: Hammer,
-    title: 'Thi công & Lắp đặt',
+    icon: Smartphone,
+    title: 'App Mobile (iOS & Android)',
     description:
-      'Thi công chuyên nghiệp, đúng tiến độ với vật liệu chất lượng cao và đội ngũ kỹ thuật lành nghề.',
-    href: '/services/construction',
+      'Phát triển ứng dụng di động cross-platform với React Native, đảm bảo UX mượt mà trên mọi thiết bị.',
+    href: '/contact',
   },
   {
-    icon: Shield,
-    title: 'Bảo hành & Bảo trì',
+    icon: Search,
+    title: 'SEO & Digital Marketing',
     description:
-      'Chính sách bảo hành rõ ràng, dịch vụ bảo trì định kỳ giúp công trình luôn trong trạng thái tốt nhất.',
-    href: '/services/warranty',
+      'Tối ưu website lên top Google, chạy quảng cáo hiệu quả, tăng lượng khách hàng tiềm năng.',
+    href: '/contact',
+  },
+  {
+    icon: Palette,
+    title: 'UI/UX & Branding',
+    description:
+      'Thiết kế giao diện đẹp mắt, trải nghiệm người dùng trực quan — nhận diện thương hiệu chuyên nghiệp.',
+    href: '/contact',
   },
   {
     icon: BarChart,
-    title: 'Quản lý dự án',
+    title: 'Phân tích & Tối ưu',
     description:
-      'Theo dõi tiến độ minh bạch, kiểm soát chi phí chặt chẽ và báo cáo định kỳ cho chủ đầu tư.',
-    href: '/services/management',
-  },
-  {
-    icon: CheckCircle,
-    title: 'Giám sát chất lượng',
-    description:
-      'Quy trình kiểm tra nghiêm ngặt tại mọi giai đoạn, đảm bảo tiêu chuẩn kỹ thuật và an toàn.',
-    href: '/services/quality',
+      'Theo dõi analytics, A/B testing, tối ưu tỷ lệ chuyển đổi — dữ liệu là nền tảng cho mọi quyết định.',
+    href: '/contact',
   },
   {
     icon: Headphones,
-    title: 'Hỗ trợ 24/7',
+    title: 'Hỗ trợ & Bảo trì',
     description:
-      'Đội ngũ hỗ trợ luôn sẵn sàng xử lý mọi sự cố nhanh chóng, đảm bảo hoạt động liên tục.',
-    href: '/services/support',
+      'Đội ngũ kỹ thuật hỗ trợ 24/7, cập nhật bảo mật định kỳ, đảm bảo hệ thống hoạt động ổn định.',
+    href: '/contact',
   },
 ];
 
