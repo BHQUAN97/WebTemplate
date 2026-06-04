@@ -1,5 +1,5 @@
 const API_BASE_URL =
-  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:3000/api';
+  process.env.NEXT_PUBLIC_API_URL || 'http://localhost:6001/api';
 
 export interface RequestOptions {
   method?: 'GET' | 'POST' | 'PUT' | 'PATCH' | 'DELETE';

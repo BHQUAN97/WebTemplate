@@ -8,7 +8,7 @@ type Props = {
   params: Promise<{ slug: string }>;
 };
 
-export const revalidate = 300;
+export const dynamic = 'force-dynamic';
 
 /**
  * Prerender top 20 CMS pages — fallback empty neu API loi.

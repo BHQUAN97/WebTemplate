@@ -10,6 +10,7 @@ import { ServiceWorkerProvider } from '@/components/providers/service-worker-pro
 import { CookieConsent } from '@/components/shared/cookie-consent';
 import { PWAInstallPrompt } from '@/components/shared/pwa-install-prompt';
 import { brand } from '@/lib/config/brand';
+import { siteConfig } from '@/config/site.config';
 import { JsonLd, organizationJsonLd, websiteJsonLd } from '@/lib/seo/json-ld';
 
 const geistSans = Geist({
@@ -84,6 +85,11 @@ export default async function RootLayout({
       lang={locale}
       suppressHydrationWarning
       className={`${geistSans.variable} ${geistMono.variable} h-full antialiased`}
+      style={{
+        '--brand-primary': siteConfig.theme.primary,
+        '--brand-secondary': siteConfig.theme.secondary,
+        '--brand-accent': siteConfig.theme.accent,
+      } as React.CSSProperties}
     >
       <body className="min-h-full flex flex-col bg-background text-foreground">
         <JsonLd data={organizationJsonLd()} />

@@ -8,6 +8,7 @@ import {
   HealthIndicatorResult,
 } from '@nestjs/terminus';
 import { ApiTags, ApiOperation } from '@nestjs/swagger';
+import { SkipThrottle } from '@nestjs/throttler';
 import Redis from 'ioredis';
 import { ConfigService } from '@nestjs/config';
 import { Public } from '../../common/decorators/public.decorator.js';
@@ -17,6 +18,7 @@ import { Public } from '../../common/decorators/public.decorator.js';
  * Tat ca endpoints la @Public() — khong yeu cau auth.
  */
 @ApiTags('Health')
+@SkipThrottle()
 @Controller('health')
 export class HealthController {
   constructor(

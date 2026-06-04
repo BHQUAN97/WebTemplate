@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react';
 import { Phone, Mail, MessageCircle, ArrowUp } from 'lucide-react';
 import { useCtaSettings } from '@/lib/hooks/use-cta-settings';
+import { siteConfig } from '@/config/site.config';
 
 /**
  * Floating contact bar — stack doc goc duoi phai.
@@ -21,16 +22,21 @@ export function FloatingContactBar() {
     return () => window.removeEventListener('scroll', onScroll);
   }, [cta.backToTop]);
 
-  const zaloHref = cta.zalo.phone
-    ? `https://zalo.me/${cta.zalo.phone.replace(/\D/g, '')}`
+  // Dùng siteConfig cho phone và zalo thay vì backend settings
+  const configPhone = siteConfig.contact.phone;
+  const configZalo = siteConfig.contact.zalo;
+
+  const zaloHref = configZalo
+    ? `https://zalo.me/${configZalo.replace(/\D/g, '')}`
     : '';
   const waDigits = cta.whatsapp.number.replace(/\D/g, '');
   const waHref = waDigits ? `https://wa.me/${waDigits}` : '';
 
+  // Ẩn toàn bộ nếu cả phone và zalo đều rỗng và không còn button nào khác
   const hasAny =
-    cta.zalo.enabled ||
+    !!configZalo ||
+    !!configPhone ||
     cta.messenger.enabled ||
-    cta.phone.enabled ||
     cta.whatsapp.enabled ||
     cta.email.enabled ||
     (cta.backToTop && showTop);
@@ -45,7 +51,8 @@ export function FloatingContactBar() {
         bottom: 'calc(env(safe-area-inset-bottom, 0px) + 72px)',
       }}
     >
-      {cta.zalo.enabled && zaloHref && (
+      {/* Hiện nút Zalo chỉ khi siteConfig.contact.zalo không rỗng */}
+      {zaloHref && (
         <a
           href={zaloHref}
           target="_blank"
@@ -83,10 +90,11 @@ export function FloatingContactBar() {
         </a>
       )}
 
-      {cta.phone.enabled && cta.phone.number && (
+      {/* Hiện nút Phone chỉ khi siteConfig.contact.phone không rỗng */}
+      {configPhone && (
         <a
-          href={`tel:${cta.phone.number.replace(/\s/g, '')}`}
-          aria-label={`Goi ${cta.phone.number}`}
+          href={`tel:${configPhone.replace(/\s/g, '')}`}
+          aria-label={`Goi ${siteConfig.contact.phoneDisplay || configPhone}`}
           className="h-12 w-12 rounded-full bg-green-600 text-white shadow-lg flex items-center justify-center hover:scale-110 transition-transform active:scale-95 animate-pulse"
         >
           <Phone className="h-5 w-5" />
