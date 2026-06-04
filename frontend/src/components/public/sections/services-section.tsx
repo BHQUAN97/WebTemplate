@@ -9,6 +9,7 @@ import {
   BarChart,
   Headphones,
   ArrowRight,
+  CheckCircle,
   type LucideIcon,
 } from 'lucide-react';
 import { useScrollReveal, staggerDelay } from '@/lib/hooks/use-scroll-reveal';
