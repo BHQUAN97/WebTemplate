@@ -203,9 +203,26 @@ function setupBullBoard(app: any, configService: ConfigService, logger: Logger):
   createBullBoard({ queues, serverAdapter });
 
   const expressApp = app.getHttpAdapter().getInstance();
+
+  // Basic auth bảo vệ Bull Board — chỉ active khi set BULL_BOARD_PASS
+  const bullBoardUser = process.env.BULL_BOARD_USER || 'admin';
+  const bullBoardPass = process.env.BULL_BOARD_PASS;
+  if (bullBoardPass) {
+    expressApp.use('/admin/queues', (req: any, res: any, next: any) => {
+      const auth = req.headers.authorization as string | undefined;
+      if (!auth?.startsWith('Basic ')) {
+        res.set('WWW-Authenticate', 'Basic realm="Bull Board"').status(401).end();
+        return;
+      }
+      const [u, p] = Buffer.from(auth.slice(6), 'base64').toString().split(':');
+      if (u === bullBoardUser && p === bullBoardPass) return next();
+      res.status(401).end();
+    });
+  }
+
   expressApp.use('/admin/queues', serverAdapter.getRouter());
 
-  logger.log(`Bull Board available at /admin/queues`);
+  logger.log(`Bull Board available at /admin/queues${bullBoardPass ? ' (basic auth enabled)' : ' (no auth — set BULL_BOARD_PASS to protect)'}`);
 }
 
 bootstrap();
