@@ -1,8 +1,6 @@
-﻿/**
+/**
  * Analytics API — typed client cho admin dashboard charts.
  * Backend endpoints: xem `backend/src/modules/analytics/analytics.controller.ts`.
- * Mot so endpoint (overview/top-products/by-status) chua co o BE — fallback mock
- * voi comment TODO de de thay khi BE san sang.
  */
 import { apiClient } from './client';
 
@@ -12,6 +10,7 @@ export interface AnalyticsRange {
 }
 
 export type Granularity = 'day' | 'week' | 'month';
+export type Period = '7d' | '30d' | '90d';
 export type OrderStatusKey =
   | 'pending'
   | 'processing'
@@ -20,7 +19,7 @@ export type OrderStatusKey =
 
 export interface OverviewStats {
   revenue: number;
-  revenueDelta: number; // % thay doi so voi ky truoc
+  revenueDelta: number; // % thay doi so voi ky truoc (placeholder = 0)
   orders: number;
   ordersDelta: number;
   newCustomers: number;
@@ -38,6 +37,7 @@ export interface RevenuePoint {
 export interface StatusSlice {
   status: OrderStatusKey | string;
   count: number;
+  percentage?: number;
 }
 
 export interface TopProduct {
@@ -53,6 +53,23 @@ export interface TrafficPoint {
   direct: number;
   referral: number;
   social: number;
+}
+
+export interface CustomerPoint {
+  date: string;
+  newCustomers: number;
+  returningCustomers: number;
+}
+
+export interface ConversionStep {
+  step: 'view' | 'cart' | 'checkout' | 'paid';
+  count: number;
+}
+
+export interface RevenueBreakdownItem {
+  category: string;
+  revenue: number;
+  percentage: number;
 }
 
 /** BE wrap response voi `{ data, message }` — unwrap an toan. */
@@ -76,48 +93,30 @@ function buildParams(range: AnalyticsRange, extra?: Record<string, unknown>) {
 }
 
 /**
- * Tổng quan 4 stat card.
- * TODO: Replace with real API — BE chua co /analytics/overview gop stats.
- * Tam thoi goi /analytics/dashboard va fill cac delta = 0.
+ * Tong quan 4 stat card: doanh thu, don hang, khach moi, conversion.
+ * Goi /analytics/overview?period=30d — tra du lieu thuc tu DB.
+ * Delta = 0 (chua co so sanh ky truoc).
  */
 export async function getAnalyticsOverview(
-  from?: string,
-  to?: string,
+  period: Period = '30d',
 ): Promise<OverviewStats> {
-  try {
-    const raw = await apiClient.get<unknown>(
-      '/analytics/dashboard',
-      buildParams({ from, to }),
-    );
-    const data = unwrap<{
-      pageviews?: number;
-      unique_sessions?: number;
-      events?: number;
-    }>(raw);
-    // BE hien tai khong tra revenue/conversion — cho nay dung proxy tam.
-    return {
-      revenue: 0,
-      revenueDelta: 0,
-      orders: data?.events ?? 0,
-      ordersDelta: 0,
-      newCustomers: data?.unique_sessions ?? 0,
-      customersDelta: 0,
-      conversionRate: 0,
-      conversionDelta: 0,
-    };
-  } catch {
-    // Mock fallback khi BE chua ready
-    return {
-      revenue: 125_400_000,
-      revenueDelta: 12.5,
-      orders: 342,
-      ordersDelta: 8.3,
-      newCustomers: 128,
-      customersDelta: -2.1,
-      conversionRate: 3.4,
-      conversionDelta: 0.6,
-    };
-  }
+  const raw = await apiClient.get<unknown>('/analytics/overview', { period });
+  const data = unwrap<{
+    revenue: number;
+    orders: number;
+    newCustomers: number;
+    conversionRate: number;
+  }>(raw);
+  return {
+    revenue: data?.revenue ?? 0,
+    revenueDelta: 0,
+    orders: data?.orders ?? 0,
+    ordersDelta: 0,
+    newCustomers: data?.newCustomers ?? 0,
+    customersDelta: 0,
+    conversionRate: data?.conversionRate ?? 0,
+    conversionDelta: 0,
+  };
 }
 
 /**
@@ -148,79 +147,105 @@ export async function getRevenueTrend(
 }
 
 /**
- * Đơn hàng theo trang thai.
- * TODO: Replace with real API — BE chua co /analytics/by-status hay /orders/stats.
- * Fallback: tra mock cho UI render duoc.
+ * Don hang theo trang thai — goi /analytics/orders-by-status.
+ * Backend tra ve [{ status, count, percentage }].
  */
 export async function getOrdersByStatus(
-  _from?: string,
-  _to?: string,
-): Promise<StatusSlice[]> {
-  // TODO: Replace with real API
-  return [
-    { status: 'pending', count: 42 },
-    { status: 'processing', count: 78 },
-    { status: 'completed', count: 185 },
-    { status: 'cancelled', count: 37 },
-  ];
-}
-
-/**
- * Top san pham ban chay.
- * TODO: Replace with real API — BE co /reports/products (xlsx) nhung khong co JSON endpoint.
- */
-export async function getTopProducts(
-  _from?: string,
-  _to?: string,
-  limit = 5,
-): Promise<TopProduct[]> {
-  // TODO: Replace with real API
-  const mock: TopProduct[] = [
-    { name: 'Ao thun basic', sold: 240, revenue: 48_000_000 },
-    { name: 'Quan jeans slim', sold: 180, revenue: 72_000_000 },
-    { name: 'Giay sneaker', sold: 150, revenue: 90_000_000 },
-    { name: 'Tui xach canvas', sold: 120, revenue: 36_000_000 },
-    { name: 'Mu luoi trai', sold: 95, revenue: 14_250_000 },
-    { name: 'Ao khoac bomber', sold: 80, revenue: 48_000_000 },
-  ];
-  return mock.slice(0, limit);
-}
-
-/**
- * Traffic sources theo ngay (stacked area).
- * BE co /analytics/sources nhung tra dang aggregated (referer, count).
- * Chung ta aggregate + fake trend theo ngay khi BE chua ho tro time-series.
- */
-export async function getTrafficSources(
   from?: string,
   to?: string,
+): Promise<StatusSlice[]> {
+  const raw = await apiClient.get<unknown>(
+    '/analytics/orders-by-status',
+    buildParams({ from, to }),
+  );
+  const data = unwrap<StatusSlice[]>(raw);
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Top san pham ban chay — goi /analytics/top-products.
+ * BE tra ve [{ productId, name, slug, image, soldQty, revenue, orderCount }].
+ * Map ve shape cua TopProduct.
+ */
+export async function getTopProducts(
+  from?: string,
+  to?: string,
+  limit = 5,
+): Promise<TopProduct[]> {
+  const raw = await apiClient.get<unknown>(
+    '/analytics/top-products',
+    buildParams({ from, to }, { limit }),
+  );
+  const data = unwrap<
+    Array<{
+      productId?: string;
+      id?: string;
+      name: string;
+      soldQty?: number | string;
+      sold?: number;
+      revenue: number | string;
+    }>
+  >(raw);
+  if (!Array.isArray(data)) return [];
+  return data.map((r) => ({
+    id: r.productId ?? r.id,
+    name: r.name ?? '',
+    sold: Number(r.soldQty ?? r.sold) || 0,
+    revenue: Number(r.revenue) || 0,
+  }));
+}
+
+/**
+ * Traffic sources theo ngay (stacked area) — goi /analytics/traffic-sources.
+ * BE phan loai referer thanh organic/direct/social/referral.
+ * period: '7d' | '30d' | '90d'
+ */
+export async function getTrafficSources(
+  period: Period = '30d',
 ): Promise<TrafficPoint[]> {
-  try {
-    const raw = await apiClient.get<unknown>(
-      '/analytics/sources',
-      buildParams({ from, to }),
-    );
-    const data = unwrap<Array<{ source: string; count: number | string }>>(raw);
-    if (!Array.isArray(data) || data.length === 0) return [];
-    // Quy doi referer -> 4 nhom co dinh — BE chua co breakdown theo ngay.
-    // TODO: Replace with real API khi BE ho tro time-series breakdown.
-    return [];
-  } catch {
-    // TODO: Replace with real API
-    const today = new Date();
-    return Array.from({ length: 14 }).map((_, i) => {
-      const d = new Date(today);
-      d.setDate(today.getDate() - (13 - i));
-      const date = d.toISOString().slice(0, 10);
-      return {
-        date,
-        organic: 200 + Math.round(Math.random() * 120),
-        direct: 120 + Math.round(Math.random() * 80),
-        referral: 60 + Math.round(Math.random() * 50),
-        social: 40 + Math.round(Math.random() * 60),
-      };
-    });
-  }
+  const raw = await apiClient.get<unknown>('/analytics/traffic-sources', {
+    period,
+  });
+  const data = unwrap<TrafficPoint[]>(raw);
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Khach hang moi vs quay lai theo ngay.
+ * period: '7d' | '30d' | '90d'
+ */
+export async function getCustomersTimeSeries(
+  period: Period = '30d',
+): Promise<CustomerPoint[]> {
+  const raw = await apiClient.get<unknown>('/analytics/customers', { period });
+  const data = unwrap<CustomerPoint[]>(raw);
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Funnel chuyen doi: view → gio hang → checkout → thanh toan.
+ * period: '7d' | '30d' | '90d'
+ */
+export async function getConversionFunnel(
+  period: Period = '30d',
+): Promise<ConversionStep[]> {
+  const raw = await apiClient.get<unknown>('/analytics/conversion', { period });
+  const data = unwrap<ConversionStep[]>(raw);
+  return Array.isArray(data) ? data : [];
+}
+
+/**
+ * Doanh thu phan theo danh muc san pham.
+ * period: '7d' | '30d' | '90d'
+ */
+export async function getRevenueBreakdown(
+  period: Period = '30d',
+): Promise<RevenueBreakdownItem[]> {
+  const raw = await apiClient.get<unknown>('/analytics/revenue-breakdown', {
+    period,
+  });
+  const data = unwrap<RevenueBreakdownItem[]>(raw);
+  return Array.isArray(data) ? data : [];
 }
 
 /**

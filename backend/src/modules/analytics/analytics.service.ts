@@ -8,6 +8,8 @@ import { Event } from './entities/event.entity.js';
 import { Order } from '../orders/entities/order.entity.js';
 import { OrderItem } from '../orders/entities/order-item.entity.js';
 import { Product } from '../products/entities/product.entity.js';
+import { User } from '../users/entities/user.entity.js';
+import { Category } from '../categories/entities/category.entity.js';
 import { TrackPageviewDto } from './dto/track-pageview.dto.js';
 import { TrackEventDto } from './dto/track-event.dto.js';
 import { QueryAnalyticsDto } from './dto/query-analytics.dto.js';
@@ -44,6 +46,53 @@ export interface TrackEventJobData {
  * Tracking analytics khong duoc luu PII thuan — chi giu id/event metadata.
  */
 const PII_KEYS = ['email', 'phone', 'address', 'name'] as const;
+
+/**
+ * Ket qua tong quan dashboard: doanh thu, don hang, khach moi, ti le chuyen doi.
+ */
+export interface OverviewStats {
+  revenue: number;
+  orders: number;
+  newCustomers: number;
+  conversionRate: number;
+}
+
+/**
+ * Mot diem du lieu traffic sources theo ngay.
+ */
+export interface TrafficSourcePoint {
+  date: string;
+  organic: number;
+  direct: number;
+  social: number;
+  referral: number;
+}
+
+/**
+ * Mot diem du lieu khach hang theo ngay.
+ */
+export interface CustomerPoint {
+  date: string;
+  newCustomers: number;
+  returningCustomers: number;
+}
+
+/**
+ * Mot buoc trong funnel chuyen doi.
+ */
+export interface ConversionStep {
+  step: 'view' | 'cart' | 'checkout' | 'paid';
+  count: number;
+}
+
+/**
+ * Doanh thu phan theo danh muc san pham.
+ */
+export interface RevenueBreakdownItem {
+  category: string;
+  revenue: number;
+  percentage: number;
+}
 
 /**
  * Ket qua breakdown theo trang thai don hang.
@@ -85,6 +134,10 @@ export class AnalyticsService {
     private readonly orderItemRepository: Repository<OrderItem>,
     @InjectRepository(Product)
     private readonly productRepository: Repository<Product>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Category)
+    private readonly categoryRepository: Repository<Category>,
     @InjectQueue(QUEUE_NAMES.ANALYTICS)
     private readonly analyticsQueue: Queue,
   ) {}
@@ -468,6 +521,267 @@ export class AnalyticsService {
       revenue: parseFloat(r.revenue) || 0,
       orderCount: parseInt(r.orderCount, 10) || 0,
     }));
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // DASHBOARD ANALYTICS — 5 endpoints moi
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Chuyen period ('7d'|'30d'|'90d') thanh khoang thoi gian [from, to].
+   * `to` la cuoi ngay hom nay, `from` la dau ngay cach to N ngay.
+   */
+  private periodToDates(period: string = '30d'): { from: Date; to: Date } {
+    const days = period === '7d' ? 7 : period === '90d' ? 90 : 30;
+    const to = new Date();
+    const from = new Date();
+    from.setDate(from.getDate() - days);
+    from.setHours(0, 0, 0, 0);
+    return { from, to };
+  }
+
+  /**
+   * Tong quan dashboard: doanh thu, don hang, khach moi, ti le chuyen doi.
+   * Doanh thu = SUM(orders.total) tru cac don bi huy/hoan tra.
+   * Khach moi = so user moi dang ky trong ky.
+   * Chuyen doi = don hang / pageview (0 neu chua co du lieu pageview).
+   */
+  async getOverview(period: string = '30d'): Promise<OverviewStats> {
+    const { from, to } = this.periodToDates(period);
+
+    const [revenueRow, ordersCount, newCustomers, pageviewCount] =
+      await Promise.all([
+        // Doanh thu tu don hang khong bi huy/hoan
+        this.orderRepository
+          .createQueryBuilder('o')
+          .select('COALESCE(SUM(o.total), 0)', 'revenue')
+          .where('o.deleted_at IS NULL')
+          .andWhere("o.status NOT IN ('cancelled', 'returned')")
+          .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+          .getRawOne<{ revenue: string }>(),
+        // Tong so don hang (ke ca chua thanh toan)
+        this.orderRepository
+          .createQueryBuilder('o')
+          .where('o.deleted_at IS NULL')
+          .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+          .getCount(),
+        // Khach hang moi: user moi dang ky trong ky
+        this.userRepository
+          .createQueryBuilder('u')
+          .where('u.deleted_at IS NULL')
+          .andWhere('u.created_at BETWEEN :from AND :to', { from, to })
+          .getCount(),
+        // Pageview trong ky (de tinh conversion rate)
+        this.pageViewRepository
+          .createQueryBuilder('pv')
+          .where('pv.created_at BETWEEN :from AND :to', { from, to })
+          .getCount(),
+      ]);
+
+    const revenue = parseFloat(revenueRow?.revenue ?? '0') || 0;
+    // Ti le chuyen doi = don hang / luot truy cap (%)
+    const conversionRate =
+      pageviewCount > 0
+        ? Math.round((ordersCount / pageviewCount) * 10000) / 100
+        : 0;
+
+    return { revenue, orders: ordersCount, newCustomers, conversionRate };
+  }
+
+  /**
+   * Traffic sources theo tung ngay (time-series).
+   * Phan loai dua tren truong `referer` cua page_views:
+   *   organic  = google, bing, yahoo, duckduckgo, yandex
+   *   social   = facebook, instagram, twitter, tiktok, youtube, linkedin
+   *   direct   = referer IS NULL (truy cap truc tiep)
+   *   referral = tat ca nguon khac
+   * NOTE: `paid` khong xac dinh duoc vi chua co UTM tracking — mac dinh 0.
+   */
+  async getTrafficSourcesTimeSeries(
+    period: string = '30d',
+  ): Promise<TrafficSourcePoint[]> {
+    const { from, to } = this.periodToDates(period);
+
+    // REGEXP phan loai referer thanh cac nhom co dinh
+    const organicRe =
+      'google\\.com|bing\\.com|yahoo\\.com|duckduckgo\\.com|yandex\\.';
+    const socialRe =
+      'facebook\\.com|instagram\\.com|twitter\\.com|x\\.com|tiktok\\.com|youtube\\.com|linkedin\\.com';
+
+    const rows = await this.pageViewRepository
+      .createQueryBuilder('pv')
+      .select('DATE(pv.created_at)', 'date')
+      .addSelect(
+        `SUM(CASE WHEN pv.referer IS NULL THEN 1 ELSE 0 END)`,
+        'direct',
+      )
+      .addSelect(
+        `SUM(CASE WHEN pv.referer REGEXP :organicRe THEN 1 ELSE 0 END)`,
+        'organic',
+      )
+      .addSelect(
+        `SUM(CASE WHEN pv.referer REGEXP :socialRe THEN 1 ELSE 0 END)`,
+        'social',
+      )
+      .addSelect(
+        `SUM(CASE WHEN pv.referer IS NOT NULL AND NOT (pv.referer REGEXP :organicRe) AND NOT (pv.referer REGEXP :socialRe) THEN 1 ELSE 0 END)`,
+        'referral',
+      )
+      .where('pv.created_at BETWEEN :from AND :to', { from, to })
+      .setParameters({ organicRe, socialRe })
+      .groupBy('DATE(pv.created_at)')
+      .orderBy('DATE(pv.created_at)', 'ASC')
+      .getRawMany<{
+        date: string;
+        direct: string;
+        organic: string;
+        social: string;
+        referral: string;
+      }>();
+
+    return rows.map((r) => ({
+      date: r.date,
+      organic: parseInt(r.organic, 10) || 0,
+      direct: parseInt(r.direct, 10) || 0,
+      social: parseInt(r.social, 10) || 0,
+      referral: parseInt(r.referral, 10) || 0,
+    }));
+  }
+
+  /**
+   * Khach hang theo ngay: so luong khach moi va khach quay lai.
+   * newCustomers      = user dang ky trong ngay do
+   * returningCustomers = user dat don trong ngay do va da dang ky TRUOC ngay do
+   */
+  async getCustomersTimeSeries(period: string = '30d'): Promise<CustomerPoint[]> {
+    const { from, to } = this.periodToDates(period);
+
+    // Khach moi moi ngay (dang ky trong khoang)
+    const newRows = await this.userRepository
+      .createQueryBuilder('u')
+      .select('DATE(u.created_at)', 'date')
+      .addSelect('COUNT(*)', 'newCustomers')
+      .where('u.deleted_at IS NULL')
+      .andWhere('u.created_at BETWEEN :from AND :to', { from, to })
+      .groupBy('DATE(u.created_at)')
+      .getRawMany<{ date: string; newCustomers: string }>();
+
+    // Khach dat don trong khoang (group by ngay dat don)
+    const orderRows = await this.orderRepository
+      .createQueryBuilder('o')
+      .select('DATE(o.created_at)', 'date')
+      .addSelect('COUNT(DISTINCT o.user_id)', 'activeCustomers')
+      .where('o.deleted_at IS NULL')
+      .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+      .groupBy('DATE(o.created_at)')
+      .getRawMany<{ date: string; activeCustomers: string }>();
+
+    // Merge hai dataset vao Map theo date
+    const newMap = new Map(
+      newRows.map((r) => [r.date, parseInt(r.newCustomers, 10) || 0]),
+    );
+    const activeMap = new Map(
+      orderRows.map((r) => [r.date, parseInt(r.activeCustomers, 10) || 0]),
+    );
+
+    // Tap hop tat ca ngay co du lieu
+    const allDates = [
+      ...new Set([...newMap.keys(), ...activeMap.keys()]),
+    ].sort();
+
+    return allDates.map((date) => {
+      const newC = newMap.get(date) ?? 0;
+      const active = activeMap.get(date) ?? 0;
+      // Khach quay lai = tong hoat dong - khach moi (clamp 0)
+      const returning = Math.max(0, active - newC);
+      return { date, newCustomers: newC, returningCustomers: returning };
+    });
+  }
+
+  /**
+   * Funnel chuyen doi: view → gio hang → checkout → da thanh toan.
+   * view     = tong luot pageview trong ky
+   * cart     = event 'add_to_cart' trong ky
+   * checkout = tong don hang tao ra trong ky
+   * paid     = don hang trang thai 'delivered' trong ky
+   * NOTE: view/cart chi chinh xac khi tracking du.
+   */
+  async getConversionFunnel(period: string = '30d'): Promise<ConversionStep[]> {
+    const { from, to } = this.periodToDates(period);
+
+    const [viewCount, cartCount, checkoutCount, paidCount] = await Promise.all([
+      this.pageViewRepository
+        .createQueryBuilder('pv')
+        .where('pv.created_at BETWEEN :from AND :to', { from, to })
+        .getCount(),
+      // add_to_cart event tu bang events
+      this.eventRepository
+        .createQueryBuilder('e')
+        .where('e.name = :name', { name: 'add_to_cart' })
+        .andWhere('e.created_at BETWEEN :from AND :to', { from, to })
+        .getCount(),
+      // checkout = don hang da duoc tao (chua tinh trang thai)
+      this.orderRepository
+        .createQueryBuilder('o')
+        .where('o.deleted_at IS NULL')
+        .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+        .getCount(),
+      // paid = da giao thanh cong
+      this.orderRepository
+        .createQueryBuilder('o')
+        .where('o.deleted_at IS NULL')
+        .andWhere("o.status = 'delivered'")
+        .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+        .getCount(),
+    ]);
+
+    return [
+      { step: 'view', count: viewCount },
+      { step: 'cart', count: cartCount },
+      { step: 'checkout', count: checkoutCount },
+      { step: 'paid', count: paidCount },
+    ];
+  }
+
+  /**
+   * Doanh thu phan theo danh muc san pham.
+   * Join order_items → products → categories.
+   * Don hang bi huy/hoan tra khong tinh vao doanh thu.
+   * San pham khong co danh muc duoc nhom vao 'Khong phan loai'.
+   */
+  async getRevenueBreakdown(
+    period: string = '30d',
+  ): Promise<RevenueBreakdownItem[]> {
+    const { from, to } = this.periodToDates(period);
+
+    const rows = await this.orderItemRepository
+      .createQueryBuilder('oi')
+      .innerJoin('orders', 'o', 'o.id = oi.order_id')
+      .leftJoin('products', 'p', 'p.id = oi.product_id')
+      .leftJoin('categories', 'c', 'c.id = p.category_id')
+      .select("COALESCE(c.name, 'Khong phan loai')", 'category')
+      .addSelect('SUM(oi.quantity * oi.price)', 'revenue')
+      .where('o.deleted_at IS NULL')
+      .andWhere('oi.deleted_at IS NULL')
+      .andWhere("o.status NOT IN ('cancelled', 'returned')")
+      .andWhere('o.created_at BETWEEN :from AND :to', { from, to })
+      .groupBy('p.category_id')
+      .addGroupBy('c.name')
+      .orderBy('revenue', 'DESC')
+      .getRawMany<{ category: string; revenue: string }>();
+
+    // Tinh tong de xac dinh %
+    const total = rows.reduce(
+      (sum, r) => sum + (parseFloat(r.revenue) || 0),
+      0,
+    );
+
+    return rows.map((r) => {
+      const revenue = parseFloat(r.revenue) || 0;
+      const percentage =
+        total > 0 ? Math.round((revenue / total) * 10000) / 100 : 0;
+      return { category: r.category, revenue, percentage };
+    });
   }
 
   /**

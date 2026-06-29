@@ -11,7 +11,11 @@ import { AnalyticsService } from './analytics.service.js';
 import { TrackPageviewDto } from './dto/track-pageview.dto.js';
 import { TrackEventDto } from './dto/track-event.dto.js';
 import { QueryAnalyticsDto } from './dto/query-analytics.dto.js';
-import { RangeQueryDto, TopProductsQueryDto } from './dto/range-query.dto.js';
+import {
+  RangeQueryDto,
+  TopProductsQueryDto,
+  PeriodQueryDto,
+} from './dto/range-query.dto.js';
 import { Public } from '../../common/decorators/public.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
 import { UserRole } from '../../common/constants/index.js';
@@ -155,6 +159,72 @@ export class AnalyticsController {
       query.to,
       query.limit ?? 5,
     );
+    return successResponse(data);
+  }
+
+  // ═══════════════════════════════════════════════════════════
+  // DASHBOARD ENDPOINTS MOI — 5 endpoints su dung period param
+  // ═══════════════════════════════════════════════════════════
+
+  /**
+   * Admin — tong quan dashboard: doanh thu, don hang, khach moi, conversion.
+   * period: '7d' | '30d' | '90d' — mac dinh '30d'.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('overview')
+  async getOverview(@Query() query: PeriodQueryDto) {
+    const data = await this.analyticsService.getOverview(query.period);
+    return successResponse(data);
+  }
+
+  /**
+   * Admin — traffic sources theo tung ngay (organic/direct/social/referral).
+   * Phan loai dua tren truong referer cua page_views.
+   * period: '7d' | '30d' | '90d' — mac dinh '30d'.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('traffic-sources')
+  async getTrafficSourcesTimeSeries(@Query() query: PeriodQueryDto) {
+    const data = await this.analyticsService.getTrafficSourcesTimeSeries(
+      query.period,
+    );
+    return successResponse(data);
+  }
+
+  /**
+   * Admin — so khach hang moi vs quay lai theo tung ngay.
+   * newCustomers = user dang ky trong ky.
+   * returningCustomers = user dat don da dang ky truoc do.
+   * period: '7d' | '30d' | '90d' — mac dinh '30d'.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('customers')
+  async getCustomersTimeSeries(@Query() query: PeriodQueryDto) {
+    const data = await this.analyticsService.getCustomersTimeSeries(
+      query.period,
+    );
+    return successResponse(data);
+  }
+
+  /**
+   * Admin — funnel chuyen doi: view -> gio hang -> checkout -> thanh toan.
+   * period: '7d' | '30d' | '90d' — mac dinh '30d'.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('conversion')
+  async getConversionFunnel(@Query() query: PeriodQueryDto) {
+    const data = await this.analyticsService.getConversionFunnel(query.period);
+    return successResponse(data);
+  }
+
+  /**
+   * Admin — doanh thu phan theo danh muc san pham (pie/bar chart).
+   * period: '7d' | '30d' | '90d' — mac dinh '30d'.
+   */
+  @Roles(UserRole.ADMIN)
+  @Get('revenue-breakdown')
+  async getRevenueBreakdown(@Query() query: PeriodQueryDto) {
+    const data = await this.analyticsService.getRevenueBreakdown(query.period);
     return successResponse(data);
   }
 }

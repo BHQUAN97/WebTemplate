@@ -5,6 +5,8 @@ import { Event } from './entities/event.entity.js';
 import { Order } from '../orders/entities/order.entity.js';
 import { OrderItem } from '../orders/entities/order-item.entity.js';
 import { Product } from '../products/entities/product.entity.js';
+import { User } from '../users/entities/user.entity.js';
+import { Category } from '../categories/entities/category.entity.js';
 import { AnalyticsService } from './analytics.service.js';
 import { AnalyticsController } from './analytics.controller.js';
 import { AnalyticsProcessor } from '../../common/queue/analytics.processor.js';
@@ -13,10 +15,19 @@ import { AnalyticsProcessor } from '../../common/queue/analytics.processor.js';
  * AnalyticsModule.
  * Queue `analytics` da duoc register o QueueModule (@Global), khong can register lai.
  * AnalyticsProcessor dang ky tai day de co access den AnalyticsService injected.
+ * Cac entity User va Category duoc inject de phuc vu analytics dashboard moi.
  */
 @Module({
   imports: [
-    TypeOrmModule.forFeature([PageView, Event, Order, OrderItem, Product]),
+    TypeOrmModule.forFeature([
+      PageView,
+      Event,
+      Order,
+      OrderItem,
+      Product,
+      User,
+      Category,
+    ]),
   ],
   controllers: [AnalyticsController],
   providers: [AnalyticsService, AnalyticsProcessor],

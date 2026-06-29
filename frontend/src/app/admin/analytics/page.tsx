@@ -78,6 +78,19 @@ function computeDefaultRange(): { from: string; to: string } {
   };
 }
 
+/**
+ * Chuyen khoang ngay thanh period ngan nhat phu hop ('7d'|'30d'|'90d').
+ * Dung cho cac endpoint chi chap nhan period thay vi from/to.
+ */
+function rangeToPeriod(from: string, to: string): '7d' | '30d' | '90d' {
+  const days = Math.round(
+    (new Date(to).getTime() - new Date(from).getTime()) / 86_400_000,
+  );
+  if (days <= 7) return '7d';
+  if (days <= 30) return '30d';
+  return '90d';
+}
+
 /** Trang Phân tích nang cao cho admin — stats + 4 bieu do recharts. */
 export default function AnalyticsPage() {
   // Khoi tao null tren SSR → client hydrate → useEffect set range → load data.
@@ -99,12 +112,13 @@ export default function AnalyticsPage() {
     if (!range) return;
     setLoading(true);
     try {
+      const period = rangeToPeriod(range.from, range.to);
       const [o, r, s, p, t] = await Promise.all([
-        getAnalyticsOverview(range.from, range.to),
+        getAnalyticsOverview(period),
         getRevenueTrend(range.from, range.to, 'day'),
         getOrdersByStatus(range.from, range.to),
         getTopProducts(range.from, range.to, 5),
-        getTrafficSources(range.from, range.to),
+        getTrafficSources(period),
       ]);
       setOverview(o);
       setRevenue(r);
