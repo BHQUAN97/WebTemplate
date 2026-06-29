@@ -45,13 +45,25 @@ for arg in "$@"; do
   esac
 done
 
-# Load env
-if [ -f "$PROJECT_DIR/.env" ]; then
+# Load env — ưu tiên backend/.env (thực tế), fallback root .env
+if [ -f "$BACKEND_DIR/.env" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$BACKEND_DIR/.env"
+  set +a
+elif [ -f "$PROJECT_DIR/.env" ]; then
   set -a
   # shellcheck disable=SC1091
   source "$PROJECT_DIR/.env"
   set +a
-elif [ -f "$PROJECT_DIR/.env.production" ]; then
+fi
+
+if [ -f "$BACKEND_DIR/.env.production" ] && [ "$NODE_ENV" = "production" ]; then
+  set -a
+  # shellcheck disable=SC1091
+  source "$BACKEND_DIR/.env.production"
+  set +a
+elif [ -f "$PROJECT_DIR/.env.production" ] && [ "$NODE_ENV" = "production" ]; then
   set -a
   # shellcheck disable=SC1091
   source "$PROJECT_DIR/.env.production"
