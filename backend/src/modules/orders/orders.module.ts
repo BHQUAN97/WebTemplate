@@ -8,12 +8,14 @@ import { OrdersService } from './orders.service.js';
 import { OrdersController } from './orders.controller.js';
 import { InventoryModule } from '../inventory/inventory.module.js';
 import { PromotionsModule } from '../promotions/promotions.module.js';
+import { SettingsModule } from '../settings/settings.module.js';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Order, OrderItem, Product, ProductVariant]),
     InventoryModule,
     PromotionsModule,
+    SettingsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

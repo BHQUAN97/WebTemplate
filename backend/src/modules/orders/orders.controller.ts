@@ -7,6 +7,8 @@ import {
   Param,
   Query,
   ForbiddenException,
+  ParseFloatPipe,
+  DefaultValuePipe,
 } from '@nestjs/common';
 import { ApiTags } from '@nestjs/swagger';
 import { OrdersService } from './orders.service.js';
@@ -15,6 +17,7 @@ import { UpdateOrderStatusDto } from './dto/update-order-status.dto.js';
 import { QueryOrdersDto } from './dto/query-orders.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
+import { Public } from '../../common/decorators/public.decorator.js';
 import { UserRole } from '../../common/constants/index.js';
 import type { ICurrentUser } from '../../common/interfaces/index.js';
 import {
@@ -52,6 +55,20 @@ export class OrdersController {
       : { ...query, user_id: user.id };
     const { items, meta } = await this.ordersService.findAll(scoped);
     return paginatedResponse(items, meta);
+  }
+
+  /**
+   * Tinh phi van chuyen truoc khi checkout.
+   * Public — FE goi de hien "Mua them Xk de mien phi ship".
+   * Query: subtotal (so tien san pham, khong gom discount)
+   */
+  @Public()
+  @Get('shipping/calculate')
+  async calculateShipping(
+    @Query('subtotal', new DefaultValuePipe(0), ParseFloatPipe)
+    subtotal: number,
+  ) {
+    return this.ordersService.calculateShipping(subtotal);
   }
 
   /**

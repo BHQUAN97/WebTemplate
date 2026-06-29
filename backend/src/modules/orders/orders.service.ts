@@ -17,6 +17,7 @@ import { CreateOrderDto } from './dto/create-order.dto.js';
 import { QueryOrdersDto } from './dto/query-orders.dto.js';
 import { InventoryService } from '../inventory/inventory.service.js';
 import { PromotionsService } from '../promotions/promotions.service.js';
+import { SettingsService } from '../settings/settings.service.js';
 
 /**
  * Orders service — tao don hang tu cart hoac truc tiep, quan ly trang thai don hang.
@@ -39,6 +40,7 @@ export class OrdersService extends BaseService<Order> {
     private readonly variantRepository: Repository<ProductVariant>,
     private readonly inventoryService: InventoryService,
     private readonly promotionsService: PromotionsService,
+    private readonly settingsService: SettingsService,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {
@@ -182,8 +184,16 @@ export class OrdersService extends BaseService<Order> {
     }>,
   ): Promise<Order> {
     const subtotal = items.reduce((sum, i) => sum + i.total, 0);
-    const shippingFee = 0; // TODO: tinh theo dia chi/method khi co shipping module
-    const taxAmount = 0; // TODO: tinh theo region khi co tax module
+
+    // Tinh phi van chuyen: mien phi neu don >= nguong, nguoc lai lay phi mac dinh tu settings
+    const { shippingFee } = await this.calculateShipping(subtotal);
+
+    // Tinh thue VAT theo ty le trong settings (0 = tat)
+    const taxRate = await this.settingsService.getOrDefault<number>(
+      'tax.rate',
+      0,
+    );
+    const taxAmount = Math.round(subtotal * taxRate / 100);
 
     // 1) Reserve stock TRUOC khi tao order — neu fail, khong tao order
     const reserved: Array<{
@@ -301,6 +311,29 @@ export class OrdersService extends BaseService<Order> {
     }
 
     return order;
+  }
+
+  /**
+   * Tinh phi van chuyen dua tren subtotal va settings.
+   * Cung duoc dung boi endpoint GET /orders/shipping/calculate de FE hien thi.
+   */
+  async calculateShipping(subtotal: number): Promise<{
+    shippingFee: number;
+    freeThreshold: number;
+    remaining: number;
+  }> {
+    const freeThreshold = await this.settingsService.getOrDefault<number>(
+      'shipping.free_threshold',
+      500000,
+    );
+    const fee = await this.settingsService.getOrDefault<number>(
+      'shipping.fee',
+      30000,
+    );
+    const shippingFee = subtotal >= freeThreshold ? 0 : fee;
+    // remaining: so tien con thieu de dat nguong mien phi ship (0 neu da mien phi)
+    const remaining = Math.max(0, freeThreshold - subtotal);
+    return { shippingFee, freeThreshold, remaining };
   }
 
   /**

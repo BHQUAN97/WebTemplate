@@ -346,6 +346,34 @@ export class SettingsService
           'Hien thi bottom tab bar tren mobile (Home/Search/Cart/Account)',
         is_public: true,
       },
+      // === Shipping settings — phi van chuyen va nguong mien phi ===
+      {
+        key: 'shipping.fee',
+        value: '30000',
+        type: SettingType.NUMBER,
+        group: 'shipping',
+        description: 'Phi van chuyen mac dinh (VND)',
+        is_public: true,
+      },
+      {
+        key: 'shipping.free_threshold',
+        value: '500000',
+        type: SettingType.NUMBER,
+        group: 'shipping',
+        description:
+          'Nguong mien phi van chuyen — don hang >= gia tri nay se duoc mien phi (VND)',
+        is_public: true,
+      },
+      // === Tax settings ===
+      {
+        key: 'tax.rate',
+        value: '0',
+        type: SettingType.NUMBER,
+        group: 'tax',
+        description:
+          'Ty le VAT (%). 0 = tat thue. Vi du: 10 = 10% VAT tren tong gia tri san pham',
+        is_public: false,
+      },
     ];
 
     for (const item of defaults) {
