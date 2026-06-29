@@ -1,6 +1,6 @@
 ﻿import { Header } from '@/components/shared/header';
 import { Footer } from '@/components/shared/footer';
-import { FloatingContactBar } from '@/components/public/floating-contact-bar';
+import { SpeedDialFab } from '@/components/shared/speed-dial-fab';
 import { BottomTabBar } from '@/components/public/bottom-tab-bar';
 import { ChatWidgetProvider } from '@/components/chat/chat-widget-provider';
 
@@ -19,7 +19,7 @@ export default function PublicLayout({
       <Header />
       <main className="flex-1 pb-14 md:pb-0">{children}</main>
       <Footer />
-      <FloatingContactBar />
+      <SpeedDialFab />
       <BottomTabBar />
       <ChatWidgetProvider />
     </>

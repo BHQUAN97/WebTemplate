@@ -1,4 +1,4 @@
-import { Module } from '@nestjs/common';
+import { Module, MiddlewareConsumer, RequestMethod } from '@nestjs/common';
 import { ConfigModule, ConfigService } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { APP_GUARD, APP_INTERCEPTOR, APP_FILTER, APP_PIPE } from '@nestjs/core';
@@ -74,6 +74,8 @@ import { AuditLogsModule } from './modules/audit-logs/audit-logs.module.js';
 import { FeatureFlagsModule } from './modules/feature-flags/feature-flags.module.js';
 
 // Reports — admin export PDF/XLSX/CSV
+import { WishlistModule } from './modules/wishlist/wishlist.module.js';
+import { MaintenanceMiddleware } from './common/middleware/maintenance.middleware.js';
 import { ReportsModule } from './modules/reports/reports.module.js';
 
 // Export — generic CSV/XLSX cho arbitrary data tu FE
@@ -170,6 +172,7 @@ import { MailModule } from './modules/mail/mail.module.js';
     PaymentsModule,
     ReviewsModule,
     PromotionsModule,
+    WishlistModule,
 
     // === Communication ===
     NotificationsModule,
@@ -206,6 +209,9 @@ import { MailModule } from './modules/mail/mail.module.js';
     CronModule,
   ],
   providers: [
+    // Maintenance mode middleware — can inject SettingsService
+    MaintenanceMiddleware,
+
     // Sentry exception capture — PHAI dang ky TRUOC AllExceptionsFilter
     // de Sentry thay exception truoc khi bi format thanh response
     { provide: APP_FILTER, useClass: SentryGlobalFilter },
@@ -228,4 +234,12 @@ import { MailModule } from './modules/mail/mail.module.js';
     { provide: APP_PIPE, useClass: CustomValidationPipe },
   ],
 })
-export class AppModule {}
+export class AppModule {
+  configure(consumer: MiddlewareConsumer) {
+    // Maintenance mode middleware — apply cho tat ca API route
+    // Bypass: /api/health, /api/auth/login, /api/auth/refresh
+    consumer
+      .apply(MaintenanceMiddleware)
+      .forRoutes({ path: '*', method: RequestMethod.ALL });
+  }
+}

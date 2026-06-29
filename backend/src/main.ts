@@ -11,6 +11,11 @@ import { json, raw } from 'express';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module.js';
+import { createBullBoard } from '@bull-board/api';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const { BullMQAdapter } = require('@bull-board/api/bullMQAdapter');
+import { ExpressAdapter as BullBoardExpressAdapter } from '@bull-board/express';
+import { Queue } from 'bullmq';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
@@ -116,6 +121,15 @@ async function bootstrap() {
     logger.log(`Swagger UI available at /api/docs`);
   }
 
+  // === Bull Board — queue monitoring UI ===
+  // Chi bat khi khong production, hoac BULL_BOARD_ENABLED=true
+  const bullBoardEnabled =
+    env !== 'production' || process.env.BULL_BOARD_ENABLED === 'true';
+
+  if (bullBoardEnabled) {
+    setupBullBoard(app, configService, logger);
+  }
+
   await app.listen(port, '0.0.0.0');
   logger.log(`${appName} API running on http://0.0.0.0:${port}`);
   logger.log(`Environment: ${env}`);
@@ -156,6 +170,42 @@ function setupSwagger(app: any, appName: string): void {
   SwaggerModule.setup('api/docs', app, document, {
     swaggerOptions: { persistAuthorization: true },
   });
+}
+
+/**
+ * Cau hinh Bull Board UI cho queue monitoring.
+ * Mount tai /admin/queues — chi admin moi biet URL nay.
+ * Cac queue: email, media, analytics, webhook-delivery, dead-letter
+ */
+function setupBullBoard(app: any, configService: ConfigService, logger: Logger): void {
+  const redisConnection = {
+    host: configService.get<string>('redis.host') || 'localhost',
+    port: configService.get<number>('redis.port') || 6003,
+    password: configService.get<string>('redis.password') || undefined,
+    db: configService.get<number>('redis.db') ?? 0,
+  };
+
+  const queueNames = [
+    'email',
+    'media-processing',
+    'analytics',
+    'webhook-delivery',
+    'dead-letter',
+  ];
+
+  const queues = queueNames.map(
+    (name) => new BullMQAdapter(new Queue(name, { connection: redisConnection })),
+  );
+
+  const serverAdapter = new BullBoardExpressAdapter();
+  serverAdapter.setBasePath('/admin/queues');
+
+  createBullBoard({ queues, serverAdapter });
+
+  const expressApp = app.getHttpAdapter().getInstance();
+  expressApp.use('/admin/queues', serverAdapter.getRouter());
+
+  logger.log(`Bull Board available at /admin/queues`);
 }
 
 bootstrap();

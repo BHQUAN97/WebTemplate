@@ -1,24 +1,67 @@
-﻿'use client';
+'use client';
 
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useCallback } from 'react';
 import Link from 'next/link';
 import Image from 'next/image';
-import { Search } from 'lucide-react';
+import { Search, Clock, X } from 'lucide-react';
 import { Input } from '@/components/ui/input';
 import { Badge } from '@/components/ui/badge';
 import { Skeleton } from '@/components/ui/skeleton';
 import { searchApi, type SearchResult } from '@/lib/api/modules/search.api';
 import { useDebounce, formatPrice } from '@/lib/hooks';
 
+const MAX_RECENT = 5;
+const STORAGE_KEY = 'recent_searches';
+
+function getRecent(): string[] {
+  if (typeof window === 'undefined') return [];
+  try {
+    return JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
+  } catch {
+    return [];
+  }
+}
+
+function saveRecent(q: string) {
+  const list = [q, ...getRecent().filter((r) => r !== q)].slice(0, MAX_RECENT);
+  localStorage.setItem(STORAGE_KEY, JSON.stringify(list));
+}
+
+/** Bọc phần khớp query trong <mark> để highlight */
+function HighlightText({ text, query }: { text: string; query: string }) {
+  if (!query.trim()) return <>{text}</>;
+  const escaped = query.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+  const parts = text.split(new RegExp(`(${escaped})`, 'gi'));
+  return (
+    <>
+      {parts.map((part, i) =>
+        part.toLowerCase() === query.toLowerCase() ? (
+          <mark key={i} className="bg-yellow-200 text-inherit rounded-sm px-0.5">
+            {part}
+          </mark>
+        ) : (
+          <span key={i}>{part}</span>
+        ),
+      )}
+    </>
+  );
+}
+
 /**
- * Trang Tìm kiếm — tabs All/Products/Articles, result cards
+ * Trang Tìm kiếm — tabs All/Products/Articles, result cards,
+ * search highlight, recent searches.
  */
 export function SearchClient() {
   const [query, setQuery] = useState('');
   const [results, setResults] = useState<SearchResult[]>([]);
   const [loading, setLoading] = useState(false);
   const [activeTab, setActiveTab] = useState<'all' | 'product' | 'article'>('all');
+  const [recent, setRecent] = useState<string[]>([]);
   const debouncedQuery = useDebounce(query, 400);
+
+  useEffect(() => {
+    setRecent(getRecent());
+  }, []);
 
   useEffect(() => {
     if (!debouncedQuery.trim()) {
@@ -32,6 +75,9 @@ export function SearchClient() {
         if (activeTab !== 'all') params.type = activeTab;
         const res = await searchApi.search(debouncedQuery, params);
         setResults(res ?? []);
+        // Lưu lịch sử tìm kiếm sau khi có kết quả
+        saveRecent(debouncedQuery.trim());
+        setRecent(getRecent());
       } catch {
         setResults([]);
       } finally {
@@ -40,6 +86,11 @@ export function SearchClient() {
     }
     search();
   }, [debouncedQuery, activeTab]);
+
+  const clearRecent = useCallback(() => {
+    localStorage.removeItem(STORAGE_KEY);
+    setRecent([]);
+  }, []);
 
   const filteredResults =
     activeTab === 'all'
@@ -62,11 +113,52 @@ export function SearchClient() {
         <Input
           value={query}
           onChange={(e) => setQuery(e.target.value)}
-          placeholder="Nháp tu khoa Tìm kiếm..."
+          placeholder="Nhập từ khoá tìm kiếm..."
           className="pl-10 h-12 text-base"
           autoFocus
         />
+        {query && (
+          <button
+            type="button"
+            aria-label="Xóa"
+            onClick={() => setQuery('')}
+            className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-gray-600"
+          >
+            <X className="h-4 w-4" />
+          </button>
+        )}
       </div>
+
+      {/* Recent searches — hiển thị khi input rỗng */}
+      {!query.trim() && recent.length > 0 && (
+        <div className="mb-6">
+          <div className="flex items-center justify-between mb-2">
+            <span className="text-sm font-medium text-gray-600 flex items-center gap-1">
+              <Clock className="h-4 w-4" />
+              Tìm kiếm gần đây
+            </span>
+            <button
+              type="button"
+              onClick={clearRecent}
+              className="text-xs text-gray-400 hover:text-gray-600"
+            >
+              Xóa tất cả
+            </button>
+          </div>
+          <div className="flex flex-wrap gap-2">
+            {recent.map((r) => (
+              <button
+                key={r}
+                type="button"
+                onClick={() => setQuery(r)}
+                className="px-3 py-1 text-sm bg-gray-100 hover:bg-gray-200 rounded-full transition-colors"
+              >
+                {r}
+              </button>
+            ))}
+          </div>
+        </div>
+      )}
 
       {/* Tabs */}
       <div className="flex gap-4 border-b border-gray-200 mb-6">
@@ -89,7 +181,7 @@ export function SearchClient() {
       {!debouncedQuery.trim() ? (
         <div className="text-center text-gray-400 py-16">
           <Search className="h-12 w-12 mx-auto mb-4" />
-          <p>Nháp tu khoa de bat dau Tìm kiếm</p>
+          <p>Nhập từ khoá để bắt đầu tìm kiếm</p>
         </div>
       ) : loading ? (
         <div className="space-y-4">
@@ -105,6 +197,9 @@ export function SearchClient() {
         </div>
       ) : filteredResults.length > 0 ? (
         <div className="space-y-4">
+          <p className="text-sm text-gray-500">
+            {filteredResults.length} kết quả cho &ldquo;{debouncedQuery}&rdquo;
+          </p>
           {filteredResults.map((result) => (
             <Link
               key={`${result.type}-${result.id}`}
@@ -138,17 +233,15 @@ export function SearchClient() {
                     {result.type === 'product' ? 'Sản phẩm' : 'Bài viết'}
                   </Badge>
                   {result.category && (
-                    <span className="text-xs text-gray-400">
-                      {result.category}
-                    </span>
+                    <span className="text-xs text-gray-400">{result.category}</span>
                   )}
                 </div>
                 <h3 className="font-medium text-sm sm:text-base line-clamp-1">
-                  {result.title}
+                  <HighlightText text={result.title} query={debouncedQuery} />
                 </h3>
                 {result.excerpt && (
                   <p className="text-sm text-gray-500 line-clamp-1 mt-0.5">
-                    {result.excerpt}
+                    <HighlightText text={result.excerpt} query={debouncedQuery} />
                   </p>
                 )}
                 {result.price !== undefined && (
@@ -163,7 +256,7 @@ export function SearchClient() {
       ) : (
         <div className="text-center text-gray-500 py-16">
           <p className="text-lg mb-2">Không tìm thấy kết quả</p>
-          <p className="text-sm">Thu tim voi tu khoa khac</p>
+          <p className="text-sm">Thử tìm với từ khoá khác</p>
         </div>
       )}
     </div>

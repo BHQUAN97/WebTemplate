@@ -34,6 +34,11 @@ export const metadata: Metadata = {
   description: brand.description,
   alternates: {
     canonical: '/',
+    languages: {
+      'vi': '/',
+      'en': '/en',
+      'x-default': '/',
+    },
   },
   openGraph: {
     title: APP_NAME,
