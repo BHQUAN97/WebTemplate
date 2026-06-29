@@ -45,6 +45,30 @@ export const usersApi = {
   },
 
   /**
+   * Lấy notification preferences của user hiện tại từ server.
+   * Dùng để sync qua nhiều thiết bị.
+   */
+  getUserPreferences() {
+    return apiClient.get<Record<string, boolean>>('/users/me/preferences');
+  },
+
+  /**
+   * Cập nhật preferences — chỉ gửi các field muốn thay đổi (merge phía BE).
+   */
+  updateUserPreferences(prefs: {
+    emailNotifications?: boolean;
+    pushNotifications?: boolean;
+    marketingEmails?: boolean;
+    orderUpdates?: boolean;
+    securityAlerts?: boolean;
+  }) {
+    return apiClient.patch<Record<string, boolean>>(
+      '/users/me/preferences',
+      prefs,
+    );
+  },
+
+  /**
    * GDPR — tai xuong toan bo du lieu ca nhan cua user duoi dang JSON/ZIP.
    */
   async exportUserData(id: string): Promise<Blob> {

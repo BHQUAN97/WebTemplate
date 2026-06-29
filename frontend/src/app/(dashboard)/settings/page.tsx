@@ -14,22 +14,39 @@ const PREFS_KEY = 'user_notification_prefs';
 
 interface NotificationPrefs {
   orderUpdates: boolean;
-  promotions: boolean;
-  newsletter: boolean;
-  security: boolean;
+  marketingEmails: boolean;
+  emailNotifications: boolean;
+  securityAlerts: boolean;
 }
 
-function loadPrefs(): NotificationPrefs {
+function defaultPrefs(): NotificationPrefs {
+  return {
+    orderUpdates: true,
+    marketingEmails: true,
+    emailNotifications: true,
+    securityAlerts: true,
+  };
+}
+
+/** Đọc prefs từ localStorage làm cache fallback */
+function loadLocalPrefs(): NotificationPrefs {
   try {
     const raw = localStorage.getItem(PREFS_KEY);
-    return raw ? JSON.parse(raw) : defaultPrefs();
+    if (!raw) return defaultPrefs();
+    const parsed = JSON.parse(raw) as Partial<NotificationPrefs>;
+    return { ...defaultPrefs(), ...parsed };
   } catch {
     return defaultPrefs();
   }
 }
 
-function defaultPrefs(): NotificationPrefs {
-  return { orderUpdates: true, promotions: true, newsletter: false, security: true };
+/** Lưu prefs vào localStorage để dùng khi offline / chưa load xong API */
+function saveLocalPrefs(prefs: NotificationPrefs): void {
+  try {
+    localStorage.setItem(PREFS_KEY, JSON.stringify(prefs));
+  } catch {
+    // localStorage có thể bị block trong private browsing
+  }
 }
 
 export default function DashboardSettingsPage() {
@@ -39,23 +56,42 @@ export default function DashboardSettingsPage() {
   const [saving, setSaving] = useState(false);
   const { toast } = useToast();
 
+  // Load prefs: thử từ API trước, fallback về localStorage
   useEffect(() => {
-    setNotifications(loadPrefs());
+    // Hiển thị cache ngay lập tức để tránh flash
+    setNotifications(loadLocalPrefs());
+
+    usersApi
+      .getUserPreferences()
+      .then((res) => {
+        const serverPrefs = (res as any)?.data ?? res;
+        if (serverPrefs && typeof serverPrefs === 'object') {
+          const merged = { ...defaultPrefs(), ...serverPrefs } as NotificationPrefs;
+          setNotifications(merged);
+          saveLocalPrefs(merged);
+        }
+      })
+      .catch(() => {
+        // Không có network hoặc chưa đăng nhập — dùng localStorage cache
+      });
   }, []);
 
   const handleSave = async () => {
     setSaving(true);
+    // Lưu localStorage ngay để UX nhanh
+    saveLocalPrefs(notifications);
+
     try {
-      // Lưu notification prefs vào localStorage (chưa có backend endpoint riêng)
-      localStorage.setItem(PREFS_KEY, JSON.stringify(notifications));
-
-      // Sync locale về user profile nếu có thay đổi
-      await usersApi.updateProfile({ name: undefined } as any);
-
+      // Sync preferences lên server để dùng qua nhiều thiết bị
+      await usersApi.updateUserPreferences({
+        orderUpdates: notifications.orderUpdates,
+        marketingEmails: notifications.marketingEmails,
+        emailNotifications: notifications.emailNotifications,
+        securityAlerts: notifications.securityAlerts,
+      });
       toast('Đã lưu cài đặt thành công!');
     } catch {
-      // Dù API lỗi vẫn lưu local thành công
-      localStorage.setItem(PREFS_KEY, JSON.stringify(notifications));
+      // Dù API lỗi, localStorage đã lưu — báo offline mode
       toast('Đã lưu cài đặt (offline mode)');
     } finally {
       setSaving(false);
@@ -97,9 +133,9 @@ export default function DashboardSettingsPage() {
           {(
             [
               { key: 'orderUpdates', label: 'Cập nhật đơn hàng', desc: 'Nhận thông báo khi đơn hàng thay đổi trạng thái' },
-              { key: 'promotions', label: 'Khuyến mãi', desc: 'Nhận thông báo về chương trình khuyến mãi mới' },
-              { key: 'newsletter', label: 'Bản tin', desc: 'Nhận email bản tin hàng tuần' },
-              { key: 'security', label: 'Bảo mật', desc: 'Cảnh báo đăng nhập từ thiết bị mới' },
+              { key: 'emailNotifications', label: 'Email thông báo', desc: 'Nhận email cho các hoạt động tài khoản' },
+              { key: 'marketingEmails', label: 'Khuyến mãi', desc: 'Nhận email về chương trình khuyến mãi mới' },
+              { key: 'securityAlerts', label: 'Cảnh báo bảo mật', desc: 'Cảnh báo đăng nhập từ thiết bị mới' },
             ] as { key: keyof NotificationPrefs; label: string; desc: string }[]
           ).map(({ key, label, desc }) => (
             <div key={key} className="flex items-center justify-between">

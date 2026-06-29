@@ -18,6 +18,7 @@ import { GdprExportService } from './gdpr-export.service.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateUserDto } from './dto/update-user.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { CurrentUser } from '../../common/decorators/current-user.decorator.js';
 import { Roles } from '../../common/decorators/roles.decorator.js';
@@ -86,6 +87,27 @@ export class UsersController {
     @Body() dto: UpdateProfileDto,
   ) {
     return this.usersService.updateProfile(user.id, dto);
+  }
+
+  /**
+   * GET /users/me/preferences — lấy preferences của user hiện tại.
+   * Phải đặt TRƯỚC route /:id để tránh NestJS match 'me' như param.
+   */
+  @Get('me/preferences')
+  async getMyPreferences(@CurrentUser() user: ICurrentUser) {
+    return this.usersService.getPreferences(user.id);
+  }
+
+  /**
+   * PATCH /users/me/preferences — cập nhật preferences (merge, không override).
+   * Cho phép user sync prefs qua nhiều thiết bị.
+   */
+  @Patch('me/preferences')
+  async updateMyPreferences(
+    @CurrentUser() user: ICurrentUser,
+    @Body() dto: UpdatePreferencesDto,
+  ) {
+    return this.usersService.updatePreferences(user.id, dto);
   }
 
   /**

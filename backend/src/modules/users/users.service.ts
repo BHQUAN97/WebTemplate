@@ -6,6 +6,7 @@ import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { User } from './entities/user.entity.js';
 import { CreateUserDto } from './dto/create-user.dto.js';
 import { UpdateProfileDto } from './dto/update-profile.dto.js';
+import { UpdatePreferencesDto } from './dto/update-preferences.dto.js';
 import { UserRole } from '../../common/constants/index.js';
 import { hashPassword } from '../../common/utils/hash.js';
 import { AuthService } from '../auth/auth.service.js';
@@ -87,6 +88,38 @@ export class UsersService extends BaseService<User> {
   async softDelete(id: string): Promise<void> {
     await super.softDelete(id);
     await this.authService.revokeAllUserTokens(id);
+  }
+
+  /**
+   * Lấy preferences hiện tại của user.
+   * Trả về object rỗng nếu user chưa set preferences.
+   */
+  async getPreferences(userId: string): Promise<Record<string, boolean>> {
+    const user = await this.findById(userId);
+    return user.preferences ?? {};
+  }
+
+  /**
+   * Cập nhật preferences của user — merge với prefs hiện có.
+   * Không override toàn bộ: chỉ update các field được gửi lên.
+   * Ví dụ: gửi { orderUpdates: false } chỉ tắt orderUpdates,
+   * các prefs khác giữ nguyên.
+   */
+  async updatePreferences(
+    userId: string,
+    dto: UpdatePreferencesDto,
+  ): Promise<Record<string, boolean>> {
+    const user = await this.findById(userId);
+    const currentPrefs = user.preferences ?? {};
+
+    // Lọc bỏ undefined — chỉ merge các key được gửi lên
+    const incoming = Object.fromEntries(
+      Object.entries(dto).filter(([, v]) => v !== undefined),
+    ) as Record<string, boolean>;
+
+    const merged = { ...currentPrefs, ...incoming };
+    await this.usersRepository.update(userId, { preferences: merged });
+    return merged;
   }
 
   /**

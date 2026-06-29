@@ -96,6 +96,14 @@ export class User extends BaseEntity {
   @Column({ type: 'char', length: 26, nullable: true })
   tenant_id: string | null;
 
+  /**
+   * Notification preferences của user — lưu dưới dạng JSON để dễ mở rộng.
+   * Sync qua nhiều thiết bị, localStorage dùng làm cache fallback phía FE.
+   * Default null = chưa set, FE sẽ dùng default values.
+   */
+  @Column({ type: 'json', nullable: true })
+  preferences: Record<string, boolean> | null;
+
   @OneToMany(() => RefreshToken, (token) => token.user)
   refreshTokens: RefreshToken[];
 }
