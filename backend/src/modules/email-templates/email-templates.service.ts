@@ -224,6 +224,26 @@ Link het han sau 24 gio. Neu khong phai ban, bo qua email nay.`,
         variables: ['subject_line', 'title', 'content', 'unsubscribe_link'],
       },
       {
+        name: 'contact-notify',
+        subject: '[Liên hệ mới] {{subject}}',
+        html_body: `<h2>Có liên hệ mới từ website</h2>
+<table style="border-collapse:collapse;width:100%;max-width:600px;">
+  <tr><td style="padding:8px;font-weight:bold;width:120px;">Họ tên:</td><td style="padding:8px;">{{name}}</td></tr>
+  <tr style="background:#f6f8fa;"><td style="padding:8px;font-weight:bold;">Email:</td><td style="padding:8px;"><a href="mailto:{{email}}">{{email}}</a></td></tr>
+  <tr><td style="padding:8px;font-weight:bold;">Chủ đề:</td><td style="padding:8px;">{{subject}}</td></tr>
+  <tr style="background:#f6f8fa;"><td style="padding:8px;font-weight:bold;">Nội dung:</td><td style="padding:8px;white-space:pre-wrap;">{{message}}</td></tr>
+  <tr><td style="padding:8px;font-weight:bold;">Thời gian:</td><td style="padding:8px;">{{createdAt}}</td></tr>
+</table>`,
+        text_body: `Có liên hệ mới từ website
+
+Họ tên: {{name}}
+Email: {{email}}
+Chủ đề: {{subject}}
+Nội dung: {{message}}
+Thời gian: {{createdAt}}`,
+        variables: ['name', 'email', 'subject', 'message', 'createdAt'],
+      },
+      {
         name: 'weekly_report',
         subject: 'Bao cao tuan {{dateFrom}} - {{dateTo}}',
         html_body: `<h1>Bao cao tuan {{dateFrom}} - {{dateTo}}</h1>

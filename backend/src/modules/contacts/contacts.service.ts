@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
@@ -7,6 +8,7 @@ import { Contact } from './entities/contact.entity.js';
 import { ContactStatus } from '../../common/constants/index.js';
 import { CreateContactDto } from './dto/create-contact.dto.js';
 import { QueryContactsDto } from './dto/query-contacts.dto.js';
+import { MailService } from '../mail/mail.service.js';
 
 /**
  * Contacts service — quan ly form lien he, phan cong, thong ke.
@@ -18,6 +20,8 @@ export class ContactsService extends BaseService<Contact> {
   constructor(
     @InjectRepository(Contact)
     private readonly contactsRepository: Repository<Contact>,
+    private readonly mailService: MailService,
+    private readonly configService: ConfigService,
   ) {
     super(contactsRepository, 'Contact');
   }
@@ -28,8 +32,32 @@ export class ContactsService extends BaseService<Contact> {
   async createContact(dto: CreateContactDto): Promise<Contact> {
     const contact = await this.create(dto as any);
 
-    // TODO: Gui email thong bao cho admin khi co lien he moi
     this.logger.log(`New contact from ${dto.email}: ${dto.subject}`);
+
+    // Gui email thong bao cho admin — wrap try/catch, khong throw de khong lam hong luong save
+    try {
+      const adminEmail =
+        this.configService.get<string>('ADMIN_EMAIL') || 'admin@example.com';
+      await this.mailService.sendMail({
+        to: adminEmail,
+        subject: `[Liên hệ mới] ${contact.subject}`,
+        template: 'contact-notify',
+        context: {
+          name: contact.name,
+          email: contact.email,
+          subject: contact.subject,
+          message: contact.message,
+          createdAt: contact.created_at
+            ? new Date(contact.created_at).toLocaleString('vi-VN')
+            : '',
+        },
+      });
+    } catch (err) {
+      // Email fail KHONG duoc lan ra ngoai — chi log warning
+      this.logger.warn(
+        `[contacts] Gui email thong bao that bai: ${(err as Error).message}`,
+      );
+    }
 
     return contact;
   }
