@@ -3,10 +3,14 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, SelectQueryBuilder, LessThan } from 'typeorm';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
+import { OrderStatus } from '../../common/constants/index.js';
 import { Notification } from './entities/notification.entity.js';
 import { CreateNotificationDto } from './dto/create-notification.dto.js';
 import { QueryNotificationsDto } from './dto/query-notifications.dto.js';
 import { NotificationsGateway } from './notifications.gateway.js';
+import { MailService } from '../mail/mail.service.js';
+import { User } from '../users/entities/user.entity.js';
+import { Order } from '../orders/entities/order.entity.js';
 
 /**
  * Notifications service — gui thong bao in-app, email, push.
@@ -18,6 +22,11 @@ export class NotificationsService extends BaseService<Notification> {
     private readonly notificationsRepository: Repository<Notification>,
     @Inject(forwardRef(() => NotificationsGateway))
     private readonly gateway: NotificationsGateway,
+    private readonly mailService: MailService,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Order)
+    private readonly orderRepository: Repository<Order>,
   ) {
     super(notificationsRepository, 'Notification');
   }
@@ -48,11 +57,128 @@ export class NotificationsService extends BaseService<Notification> {
   }
 
   /**
-   * Gui email thong bao (placeholder — tich hop SMTP sau).
+   * Gui email khi trang thai don hang thay doi.
+   * Chi gui cho cac status quan trong: confirmed, shipping, delivered, cancelled.
+   * Email fail → log warning, KHONG throw.
    */
-  async sendEmail(to: string, subject: string, html: string): Promise<void> {
-    // TODO: Tich hop nodemailer hoac SendGrid
-    this.logger.log(`Send email to ${to}: ${subject}`);
+  async sendOrderStatusEmail(
+    userId: string,
+    orderId: string,
+    newStatus: OrderStatus,
+  ): Promise<void> {
+    // Map status → label + message tieng Viet
+    const statusMap: Partial<
+      Record<OrderStatus, { label: string; message: string }>
+    > = {
+      [OrderStatus.CONFIRMED]: {
+        label: 'Đã xác nhận',
+        message: 'đã được xác nhận và đang chuẩn bị',
+      },
+      [OrderStatus.SHIPPING]: {
+        label: 'Đang giao hàng',
+        message: 'đang được giao đến bạn',
+      },
+      [OrderStatus.DELIVERED]: {
+        label: 'Đã giao thành công',
+        message: 'đã được giao thành công',
+      },
+      [OrderStatus.CANCELLED]: {
+        label: 'Đã hủy',
+        message: 'đã bị hủy',
+      },
+    };
+
+    const statusInfo = statusMap[newStatus];
+    if (!statusInfo) return; // Cac status khac khong can gui email
+
+    try {
+      // Lay thong tin user va don hang de dien vao template
+      const [user, order] = await Promise.all([
+        this.userRepository.findOne({ where: { id: userId } }),
+        this.orderRepository.findOne({ where: { id: orderId } }),
+      ]);
+
+      if (!user || !order) {
+        this.logger.warn(
+          `sendOrderStatusEmail: user=${userId} or order=${orderId} not found — skipped`,
+        );
+        return;
+      }
+
+      await this.mailService.sendMail({
+        to: user.email,
+        template: 'order-status-update',
+        context: {
+          userName: user.name,
+          orderNumber: order.order_number,
+          statusLabel: statusInfo.label,
+          statusMessage: statusInfo.message,
+          updatedAt: new Date().toLocaleString('vi-VN'),
+        },
+      });
+    } catch (err: any) {
+      // Email fail khong anh huong luong chinh — chi log warning
+      this.logger.warn(
+        `sendOrderStatusEmail failed for order=${orderId} status=${newStatus}: ${err?.message}`,
+      );
+    }
+  }
+
+  /**
+   * Gui email canh bao bao mat khi co hoat dong bat thuong.
+   * Email fail → log warning, KHONG throw.
+   */
+  async sendSecurityAlert(
+    userId: string,
+    event: 'password_changed' | 'new_login',
+    meta?: { ip?: string; userAgent?: string },
+  ): Promise<void> {
+    // Map event → tieu de va mo ta canh bao
+    const alertMap: Record<
+      string,
+      { title: string; details: string }
+    > = {
+      password_changed: {
+        title: 'Mật khẩu tài khoản đã được thay đổi',
+        details:
+          'Nếu không phải bạn thực hiện, hãy liên hệ ngay với chúng tôi để bảo vệ tài khoản.',
+      },
+      new_login: {
+        title: 'Phát hiện đăng nhập từ thiết bị/IP mới',
+        details: meta?.ip
+          ? `IP đăng nhập: ${meta.ip}${meta.userAgent ? ` — ${meta.userAgent}` : ''}`
+          : 'Đăng nhập từ thiết bị không quen thuộc được phát hiện.',
+      },
+    };
+
+    const alert = alertMap[event];
+    if (!alert) return;
+
+    try {
+      const user = await this.userRepository.findOne({ where: { id: userId } });
+      if (!user) {
+        this.logger.warn(
+          `sendSecurityAlert: user=${userId} not found — skipped`,
+        );
+        return;
+      }
+
+      await this.mailService.sendMail({
+        to: user.email,
+        template: 'security-alert',
+        context: {
+          userName: user.name,
+          alertTitle: alert.title,
+          occurredAt: new Date().toLocaleString('vi-VN'),
+          details: alert.details,
+        },
+      });
+    } catch (err: any) {
+      // Email fail khong anh huong luong chinh — chi log warning
+      this.logger.warn(
+        `sendSecurityAlert failed for user=${userId} event=${event}: ${err?.message}`,
+      );
+    }
   }
 
   /**

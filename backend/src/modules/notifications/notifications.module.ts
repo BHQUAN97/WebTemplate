@@ -3,13 +3,16 @@ import { ConfigModule, ConfigService } from '@nestjs/config';
 import { JwtModule } from '@nestjs/jwt';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Notification } from './entities/notification.entity.js';
+import { User } from '../users/entities/user.entity.js';
+import { Order } from '../orders/entities/order.entity.js';
 import { NotificationsService } from './notifications.service.js';
 import { NotificationsController } from './notifications.controller.js';
 import { NotificationsGateway } from './notifications.gateway.js';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Notification]),
+    // Notification entity + User/Order repos cho email lookup
+    TypeOrmModule.forFeature([Notification, User, Order]),
     // JwtModule rieng cho Gateway — verify access token tu socket handshake.
     // Khong tai su dung JwtModule cua AuthModule de tranh circular dependency.
     JwtModule.registerAsync({

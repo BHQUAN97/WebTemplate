@@ -244,6 +244,49 @@ Thời gian: {{createdAt}}`,
         variables: ['name', 'email', 'subject', 'message', 'createdAt'],
       },
       {
+        name: 'order-status-update',
+        subject: 'Đơn hàng #{{orderNumber}} - {{statusLabel}}',
+        html_body: `<h1>Cập nhật đơn hàng #{{orderNumber}}</h1>
+<p>Xin chào {{userName}},</p>
+<p>Đơn hàng <strong>#{{orderNumber}}</strong> của bạn <strong>{{statusMessage}}</strong>.</p>
+<p>Thời gian cập nhật: {{updatedAt}}</p>
+<p>Nếu có thắc mắc, vui lòng liên hệ bộ phận hỗ trợ của chúng tôi.</p>`,
+        text_body: `Cập nhật đơn hàng #{{orderNumber}}
+
+Xin chào {{userName}},
+
+Đơn hàng #{{orderNumber}} của bạn {{statusMessage}}.
+Thời gian cập nhật: {{updatedAt}}`,
+        variables: [
+          'userName',
+          'orderNumber',
+          'statusLabel',
+          'statusMessage',
+          'updatedAt',
+        ],
+      },
+      {
+        name: 'security-alert',
+        subject: '[Cảnh báo bảo mật] {{alertTitle}}',
+        html_body: `<h1>Cảnh báo bảo mật tài khoản</h1>
+<p>Xin chào {{userName}},</p>
+<p>Chúng tôi phát hiện hoạt động bảo mật trên tài khoản của bạn:</p>
+<p><strong>{{alertTitle}}</strong></p>
+<p>Thời gian: {{occurredAt}}</p>
+<p>{{details}}</p>
+<p>Nếu đây không phải bạn thực hiện, hãy <strong>đổi mật khẩu ngay lập tức</strong> và liên hệ hỗ trợ.</p>`,
+        text_body: `Cảnh báo bảo mật tài khoản
+
+Xin chào {{userName}},
+
+{{alertTitle}}
+Thời gian: {{occurredAt}}
+{{details}}
+
+Nếu không phải bạn, hãy đổi mật khẩu ngay.`,
+        variables: ['userName', 'alertTitle', 'occurredAt', 'details'],
+      },
+      {
         name: 'weekly_report',
         subject: 'Bao cao tuan {{dateFrom}} - {{dateTo}}',
         html_body: `<h1>Bao cao tuan {{dateFrom}} - {{dateTo}}</h1>
