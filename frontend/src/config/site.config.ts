@@ -140,7 +140,7 @@ export const siteConfig: SiteConfig = {
     address: '123 Lê Lợi, Quận 1, TP. Hồ Chí Minh',
     hours: '8:00 - 17:30, Thứ 2 - Thứ 7',
     googleMapsUrl: 'https://maps.google.com/?q=123+Le+Loi+Quan+1+Ho+Chi+Minh',
-    googleMapsEmbed: '',
+    googleMapsEmbed: 'https://www.openstreetmap.org/export/embed.html?bbox=106.6890%2C10.7730%2C106.7010%2C10.7810&layer=mapnik&marker=10.7769%2C106.6951',
     zalo: '',
   },
 

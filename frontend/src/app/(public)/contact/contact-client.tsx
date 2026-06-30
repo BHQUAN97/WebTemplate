@@ -172,17 +172,39 @@ export function ContactClient() {
             </Card>
           ))}
 
-          {/* Map placeholder */}
-          <div className="aspect-square rounded-xl bg-gray-200 flex items-center justify-center text-gray-400">
-            <a
-              href={siteConfig.contact.googleMapsUrl}
-              target="_blank"
-              rel="noopener noreferrer"
-              className="flex flex-col items-center gap-2 hover:text-violet-600 transition-colors"
-            >
-              <MapPin className="h-8 w-8 mx-auto" />
-              <p className="text-sm">Xem trên Google Maps</p>
-            </a>
+          {/* Map */}
+          <div className="aspect-square rounded-xl overflow-hidden relative">
+            {siteConfig.contact.googleMapsEmbed ? (
+              <>
+                <iframe
+                  src={siteConfig.contact.googleMapsEmbed}
+                  title="Bản đồ địa chỉ"
+                  className="w-full h-full border-0"
+                  loading="lazy"
+                  referrerPolicy="no-referrer-when-downgrade"
+                />
+                <a
+                  href={siteConfig.contact.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="absolute bottom-2 right-2 bg-white/90 text-xs px-2 py-1 rounded shadow hover:bg-white transition-colors"
+                >
+                  Xem lớn hơn ↗
+                </a>
+              </>
+            ) : (
+              <div className="w-full h-full bg-gray-200 flex items-center justify-center text-gray-400">
+                <a
+                  href={siteConfig.contact.googleMapsUrl}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  className="flex flex-col items-center gap-2 hover:text-violet-600 transition-colors"
+                >
+                  <MapPin className="h-8 w-8 mx-auto" />
+                  <p className="text-sm">Xem trên Google Maps</p>
+                </a>
+              </div>
+            )}
           </div>
         </div>
       </div>
