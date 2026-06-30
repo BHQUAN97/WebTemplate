@@ -63,6 +63,15 @@ export const useAuthStore = create<AuthState>()(
           localStorage.setItem('access_token', token);
         }
         set({ token, user: res.user, isAuthenticated: true });
+        // Merge localStorage wishlist lên server rồi đồng bộ lại từ server
+        try {
+          const { useWishlistStore } = await import('@/lib/stores/wishlist-store');
+          const wl = useWishlistStore.getState();
+          await wl.mergeToServer();
+          await wl.syncFromServer();
+        } catch {
+          /* wishlist sync không block login */
+        }
       },
 
       logout: async () => {
@@ -85,6 +94,12 @@ export const useAuthStore = create<AuthState>()(
             cartMod.useCartStore.getState().clearCart?.();
           } catch {
             /* cart store optional */
+          }
+          try {
+            const wlMod = await import('@/lib/stores/wishlist-store');
+            wlMod.useWishlistStore.getState().clearWishlist();
+          } catch {
+            /* wishlist store optional */
           }
         }
         set({ user: null, token: null, isAuthenticated: false });
