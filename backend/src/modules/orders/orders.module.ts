@@ -9,6 +9,7 @@ import { OrdersController } from './orders.controller.js';
 import { InventoryModule } from '../inventory/inventory.module.js';
 import { PromotionsModule } from '../promotions/promotions.module.js';
 import { SettingsModule } from '../settings/settings.module.js';
+import { NotificationsModule } from '../notifications/notifications.module.js';
 
 @Module({
   imports: [
@@ -16,6 +17,7 @@ import { SettingsModule } from '../settings/settings.module.js';
     InventoryModule,
     PromotionsModule,
     SettingsModule,
+    NotificationsModule,
   ],
   controllers: [OrdersController],
   providers: [OrdersService],

@@ -18,6 +18,7 @@ import { QueryOrdersDto } from './dto/query-orders.dto.js';
 import { InventoryService } from '../inventory/inventory.service.js';
 import { PromotionsService } from '../promotions/promotions.service.js';
 import { SettingsService } from '../settings/settings.service.js';
+import { NotificationsService } from '../notifications/notifications.service.js';
 
 /**
  * Orders service — tao don hang tu cart hoac truc tiep, quan ly trang thai don hang.
@@ -41,6 +42,7 @@ export class OrdersService extends BaseService<Order> {
     private readonly inventoryService: InventoryService,
     private readonly promotionsService: PromotionsService,
     private readonly settingsService: SettingsService,
+    private readonly notificationsService: NotificationsService,
     @InjectDataSource()
     private readonly dataSource: DataSource,
   ) {
@@ -381,7 +383,24 @@ export class OrdersService extends BaseService<Order> {
       updateData.delivered_at = new Date();
     }
 
-    return this.update(id, updateData);
+    const updated = await this.update(id, updateData);
+
+    // Gửi email thông báo cho customer khi status quan trọng thay đổi
+    const notifyStatuses: OrderStatus[] = [
+      OrderStatus.CONFIRMED,
+      OrderStatus.SHIPPING,
+      OrderStatus.DELIVERED,
+      OrderStatus.CANCELLED,
+    ];
+    if (order.user_id && notifyStatuses.includes(status)) {
+      this.notificationsService
+        .sendOrderStatusEmail(order.user_id, id, status)
+        .catch((err: Error) =>
+          this.log.warn(`[Orders] Email thông báo order ${id} lỗi: ${err?.message}`),
+        );
+    }
+
+    return updated;
   }
 
   /**
