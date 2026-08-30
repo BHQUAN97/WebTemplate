@@ -19,6 +19,7 @@ services:
     environment:
       NODE_ENV: production
       APP_PORT: 6001
+      STORAGE_DRIVER: local
       DB_HOST: shared-mysql
       DB_PORT: 3306
       DB_NAME: webtemplate
