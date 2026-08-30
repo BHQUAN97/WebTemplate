@@ -30,6 +30,8 @@ services:
       APP_URL: https://template.bhquan.store
       API_URL: https://template.bhquan.store/api
       CORS_ORIGINS: https://template.bhquan.store
+    volumes:
+      - webtemplate_uploads:/app/uploads
     ports:
       - '127.0.0.1:6001:6001'
     healthcheck:
@@ -89,3 +91,6 @@ networks:
   webphoto_backend:
     name: webphoto_backend
     external: true
+
+volumes:
+  webtemplate_uploads:

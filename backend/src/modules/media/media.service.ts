@@ -17,7 +17,8 @@ import {
 import { getSignedUrl } from '@aws-sdk/s3-request-presigner';
 import sharp from 'sharp';
 import { ulid } from 'ulid';
-import { extname } from 'path';
+import * as path from 'path';
+import * as fs from 'fs';
 import { BaseService } from '../../common/services/base.service.js';
 import { PaginationDto } from '../../common/dto/pagination.dto.js';
 import { Media } from './entities/media.entity.js';
@@ -57,6 +58,9 @@ export class MediaService extends BaseService<Media> {
   private readonly s3: S3Client;
   private readonly bucket: string;
   private readonly publicUrl: string;
+  /** Fallback local FS khi thieu S3 credentials hoac STORAGE_DRIVER=local */
+  private readonly useLocal: boolean;
+  private readonly localDir: string;
 
   constructor(
     @InjectRepository(Media)
@@ -77,6 +81,20 @@ export class MediaService extends BaseService<Media> {
     const forcePathStyle =
       (process.env.S3_FORCE_PATH_STYLE || 'true').toLowerCase() === 'true';
 
+    // Fallback local storage khi thieu S3 credentials hoac STORAGE_DRIVER=local
+    this.useLocal =
+      process.env.STORAGE_DRIVER === 'local' ||
+      !accessKey ||
+      !secretKey ||
+      !endpoint;
+    this.localDir = path.resolve(process.cwd(), 'uploads');
+    if (this.useLocal) {
+      fs.mkdirSync(this.localDir, { recursive: true });
+      this.logger.warn(
+        `S3 credentials missing — using local file storage at ${this.localDir}`,
+      );
+    }
+
     this.s3 = new S3Client({
       region,
       endpoint: endpoint || undefined,
@@ -86,6 +104,40 @@ export class MediaService extends BaseService<Media> {
           ? { accessKeyId: accessKey, secretAccessKey: secretKey }
           : undefined,
     });
+  }
+
+  /** Save buffer to local dir (create parent folders). Chống path traversal. */
+  private saveLocal(key: string, body: Buffer): void {
+    const filePath = path.resolve(this.localDir, key);
+    if (!filePath.startsWith(this.localDir)) {
+      throw new Error('Invalid storage key');
+    }
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, body);
+  }
+
+  /** Read buffer from local dir. Throw NotFound neu file khong ton tai. */
+  private readLocal(key: string): Buffer {
+    const filePath = path.resolve(this.localDir, key);
+    if (!filePath.startsWith(this.localDir)) {
+      throw new Error('Invalid storage key');
+    }
+    if (!fs.existsSync(filePath)) {
+      throw new NotFoundException(`Local file ${key} not found`);
+    }
+    return fs.readFileSync(filePath);
+  }
+
+  /** Delete file tu local dir (neu ton tai). */
+  private deleteLocal(key: string): void {
+    const filePath = path.resolve(this.localDir, key);
+    if (!filePath.startsWith(this.localDir)) {
+      throw new Error('Invalid storage key');
+    }
+    if (fs.existsSync(filePath)) {
+      fs.unlinkSync(filePath);
+      this.logger.log(`[Local] Deleted ${key}`);
+    }
   }
 
   /**
@@ -157,16 +209,20 @@ export class MediaService extends BaseService<Media> {
     const folder = dto.folder || '/';
     const storageKey = this.buildKey(folder, file.originalname);
 
-    // Upload S3
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: storageKey,
-        Body: body,
-        ContentType: file.mimetype,
-        CacheControl: 'public, max-age=31536000, immutable',
-      }),
-    );
+    // Upload file: S3 hoac local FS
+    if (this.useLocal) {
+      this.saveLocal(storageKey, body);
+    } else {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: storageKey,
+          Body: body,
+          ContentType: file.mimetype,
+          CacheControl: 'public, max-age=31536000, immutable',
+        }),
+      );
+    }
 
     const url = this.buildPublicUrl(storageKey);
 
@@ -212,15 +268,19 @@ export class MediaService extends BaseService<Media> {
       .toBuffer();
 
     const thumbKey = `thumbnails/${ulid()}.webp`;
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: thumbKey,
-        Body: resized,
-        ContentType: 'image/webp',
-        CacheControl: 'public, max-age=31536000, immutable',
-      }),
-    );
+    if (this.useLocal) {
+      this.saveLocal(thumbKey, resized);
+    } else {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: thumbKey,
+          Body: resized,
+          ContentType: 'image/webp',
+          CacheControl: 'public, max-age=31536000, immutable',
+        }),
+      );
+    }
     return this.buildPublicUrl(thumbKey);
   }
 
@@ -237,6 +297,10 @@ export class MediaService extends BaseService<Media> {
       key = media.storage_key;
     }
 
+    if (this.useLocal) {
+      return this.buildPublicUrl(key);
+    }
+
     const cmd = new GetObjectCommand({ Bucket: this.bucket, Key: key });
     return getSignedUrl(this.s3, cmd, { expiresIn });
   }
@@ -246,18 +310,22 @@ export class MediaService extends BaseService<Media> {
    */
   async deleteMedia(id: string): Promise<void> {
     const media = await this.findById(id);
-    try {
-      await this.s3.send(
-        new DeleteObjectCommand({
-          Bucket: this.bucket,
-          Key: media.storage_key,
-        }),
-      );
-    } catch (err: any) {
-      // Log nhung khong block — S3 co the da xoa roi
-      this.logger.warn(
-        `S3 delete failed for ${media.storage_key}: ${err.message}`,
-      );
+    if (this.useLocal) {
+      this.deleteLocal(media.storage_key);
+    } else {
+      try {
+        await this.s3.send(
+          new DeleteObjectCommand({
+            Bucket: this.bucket,
+            Key: media.storage_key,
+          }),
+        );
+      } catch (err: any) {
+        // Log nhung khong block — S3 co the da xoa roi
+        this.logger.warn(
+          `S3 delete failed for ${media.storage_key}: ${err.message}`,
+        );
+      }
     }
     await this.softDelete(id);
     this.logger.log(`Deleted media: ${media.original_name} (${id})`);
@@ -315,6 +383,9 @@ export class MediaService extends BaseService<Media> {
    * Throw NotFoundException neu S3 khong co file.
    */
   async getObjectBuffer(storageKey: string): Promise<Buffer> {
+    if (this.useLocal) {
+      return this.readLocal(storageKey);
+    }
     const cmd = new GetObjectCommand({
       Bucket: this.bucket,
       Key: storageKey,
@@ -351,14 +422,19 @@ export class MediaService extends BaseService<Media> {
         .replace(/^-+|-+$/g, '')
         .slice(0, 80) || 'attachment';
     const key = `tmp/mail-attach/${Date.now()}-${ulid()}/${sanitized}`;
-    await this.s3.send(
-      new PutObjectCommand({
-        Bucket: this.bucket,
-        Key: key,
-        Body: buffer,
-        ContentType: contentType,
-      }),
-    );
+    if (this.useLocal) {
+      // Note: local tank khong co auto-expire — dung deleteTempAttachment de cleanup.
+      this.saveLocal(key, buffer);
+    } else {
+      await this.s3.send(
+        new PutObjectCommand({
+          Bucket: this.bucket,
+          Key: key,
+          Body: buffer,
+          ContentType: contentType,
+        }),
+      );
+    }
     return { key };
   }
 
@@ -366,6 +442,9 @@ export class MediaService extends BaseService<Media> {
    * Download lai attachment tam — dung trong email processor truoc khi gui Resend.
    */
   async downloadTempAttachment(key: string): Promise<Buffer> {
+    if (this.useLocal) {
+      return this.readLocal(key);
+    }
     const resp = await this.s3.send(
       new GetObjectCommand({ Bucket: this.bucket, Key: key }),
     );
@@ -383,6 +462,10 @@ export class MediaService extends BaseService<Media> {
    * Lifecycle rule van la safety net cho stale objects.
    */
   async deleteTempAttachment(key: string): Promise<void> {
+    if (this.useLocal) {
+      this.deleteLocal(key);
+      return;
+    }
     await this.s3.send(
       new DeleteObjectCommand({ Bucket: this.bucket, Key: key }),
     );
@@ -406,7 +489,7 @@ export class MediaService extends BaseService<Media> {
       cleanFolder = cleanFolder.slice(0, 100);
     }
     const prefix = cleanFolder ? `${cleanFolder}/` : '';
-    const ext = extname(originalName).toLowerCase();
+    const ext = path.extname(originalName).toLowerCase();
     const base = originalName
       .slice(0, originalName.length - ext.length)
       .toLowerCase()

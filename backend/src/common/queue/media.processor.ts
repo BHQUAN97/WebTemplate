@@ -10,6 +10,8 @@ import {
   GetObjectCommand,
 } from '@aws-sdk/client-s3';
 import sharp from 'sharp';
+import * as fs from 'fs';
+import * as path from 'path';
 import { Media } from '../../modules/media/entities/media.entity.js';
 import { QUEUE_NAMES } from './queue.module.js';
 import { DeadLetterService } from './dead-letter.service.js';
@@ -33,6 +35,9 @@ export class MediaProcessor extends WorkerHost {
   private readonly s3: S3Client;
   private readonly bucket: string;
   private readonly publicUrl: string;
+  /** Fallback local FS khi thieu S3 credentials hoac STORAGE_DRIVER=local */
+  private readonly useLocal: boolean;
+  private readonly localDir: string;
 
   constructor(
     private readonly configService: ConfigService,
@@ -50,6 +55,20 @@ export class MediaProcessor extends WorkerHost {
     const secretKey = this.configService.get<string>('storage.secretKey', '');
     const forcePathStyle =
       (process.env.S3_FORCE_PATH_STYLE || 'true').toLowerCase() === 'true';
+
+    // Fallback local storage khi thieu S3 credentials hoac STORAGE_DRIVER=local
+    this.useLocal =
+      process.env.STORAGE_DRIVER === 'local' ||
+      !accessKey ||
+      !secretKey ||
+      !endpoint;
+    this.localDir = path.resolve(process.cwd(), 'uploads');
+    if (this.useLocal) {
+      fs.mkdirSync(this.localDir, { recursive: true });
+      this.logger.warn(
+        `S3 credentials missing — using local file storage at ${this.localDir}`,
+      );
+    }
 
     this.s3 = new S3Client({
       region,
@@ -121,15 +140,20 @@ export class MediaProcessor extends WorkerHost {
       return {};
     }
 
-    // Download anh goc tu S3
-    const getCmd = new GetObjectCommand({
-      Bucket: this.bucket,
-      Key: media.storage_key,
-    });
-    const obj = await this.s3.send(getCmd);
-    const sourceBuffer = Buffer.from(
-      await (obj.Body as any).transformToByteArray(),
-    );
+    // Download anh goc tu S3 hoac local FS
+    let sourceBuffer: Buffer;
+    if (this.useLocal) {
+      sourceBuffer = this.readLocal(media.storage_key);
+    } else {
+      const getCmd = new GetObjectCommand({
+        Bucket: this.bucket,
+        Key: media.storage_key,
+      });
+      const obj = await this.s3.send(getCmd);
+      sourceBuffer = Buffer.from(
+        await (obj.Body as any).transformToByteArray(),
+      );
+    }
 
     let firstUrl: string | undefined;
 
@@ -141,15 +165,19 @@ export class MediaProcessor extends WorkerHost {
         .toBuffer();
 
       const thumbKey = this.buildThumbKey(media.storage_key, size);
-      await this.s3.send(
-        new PutObjectCommand({
-          Bucket: this.bucket,
-          Key: thumbKey,
-          Body: resized,
-          ContentType: 'image/webp',
-          CacheControl: 'public, max-age=31536000, immutable',
-        }),
-      );
+      if (this.useLocal) {
+        this.saveLocal(thumbKey, resized);
+      } else {
+        await this.s3.send(
+          new PutObjectCommand({
+            Bucket: this.bucket,
+            Key: thumbKey,
+            Body: resized,
+            ContentType: 'image/webp',
+            CacheControl: 'public, max-age=31536000, immutable',
+          }),
+        );
+      }
       const url = this.buildPublicUrl(thumbKey);
       if (!firstUrl) firstUrl = url;
       this.logger.log(`Thumbnail ${size}px uploaded: ${thumbKey}`);
@@ -161,6 +189,28 @@ export class MediaProcessor extends WorkerHost {
       await this.mediaRepo.save(media);
     }
     return { thumbnailUrl: firstUrl };
+  }
+
+  /** Save buffer to local dir (create parent folders). Chống path traversal. */
+  private saveLocal(key: string, body: Buffer): void {
+    const filePath = path.resolve(this.localDir, key);
+    if (!filePath.startsWith(this.localDir)) {
+      throw new Error('Invalid storage key');
+    }
+    fs.mkdirSync(path.dirname(filePath), { recursive: true });
+    fs.writeFileSync(filePath, body);
+  }
+
+  /** Read buffer from local dir. Throw neu file khong ton tai. */
+  private readLocal(key: string): Buffer {
+    const filePath = path.resolve(this.localDir, key);
+    if (!filePath.startsWith(this.localDir)) {
+      throw new Error('Invalid storage key');
+    }
+    if (!fs.existsSync(filePath)) {
+      throw new Error(`Local file not found: ${key}`);
+    }
+    return fs.readFileSync(filePath);
   }
 
   /**

@@ -7,7 +7,7 @@ import { ConfigService } from '@nestjs/config';
 import { SwaggerModule, DocumentBuilder } from '@nestjs/swagger';
 import helmet from 'helmet';
 import cookieParser from 'cookie-parser';
-import { json, raw } from 'express';
+import { json, raw, static as expressStatic } from 'express';
 import { readFileSync } from 'fs';
 import { join } from 'path';
 import { AppModule } from './app.module.js';
@@ -110,6 +110,10 @@ async function bootstrap() {
   // Trust proxy khi chay sau Nginx
   const expressApp = app.getHttpAdapter().getInstance();
   expressApp.set('trust proxy', 1);
+
+  // Serve local uploads khi media storage dung local FS thay S3/R2.
+  // Storage key trong DB la 'folder/{ulid}-{file}' -> tin tai <cwd>/uploads/{storage_key}.
+  expressApp.use('/uploads', expressStatic(join(process.cwd(), 'uploads')));
 
   // === Swagger UI ===
   // Chi bat khi khong production, hoac SWAGGER_ENABLED=true de bat thu cong o prod.
