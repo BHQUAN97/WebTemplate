@@ -408,6 +408,17 @@ jobs:
             fi
           " || true
 
+      # ── ĐỒNG BỘ HÓA: Run DB changelog (chuẩn Flyway, mọi mode) ─
+      - name: Run DB changelog
+        run: |
+          VPS="${{ secrets.VPS_USER }}@${{ secrets.VPS_HOST }}"
+          PORT="${{ secrets.VPS_PORT }}"
+          [ ! -d db/changelog ] && echo "No db/changelog — skip" && exit 0
+          # Upload script + chạy idempotent baseline (an toàn chạy lại nhiều lần)
+          sshpass -e scp -P $PORT -r db/changelog $VPS:/opt/webtemplate/db/
+          sshpass -e scp -P $PORT scripts/db-changelog.sh $VPS:/opt/webtemplate/scripts/db-changelog.sh
+          sshpass -e ssh -p $PORT $VPS "cd /opt/webtemplate && bash scripts/db-changelog.sh 2>&1 || { echo '::error::db-changelog failed'; exit 1; }"
+
       # ── INIT: Sync schema + mark migrations + seed admin ──────
       - name: "[INIT] Run DB migrations"
         if: needs.build.outputs.mode == 'init'
